@@ -1,15 +1,13 @@
-# Color Conversions
+# RGB Conversions
 
-    class Rgb {
+## Data Type
+
+We can use a common RGB type whether for sRGB specifically or in general.
+
+    export class Rgb {
       public r: Float64;
       public g: Float64;
       public b: Float64;
-    }
-
-    class Xyz {
-      public x: Float64;
-      public y: Float64;
-      public z: Float64;
     }
 
 ## Gamma-Corrected <-> Linear sRGB
