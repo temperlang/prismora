@@ -4,6 +4,14 @@
 
 We can use a common RGB type whether for sRGB specifically or in general.
 
+For now, I've made separate `Rgb` and `Lab` color types. We possibly could go
+to `Xyz` for everything since otherwise generic ops seem weird. But sometimes
+it's nice to have explicit channel names.
+
+We could also go lists of 3 channels for everything and matrices for lists of
+colors. That has different pros and cons, especially when we don't currently
+connect to fixed-length arrays or backend matrix types.
+
     export class Rgb {
       public r: Float64;
       public g: Float64;
@@ -89,21 +97,21 @@ The Wikipedia example linearizes as part of the transformation to CIE XYZ.
 
     export let srgbGammaToLinear(rgb: Rgb): Rgb {
       {
-        r: componentGammaToLinear(rgb.r),
-        g: componentGammaToLinear(rgb.g),
-        b: componentGammaToLinear(rgb.b),
+        r: channelGammaToLinear(rgb.r),
+        g: channelGammaToLinear(rgb.g),
+        b: channelGammaToLinear(rgb.b),
       }
     }
 
     export let srgbLinearToGamma(rgb: Rgb): Rgb {
       {
-        r: componentLinearToGamma(rgb.r),
-        g: componentLinearToGamma(rgb.g),
-        b: componentLinearToGamma(rgb.b),
+        r: channelLinearToGamma(rgb.r),
+        g: channelLinearToGamma(rgb.g),
+        b: channelLinearToGamma(rgb.b),
       }
     }
 
-    export let componentGammaToLinear(x: Float64): Float64 {
+    export let channelGammaToLinear(x: Float64): Float64 {
       if (x >= 0.04045) {
         ((x + 0.055) / 1.055) ** 2.4
       } else {
@@ -111,7 +119,7 @@ The Wikipedia example linearizes as part of the transformation to CIE XYZ.
       }
     }
 
-    export let componentLinearToGamma(x: Float64): Float64 {
+    export let channelLinearToGamma(x: Float64): Float64 {
       if (x >= 0.0031308) {
         1.055 * x ** (1.0 / 2.4) - 0.055
       } else {
