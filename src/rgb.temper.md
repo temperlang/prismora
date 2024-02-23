@@ -58,8 +58,17 @@ anyway?
       r * 0x10000 + g * 0x100 + b
     }
 
-    test("rgbUnitToInt top bound") {
-      assert(rgbUnitToInt(new Rgb(0.0, 0.5, 1.0)) == 0x0080FF);
+Renders as an HTML/CSS `#rrggbb` string. For now, it gives lowercase hex,
+although that could maybe change in the future.
+
+    export let rgbUnitToString(rgb: Rgb): String {
+      "#${padLeft(rgbUnitToInt(rgb).toString(16), 6, "0")}"
+    }
+
+    test("rgbUnitToInt top bound and left pad") {
+      let rgb = new Rgb(0.0, 0.5, 1.0);
+      assert(rgbUnitToInt(rgb) == 0x0080ff);
+      assert(rgbUnitToString(rgb) == "#0080ff");
     }
 
 These operate on floats rather than ints.
