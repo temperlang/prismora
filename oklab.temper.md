@@ -30,8 +30,4 @@ Note that we need to linearize before Oklab conversion.
       }
     }
 
-## Helpers
-
-Should we implement `cbrt` in Temper implicits?
-
-    let cbrt(x: Float64): Float64 { x ** (1.0 / 3.0) }
+    // TODO oklabToLinearSrgb
