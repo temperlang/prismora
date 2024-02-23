@@ -6,7 +6,8 @@ We can represent color in many color spaces as a 3D vector. We also use floats
 primarily for colors, so we can maintain precision.
 
 We don't call the type `Xyz`, even though those are the property names, because
-some color spaces are explicitly called XYZ.
+some color spaces are explicitly called XYZ. And note that this is a
+general-purpose 3D vector, separate from any notion of color.
 
     export class Vec3 {
 
@@ -52,7 +53,7 @@ of colors in the same space. But here's a single color with a defined space.
       let check(name: String, y: Float64, z: Float64): Void {
         assertNear(name, y, z) { (message);; assert(false) {message} }
       }
-      let srgb = new Vec3(0.3, 0.4, 0.5);
+      let srgb = new Vec3(0.691, 0.139, 0.259);
       let linear = new Color(Spaces.srgb, srgb).to(Spaces.srgbLinear);
       assert(linear.space == Spaces.srgbLinear)
 
@@ -61,9 +62,9 @@ Might be nice to check against something like
 [different math][AjaltLinearRgb]. These numbers are fairly close to those,
 however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
 
-      check("r", linear.vec.x, 0.07323895587840543);
-      check("g", linear.vec.y, 0.13286832155381798);
-      check("b", linear.vec.z, 0.21404114048223255);
+      check("r", linear.vec.x, 0.43527856667280590);
+      check("g", linear.vec.y, 0.01717585039723197);
+      check("b", linear.vec.z, 0.05455383078270364);
     }
 
 It would be nice to support expanded value types and also connect with backend
