@@ -57,21 +57,8 @@ formatting for RGB with leading "\#" is defined with other RGB operations.
 
 These operate on floats rather than ints.
 
-    export let byteToUnit(vec: Vec3): Vec3 {
-      {
-        x: vec.x / 255.0,
-        y: vec.y / 255.0,
-        z: vec.z / 255.0,
-      }
-    }
-
-    export let unitToByte(vec: Vec3): Vec3 {
-      {
-        x: vec.x * 255.0,
-        y: vec.y * 255.0,
-        z: vec.z * 255.0,
-      }
-    }
+    export let byteToUnit(vec: Vec3): Vec3 { vec.map { (x);; x / 255.0 } }
+    export let unitToByte(vec: Vec3): Vec3 { vec.map { (x);; x * 255.0 } }
 
 Presumes that `x` is known to be approximately in the 0 to 255 range already.
 

@@ -22,19 +22,11 @@ Sources:
 The Wikipedia example linearizes as part of the transformation to CIE XYZ.
 
     export let srgbGammaToLinear(rgb: Vec3): Vec3 {
-      {
-        x: channelGammaToLinear(rgb.x),
-        y: channelGammaToLinear(rgb.y),
-        z: channelGammaToLinear(rgb.z),
-      }
+      rgb.map { (x);; channelGammaToLinear(x) }
     }
 
     export let srgbLinearToGamma(rgb: Vec3): Vec3 {
-      {
-        x: channelLinearToGamma(rgb.x),
-        y: channelLinearToGamma(rgb.y),
-        z: channelLinearToGamma(rgb.z),
-      }
+      rgb.map { (x);; channelLinearToGamma(x) }
     }
 
     export let channelGammaToLinear(x: Float64): Float64 {

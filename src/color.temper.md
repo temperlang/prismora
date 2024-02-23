@@ -10,11 +10,19 @@ some color spaces are explicitly called XYZ.
 
     export class Vec3 {
 
-These components might be rgb, lab, lch, hsv, or otherwise.
+These channels/components might be rgb, lab, lch, hsv, or otherwise.
 
       public x: Float64;
       public y: Float64;
       public z: Float64;
+
+Convenience for channel-wise operations. Backends that can't inline this might
+have performance hurt, so it might be nice to make this inlined or macro in
+Temper sometime.
+
+      public map(transform: fn (Float64): Float64): Vec3 {
+        { x: transform(x), y: transform(y), z: transform(z) }
+      }
     }
 
 We don't currently have opacity/alpha, but we might ought to extend to that
@@ -27,11 +35,15 @@ of colors in the same space. But here's a single color with a defined space.
       public space: Space;
       public vec: Vec3;
 
-      public to(other: Space): Color {
-        if (other == space) {
+      public map(transform: fn (Float64): Float64): Color {
+        { space, vec: vec.map(transform) }
+      }
+
+      public to(space: Space): Color {
+        if (space == this.space) {
           this
         } else {
-          { space: other, vec: convert(vec, from = space, to = other) }
+          { space, vec: convert(vec, from = this.space, to = space) }
         }
       }
     }
