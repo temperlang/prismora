@@ -118,18 +118,18 @@ involved.
       match (from) {
         Spaces.oklab -> match (to) {
           Spaces.oklab -> vec;
-          Spaces.srgb -> srgbLinearToGamma(oklabToLinearSrgb(vec));
-          Spaces.srgbLinear -> oklabToLinearSrgb(vec);
+          Spaces.srgb -> srgbLinearToGamma(oklabToSrgbLinear(vec));
+          Spaces.srgbLinear -> oklabToSrgbLinear(vec);
           else -> bubble();
         }
         Spaces.srgb -> match (to) {
-          Spaces.oklab -> linearSrgbToOklab(srgbGammaToLinear(vec));
+          Spaces.oklab -> srgbLinearToOklab(srgbGammaToLinear(vec));
           Spaces.srgb -> vec;
           Spaces.srgbLinear -> srgbGammaToLinear(vec);
           else -> bubble();
         }
         Spaces.srgbLinear -> match (to) {
-          Spaces.oklab -> linearSrgbToOklab(vec);
+          Spaces.oklab -> srgbLinearToOklab(vec);
           Spaces.srgb -> srgbLinearToGamma(vec);
           Spaces.srgbLinear -> vec;
           else -> bubble();

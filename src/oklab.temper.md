@@ -8,7 +8,7 @@ References:
 
 Note that we need to linearize before Oklab conversion.
 
-    export let linearSrgbToOklab(rgb: Vec3): Vec3 {
+    export let srgbLinearToOklab(rgb: Vec3): Vec3 {
       let { x, y, z } = rgb;
       let l = 0.4122214708 * x + 0.5363325363 * y + 0.0514459929 * z;
       let m = 0.2119034982 * x + 0.6806995451 * y + 0.1073969566 * z;
@@ -23,7 +23,7 @@ Note that we need to linearize before Oklab conversion.
       }
     }
 
-    export let oklabToLinearSrgb(lab: Vec3): Vec3 {
+    export let oklabToSrgbLinear(lab: Vec3): Vec3 {
       let { x, y, z } = lab;
       let l_ = x + 0.3963377774 * y + 0.2158037573 * z;
       let m_ = x - 0.1055613458 * y - 0.0638541728 * z;
@@ -50,8 +50,8 @@ Note that we need to linearize before Oklab conversion.
       let tol = 1e-6;
       forEach(rgbs) { (rgb0: Vec3);;
         let linear0 = srgbGammaToLinear(rgb0);
-        let oklab = linearSrgbToOklab(linear0);
-        let linear1 = oklabToLinearSrgb(oklab);
+        let oklab = srgbLinearToOklab(linear0);
+        let linear1 = oklabToSrgbLinear(oklab);
         let rgb1 = srgbLinearToGamma(linear1);
         check("x", rgb0.x, rgb1.x);
         check("y", rgb0.y, rgb1.y);
