@@ -32,10 +32,10 @@ Note that we need to linearize before Oklab conversion.
     }
 
     export let oklabToLinearSrgb(lab: Lab): Rgb {
-      let { l as l0, a, b } = lab;
-      let l_ = l0 + 0.3963377774 * a + 0.2158037573 * b;
-      let m_ = l0 - 0.1055613458 * a - 0.0638541728 * b;
-      let s_ = l0 - 0.0894841775 * a - 1.2914855480 * b;
+      let { l as l__, a, b } = lab;
+      let l_ = l__ + 0.3963377774 * a + 0.2158037573 * b;
+      let m_ = l__ - 0.1055613458 * a - 0.0638541728 * b;
+      let s_ = l__ - 0.0894841775 * a - 1.2914855480 * b;
       let l = l_ * l_ * l_;
       let m = m_ * m_ * m_;
       let s = s_ * s_ * s_;
