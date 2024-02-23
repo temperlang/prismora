@@ -59,7 +59,7 @@ of colors in the same space. But here's a single color with a defined space.
 Might be nice to check against something like
 [this color converter][AjaltConverter], but they use
 [different math][AjaltLinearRgb]. These numbers are fairly close to those,
-however. Maybe we need to see what the CSS Color Model Level 4 says.
+however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
 
       check("r", linear.vec.x, 0.07323895587840543);
       check("g", linear.vec.y, 0.13286832155381798);
@@ -141,3 +141,4 @@ involved.
 
 [AjaltConverter]: https://ajalt.github.io/colormath/converter/
 [AjaltLinearRgb]: https://github.com/ajalt/colormath/blob/9ff469060467d478466315280c19d803e4dd2bcd/colormath/src/commonMain/kotlin/com/github/ajalt/colormath/model/RGBColorSpaces.kt#L109
+[Css4Srgb]: https://www.w3.org/TR/css-color-4/#valdef-color-srgb

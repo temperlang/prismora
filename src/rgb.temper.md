@@ -18,6 +18,7 @@ Sources:
 
 - https://bottosson.github.io/posts/colorwrong/#what-can-we-do%3F
 - https://en.wikipedia.org/wiki/SRGB#Transformation
+- https://www.w3.org/TR/css-color-4/#valdef-color-srgb
 
 The Wikipedia example linearizes as part of the transformation to CIE XYZ.
 
