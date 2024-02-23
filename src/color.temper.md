@@ -26,6 +26,32 @@ of colors in the same space. But here's a single color with a defined space.
     export class Color {
       public space: Space;
       public vec: Vec3;
+
+      public to(other: Space): Color {
+        if (other == space) {
+          this
+        } else {
+          { space: other, vec: convert(vec, from = space, to = other) }
+        }
+      }
+    }
+
+    test("color conversions") {
+      let check(name: String, y: Float64, z: Float64): Void {
+        assertNear(name, y, z) { (message);; assert(false) {message} }
+      }
+      let srgb = new Vec3(0.3, 0.4, 0.5);
+      let linear = new Color(Spaces.srgb, srgb).to(Spaces.srgbLinear);
+      assert(linear.space == Spaces.srgbLinear)
+
+Might be nice to check against something like
+[this color converter][AjaltConverter], but they use
+[different math][AjaltLinearRgb]. These numbers are fairly close to those,
+however. Maybe we need to see what the CSS Color Model Level 4 says.
+
+      check("r", linear.vec.x, 0.07323895587840543);
+      check("g", linear.vec.y, 0.13286832155381798);
+      check("b", linear.vec.z, 0.21404114048223255);
     }
 
 It would be nice to support expanded value types and also connect with backend
@@ -39,6 +65,9 @@ TODO How to say that we want to support identity equality on a type?
 
 This class is a simulated enum, although maybe we do want it open beyond spaces
 defined in this library.
+
+      public name: String;
+      public toString(): String { name }
 
 We can't actually define static instances here because we generate broken
 Python, at least. Haven't checked all backends.
@@ -60,9 +89,43 @@ We don't actually make constructors private yet, but pretend we can.
 
 And here are our currently defined color spaces.
 
-      public static hsv = new Space();
-      public static oklab = new Space();
-      public static oklch = new Space();
-      public static srgb = new Space();
-      public static srgbLinear = new Space();
+      public static hsv = new Space("hsv");
+      public static oklab = new Space("oklab");
+      public static oklch = new Space("oklch");
+      public static srgb = new Space("srgb");
+      public static srgbLinear = new Space("srgbLinear");
     }
+
+## Conversion
+
+Generic conversion functions call specific functions depending on the spaces
+involved.
+
+    export let convert(vec: Vec3, from: Space, to: Space): Vec3 | Bubble {
+      match (from) {
+        Spaces.oklab -> match (to) {
+          Spaces.oklab -> vec;
+          Spaces.srgb -> srgbLinearToGamma(oklabToLinearSrgb(vec));
+          Spaces.srgbLinear -> oklabToLinearSrgb(vec);
+          else -> bubble();
+        }
+        Spaces.srgb -> match (to) {
+          Spaces.oklab -> linearSrgbToOklab(srgbGammaToLinear(vec));
+          Spaces.srgb -> vec;
+          Spaces.srgbLinear -> srgbGammaToLinear(vec);
+          else -> bubble();
+        }
+        Spaces.srgbLinear -> match (to) {
+          Spaces.oklab -> linearSrgbToOklab(vec);
+          Spaces.srgb -> srgbLinearToGamma(vec);
+          Spaces.srgbLinear -> vec;
+          else -> bubble();
+        }
+        else -> bubble();
+      }
+    }
+
+## References
+
+[AjaltConverter]: https://ajalt.github.io/colormath/converter/
+[AjaltLinearRgb]: https://github.com/ajalt/colormath/blob/9ff469060467d478466315280c19d803e4dd2bcd/colormath/src/commonMain/kotlin/com/github/ajalt/colormath/model/RGBColorSpaces.kt#L109

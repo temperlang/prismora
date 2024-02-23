@@ -1,80 +1,15 @@
 # RGB Conversions
 
-## 8-Bit <-> Unit-Bounded
-
-These take an RGB int value, such as 0x112233. This requires at least 24 bits in
-the backend int representation. Can we promise that?
-
-    export let rgbIntToUnit(rgb: Int): Vec3 {
-
-TODO Do we have bit shifting?
-
-      let r = (rgb & 0xFF0000) / 0x10000;
-      let g = (rgb & 0xFF00) / 0x100;
-      let b = rgb & 0xFF;
-      rgbByteToUnit({
-
-These are safe because we controlled the bounds above.
-
-And I do a lot of repeating myself for each channel here. I could make a
-`mapRgb` function, but I'm afraid the callback will be inefficient on some
-backends. On the other hand, on NumPy, just operating a 3xN array all at once
-would be most efficient for channel-wise ops. This would be a case where known
-array-friendly ops and a backend-connected map function might be better.
-
-        x: r.toFloat64Unsafe(),
-        y: g.toFloat64Unsafe(),
-        z: b.toFloat64Unsafe(),
-      })
-    }
-
-    export let rgbUnitToInt(rgb: Vec3): Int {
-      let byte = rgbUnitToByte(rgb);
-      let r = clampToIntByte(byte.x);
-      let g = clampToIntByte(byte.y);
-      let b = clampToIntByte(byte.z);
-
-Again, bit shifting would be nice here. Maybe some backends can optimize,
-anyway?
-
-      r * 0x10000 + g * 0x100 + b
-    }
+## RGB Formatting
 
 Renders as an HTML/CSS `#rrggbb` string. For now, it gives lowercase hex,
 although that could maybe change in the future.
 
+And this technically could apply to any color space, but the format typically
+means RGB.
+
     export let rgbUnitToString(rgb: Vec3): String {
-      "#${padLeft(rgbUnitToInt(rgb).toString(16), 6, "0")}"
-    }
-
-    test("rgbUnitToInt top bound and left pad") {
-      let rgb = new Vec3(0.0, 0.5, 1.0);
-      assert(rgbUnitToInt(rgb) == 0x0080ff);
-      assert(rgbUnitToString(rgb) == "#0080ff");
-    }
-
-These operate on floats rather than ints.
-
-    export let rgbByteToUnit(rgb: Vec3): Vec3 {
-      {
-        x: rgb.x / 255.0,
-        y: rgb.y / 255.0,
-        z: rgb.z / 255.0,
-      }
-    }
-
-    export let rgbUnitToByte(rgb: Vec3): Vec3 {
-      {
-        x: rgb.x * 255.0,
-        y: rgb.y * 255.0,
-        z: rgb.z * 255.0,
-      }
-    }
-
-Presumes that `x` is known to be approximately in the 0 to 255 range already.
-
-    export let clampToIntByte(x: Float64): Int {
-      clampByte(x.round().toIntUnsafe())
+      "#${unitToString(rgb)}"
     }
 
 ## Gamma-Corrected <-> Linear sRGB
