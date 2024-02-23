@@ -1,29 +1,11 @@
 # RGB Conversions
 
-## Data Type
-
-We can use a common RGB type whether for sRGB specifically or in general.
-
-For now, I've made separate `Rgb` and `Lab` color types. We possibly could go
-to `Xyz` for everything since otherwise generic ops seem weird. But sometimes
-it's nice to have explicit channel names.
-
-We could also go lists of 3 channels for everything and matrices for lists of
-colors. That has different pros and cons, especially when we don't currently
-connect to fixed-length arrays or backend matrix types.
-
-    export class Rgb {
-      public r: Float64;
-      public g: Float64;
-      public b: Float64;
-    }
-
 ## 8-Bit <-> Unit-Bounded
 
 These take an RGB int value, such as 0x112233. This requires at least 24 bits in
 the backend int representation. Can we promise that?
 
-    export let rgbIntToUnit(rgb: Int): Rgb {
+    export let rgbIntToUnit(rgb: Int): Vec3 {
 
 TODO Do we have bit shifting?
 
@@ -40,17 +22,17 @@ backends. On the other hand, on NumPy, just operating a 3xN array all at once
 would be most efficient for channel-wise ops. This would be a case where known
 array-friendly ops and a backend-connected map function might be better.
 
-        r: r.toFloat64Unsafe(),
-        g: g.toFloat64Unsafe(),
-        b: b.toFloat64Unsafe(),
+        x: r.toFloat64Unsafe(),
+        y: g.toFloat64Unsafe(),
+        z: b.toFloat64Unsafe(),
       })
     }
 
-    export let rgbUnitToInt(rgb: Rgb): Int {
+    export let rgbUnitToInt(rgb: Vec3): Int {
       let byte = rgbUnitToByte(rgb);
-      let r = clampToIntByte(byte.r);
-      let g = clampToIntByte(byte.g);
-      let b = clampToIntByte(byte.b);
+      let r = clampToIntByte(byte.x);
+      let g = clampToIntByte(byte.y);
+      let b = clampToIntByte(byte.z);
 
 Again, bit shifting would be nice here. Maybe some backends can optimize,
 anyway?
@@ -61,31 +43,31 @@ anyway?
 Renders as an HTML/CSS `#rrggbb` string. For now, it gives lowercase hex,
 although that could maybe change in the future.
 
-    export let rgbUnitToString(rgb: Rgb): String {
+    export let rgbUnitToString(rgb: Vec3): String {
       "#${padLeft(rgbUnitToInt(rgb).toString(16), 6, "0")}"
     }
 
     test("rgbUnitToInt top bound and left pad") {
-      let rgb = new Rgb(0.0, 0.5, 1.0);
+      let rgb = new Vec3(0.0, 0.5, 1.0);
       assert(rgbUnitToInt(rgb) == 0x0080ff);
       assert(rgbUnitToString(rgb) == "#0080ff");
     }
 
 These operate on floats rather than ints.
 
-    export let rgbByteToUnit(rgb: Rgb): Rgb {
+    export let rgbByteToUnit(rgb: Vec3): Vec3 {
       {
-        r: rgb.r / 255.0,
-        g: rgb.g / 255.0,
-        b: rgb.b / 255.0,
+        x: rgb.x / 255.0,
+        y: rgb.y / 255.0,
+        z: rgb.z / 255.0,
       }
     }
 
-    export let rgbUnitToByte(rgb: Rgb): Rgb {
+    export let rgbUnitToByte(rgb: Vec3): Vec3 {
       {
-        r: rgb.r * 255.0,
-        g: rgb.g * 255.0,
-        b: rgb.b * 255.0,
+        x: rgb.x * 255.0,
+        y: rgb.y * 255.0,
+        z: rgb.z * 255.0,
       }
     }
 
@@ -104,19 +86,19 @@ Sources:
 
 The Wikipedia example linearizes as part of the transformation to CIE XYZ.
 
-    export let srgbGammaToLinear(rgb: Rgb): Rgb {
+    export let srgbGammaToLinear(rgb: Vec3): Vec3 {
       {
-        r: channelGammaToLinear(rgb.r),
-        g: channelGammaToLinear(rgb.g),
-        b: channelGammaToLinear(rgb.b),
+        x: channelGammaToLinear(rgb.x),
+        y: channelGammaToLinear(rgb.y),
+        z: channelGammaToLinear(rgb.z),
       }
     }
 
-    export let srgbLinearToGamma(rgb: Rgb): Rgb {
+    export let srgbLinearToGamma(rgb: Vec3): Vec3 {
       {
-        r: channelLinearToGamma(rgb.r),
-        g: channelLinearToGamma(rgb.g),
-        b: channelLinearToGamma(rgb.b),
+        x: channelLinearToGamma(rgb.x),
+        y: channelLinearToGamma(rgb.y),
+        z: channelLinearToGamma(rgb.z),
       }
     }
 
