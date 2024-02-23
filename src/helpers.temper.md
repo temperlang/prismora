@@ -3,6 +3,27 @@
 Most things here are internal helpers. If we want to export any from the
 library, we might should move them somewhere else.
 
+## Asserts
+
+### Assert Near
+
+Provides extra info over simple assert. But we don't actually call assert here,
+because we don't prune test-only helpers enough on backends, and we don't want
+to import std/testing in our prod library code.
+
+    let assertNear(
+      name: String, a: Float64, b: Float64, onFail: fn (String): Void
+    ): Void {
+
+Hardcode the tolerance we expect for our color operations.
+
+      let absTol = 1e-6;
+      if (!a.near(b, absTol = absTol)) {
+        let info = "with relTol ${absTol.toString()}";
+        onFail("${name} ${a.toString()} not near ${b.toString()} with ${info}");
+      }
+    }
+
 ## Clamp Withing Bounds
 
 ### Clamp Float
@@ -40,6 +61,19 @@ Also, we don't have builtin max/min for ints.
 ### Clamp Float to Unit Range
 
     let clampUnit(x: Float64): Float64 { clamp(x, 0.0, 1.0) }
+
+## Control Flow
+
+### For Each Loop
+
+We need this in the language and/or builtins at some point, but this will do for
+now.
+
+    let forEach<T>(items: Listed<T>, action: fn (T): Void): Void {
+      for (var i = 0; i < items.length; i += 1) {
+        action(items[i]);
+      }
+    }
 
 ## Formatting
 
