@@ -4,7 +4,7 @@ Until we have a builtin backend-connected ND array type, here's a matrix type
 that can efficiently represent lists of color of arbitrary dimensionality. We
 might also want to represent some transforms as matrix operations.
 
-    class Matrix {
+    export class Matrix {
 
 ## Constructor
 

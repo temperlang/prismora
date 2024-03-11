@@ -54,8 +54,8 @@ of colors in the same space. But here's a single color with a defined space.
         assertNear(name, y, z) { (message);; assert(false) {message} }
       }
       let srgb = new Vec3(0.691, 0.139, 0.259);
-      let linear = new Color(Spaces.srgb, srgb).to(Spaces.srgbLinear);
-      assert(linear.space == Spaces.srgbLinear)
+      let linear = new Color(Space.srgb, srgb).to(Space.srgbLinear);
+      assert(linear.space == Space.srgbLinear)
 
 Might be nice to check against something like
 [this color converter][AjaltConverter], but they use
@@ -82,25 +82,9 @@ defined in this library.
       public name: String;
       public toString(): String { name }
 
-We can't actually define static instances here because we generate broken
-Python, at least. Haven't checked all backends.
-
-    }
-
 Some of the supported spaces here aren't considered by everyone to be true
 separate "spaces". For example, some consider RGB and HSV just to be different
 representations of the same space, but we don't make that distinction here.
-
-Anyway, put our instances in a separate type for now, per our conversion
-problems mentioned above.
-
-    export class Spaces {
-
-We don't actually make constructors private yet, but pretend we can.
-
-      private constructor() {}
-
-And here are our currently defined color spaces.
 
       public static hsv = new Space("hsv");
       public static oklab = new Space("oklab");
@@ -116,22 +100,22 @@ involved.
 
     export let convert(vec: Vec3, from: Space, to: Space): Vec3 | Bubble {
       match (from) {
-        Spaces.oklab -> match (to) {
-          Spaces.oklab -> vec;
-          Spaces.srgb -> srgbLinearToGamma(oklabToSrgbLinear(vec));
-          Spaces.srgbLinear -> oklabToSrgbLinear(vec);
+        Space.oklab -> match (to) {
+          Space.oklab -> vec;
+          Space.srgb -> srgbLinearToGamma(oklabToSrgbLinear(vec));
+          Space.srgbLinear -> oklabToSrgbLinear(vec);
           else -> bubble();
         }
-        Spaces.srgb -> match (to) {
-          Spaces.oklab -> srgbLinearToOklab(srgbGammaToLinear(vec));
-          Spaces.srgb -> vec;
-          Spaces.srgbLinear -> srgbGammaToLinear(vec);
+        Space.srgb -> match (to) {
+          Space.oklab -> srgbLinearToOklab(srgbGammaToLinear(vec));
+          Space.srgb -> vec;
+          Space.srgbLinear -> srgbGammaToLinear(vec);
           else -> bubble();
         }
-        Spaces.srgbLinear -> match (to) {
-          Spaces.oklab -> srgbLinearToOklab(vec);
-          Spaces.srgb -> srgbLinearToGamma(vec);
-          Spaces.srgbLinear -> vec;
+        Space.srgbLinear -> match (to) {
+          Space.oklab -> srgbLinearToOklab(vec);
+          Space.srgb -> srgbLinearToGamma(vec);
+          Space.srgbLinear -> vec;
           else -> bubble();
         }
         else -> bubble();
