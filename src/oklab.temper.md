@@ -42,31 +42,34 @@ Note that we need to linearize before Oklab conversion.
       }
     }
 
-### Alternative With Multistep Matrix Multiply
+### Matrix form
 
-This is a little more straightforward although not less code. It might also have
-the bonus of working faster in things like NumPy, if we were were using it.
-Without that, this probably costs more due to more steps and allocations.
+So we can map each row one at a time, combining different operations, but the
+matrix form is clearer. Matrix form would also be more efficient in Python if
+using NumPy. Unfortunately, we're not using that. But use matrices, anyway.
 
-TODO This currently is broken. Maybe just need transposed matrices.
+    let oklabToSrgbLinearTimes(lab: Matrix): Matrix {
 
-    let oklabToSrgbLinearMul(lab: Matrix): Matrix {
-      let lms_ = lab.mul(oklabToSrgbLinear0);
-      let lms = lms_.map { (x);; x * x * x };
-      lms.mul(oklabToSrgbLinear1)
+The real problem for now is that we can't seem to cache these matrices as
+top-level members. Our ordering seems to be off. TODO Investigate!
+
+      let oklabToSrgbLinear0 = new Matrix(3, [
+        1.0, +0.3963377774, +0.2158037573,
+        1.0, -0.1055613458, -0.0638541728,
+        1.0, -0.0894841775, -1.2914855480,
+      ]).transpose();
+
+      let oklabToSrgbLinear1 = new Matrix(3, [
+        +4.0767416621, -3.3077115913, +0.2309699292,
+        -1.2684380046, +2.6097574011, -0.3413193965,
+        -0.0041960863, -0.7034186147, +1.7076147010,
+      ]).transpose();
+
+      lab
+        .times(oklabToSrgbLinear0)
+        .map { (x);; x * x * x }
+        .times(oklabToSrgbLinear1)
     }
-
-    let oklabToSrgbLinear0 = new Matrix(3, [
-      1.0, +0.3963377774, +0.2158037573,
-      1.0, -0.1055613458, -0.0638541728,
-      1.0, -0.0894841775, -1.2914855480,
-    ]);
-
-    let oklabToSrgbLinear1 = new Matrix(3, [
-      +4.0767416621, -3.3077115913, +0.2309699292,
-      -1.2684380046, +2.6097574011, -0.3413193965,
-      -0.0041960863, -0.7034186147, +1.7076147010,
-    ]);
 
 ### Tests
 

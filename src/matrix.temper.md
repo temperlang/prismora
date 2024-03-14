@@ -41,7 +41,10 @@ For convenience, provide a factory method for single-row matrices.
 
 Get by full coordinates.
 
-    public get(i: Int, j: Int): Float64 | Bubble { values[i * ncols + j] }
+    public get(i: Int, j: Int): Float64 | Bubble {
+      if (j >= ncols) { bubble() }
+      values[i * ncols + j]
+    }
 
 Or by flat.
 
@@ -118,17 +121,37 @@ Or to create a list of whatever by row.
 
 ### Matrix Multiply
 
-    public mul(other: Matrix): Matrix | Bubble {
+    public times(other: Matrix): Matrix | Bubble {
       if (ncols != other.nrows) { bubble() }
       mapRows { (row, builder);;
         for (var k = 0; k < other.ncols; k += 1) {
           var sum = 0.0;
           for (var j = 0; j < ncols; j += 1) {
-            sum += other[j, k];
+            sum += row[j] * other[j, k];
           }
           builder.add(sum);
         }
       }
+    }
+
+### Transpose
+
+    public transpose(): Matrix | Bubble {
+
+TODO Internal stride wrangling to support no-copy transpose?
+
+      new Matrix(
+        nrows,
+        do {
+          let builder = new ListBuilder<Float64>();
+          for (var j = 0; j < ncols; j += 1) {
+            for (var i = 0; i < nrows; i += 1) {
+              builder.add(this[i, j]);
+            }
+          }
+          builder.toList()
+        },
+      )
     }
 
 ## Private Members
@@ -166,9 +189,36 @@ Also check non-buffered row access.
 
     test("matrix map") {
       let matrix = new Matrix(3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-      let half = matrix.map { (x);; x * 0.5 };
-      assert(half.ncols == matrix.ncols);
-      assert(half.nrows == matrix.nrows);
-      assert(half[0, 0] == 0.5);
-      assert(half[1, 2] == 3.0);
+      let result = matrix.map { (x);; x * 0.5 };
+      assert(result.nrows == matrix.nrows);
+      assert(result.ncols == matrix.ncols);
+      assert(result[0, 0] == 0.5);
+      assert(result[1, 2] == 3.0);
+    }
+
+### Multiply
+
+    test("matrix multiply") {
+      let values = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+      let a = new Matrix(3, values);
+      let b = new Matrix(2, values);
+      let result = a.times(b);
+      assert(result.nrows == a.nrows);
+      assert(result.ncols == b.ncols);
+      assert(result[0, 0] == 22.0);
+      assert(result[0, 1] == 28.0);
+      assert(result[1, 0] == 49.0);
+      assert(result[1, 1] == 64.0);
+    }
+
+### Transpose
+
+    test("matrix transpose") {
+      let matrix = new Matrix(3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+      let result = matrix.transpose();
+      assert(result.nrows == matrix.ncols);
+      assert(result.ncols == matrix.nrows);
+      assert(result[0, 0] == matrix[0, 0]);
+      assert(result[0, 1] == matrix[1, 0]);
+      assert(result[2, 0] == matrix[0, 2]);
     }
