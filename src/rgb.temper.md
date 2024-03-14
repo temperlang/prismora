@@ -8,8 +8,10 @@ although that could maybe change in the future.
 And this technically could apply to any color space, but the format typically
 means RGB.
 
-    export let rgbUnitToString(rgb: Vec3): String {
-      "#${unitToString(rgb)}"
+TODO Support css rendering of all spaces?
+
+    export let rgbUnitToString(rgb: Matrix): List<String> {
+      unitToString(rgb).map { (it): String;; "#${it}" }
     }
 
 ## Gamma-Corrected <-> Linear sRGB
@@ -22,11 +24,11 @@ Sources:
 
 The Wikipedia example linearizes as part of the transformation to CIE XYZ.
 
-    export let srgbGammaToLinear(rgb: Vec3): Vec3 {
+    export let srgbGammaToLinear(rgb: Matrix): Matrix {
       rgb.map { (x);; channelGammaToLinear(x) }
     }
 
-    export let srgbLinearToGamma(rgb: Vec3): Vec3 {
+    export let srgbLinearToGamma(rgb: Matrix): Matrix {
       rgb.map { (x);; channelLinearToGamma(x) }
     }
 

@@ -29,9 +29,23 @@ TODO Implement nice printing.
       public nrows: Int;
       public ncols: Int;
 
+## Single-Row Factory
+
+For convenience, provide a factory method for single-row matrices.
+
+      public static rowOf(values: List<Float64>): Matrix {
+        { ncols: values.length, values }
+      }
+
 ## Get Individual Value
 
+Get by full coordinates.
+
     public get(i: Int, j: Int): Float64 | Bubble { values[i * ncols + j] }
+
+Or by flat.
+
+    public at(i: Int): Float64 | Bubble { values[i] }
 
 ## Get Whole Row
 
@@ -62,6 +76,61 @@ too long?
         buf
       }
 
+## Map Values
+
+Map individually to create a new matrix.
+
+    public map(transform: fn (Float64): Float64): Matrix {
+      new Matrix(ncols, values.map(transform))
+    }
+
+Or by row, adding new values on to the provided builder for each call. If
+`this` doesn't have at least one row, or if built rows are empty or
+inconsistent, then bubble.
+
+    public mapRows(
+      build: fn (row: Listed<Float64>, builder: ListBuilder<Float64>): Void,
+    ): Matrix | Bubble {
+      let builder = new ListBuilder<Float64>();
+      let buffer = new ListBuilder<Float64>();
+      var ncols = 0;
+      for (var i = 0; i < nrows; i += 1) {
+        build(row(i, buffer), builder);
+        if (i == 0) {
+          ncols = builder.length;
+        }
+      }
+      { ncols, values: builder.toList() }
+    }
+
+Or to create a list of whatever by row.
+
+    public mapRowsToList<T>(transform: fn (Listed<Float64>): T): List<T> {
+      let builder = new ListBuilder<T>();
+      let buffer = new ListBuilder<Float64>();
+      for (var i = 0; i < nrows; i += 1) {
+        builder.add(transform(row(i, buffer)));
+      }
+      builder.toList()
+    }
+
+## Math
+
+### Matrix Multiply
+
+    public mul(other: Matrix): Matrix | Bubble {
+      if (ncols != other.nrows) { bubble() }
+      mapRows { (row, builder);;
+        for (var k = 0; k < other.ncols; k += 1) {
+          var sum = 0.0;
+          for (var j = 0; j < ncols; j += 1) {
+            sum += other[j, k];
+          }
+          builder.add(sum);
+        }
+      }
+    }
+
 ## Private Members
 
 Keep `values` private in case that makes sense for some backend-connected matrix
@@ -72,7 +141,9 @@ types in the future.
 
 ## Tests
 
-    test("basic matrix access") {
+### Basic Access
+
+    test("matrix basic access") {
       let matrix = new Matrix(2, [1.2, 3.4, 5.6, 7.8]);
       assert(matrix.nrows == 2);
 
@@ -89,4 +160,15 @@ Check both return value and buffer mutation.
 Also check non-buffered row access.
 
       assert(matrix.row(0)[1] == 3.4);
+    }
+
+### Map
+
+    test("matrix map") {
+      let matrix = new Matrix(3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+      let half = matrix.map { (x);; x * 0.5 };
+      assert(half.ncols == matrix.ncols);
+      assert(half.nrows == matrix.nrows);
+      assert(half[0, 0] == 0.5);
+      assert(half[1, 2] == 3.0);
     }
