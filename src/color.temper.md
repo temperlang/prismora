@@ -34,6 +34,10 @@ While `rows` is public, it's sometimes nice to skip through it.
 
     public at(i: Int): Float64 | Bubble { rows.at(i) }
 
+    public get length(): Int { rows.nrows }
+
+    public get width(): Int { rows.ncols }
+
 ### Conversion
 
       public map(transform: fn (Float64): Float64): Color {

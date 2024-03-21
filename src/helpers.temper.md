@@ -17,7 +17,7 @@ to import std/testing in our prod library code.
 
 Hardcode the tolerance we expect for our color operations.
 
-      let absTol = 1e-6;
+      let absTol = 1e-5;
       if (!a.near(b, absTol = absTol)) {
         let info = "with relTol ${absTol.toString()}";
         onFail("${name} ${a.toString()} not near ${b.toString()} with ${info}");

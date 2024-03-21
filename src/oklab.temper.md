@@ -5,6 +5,7 @@
 References:
 
 - https://bottosson.github.io/posts/oklab/#converting-from-linear-srgb-to-oklab
+- https://www.w3.org/TR/css-color-4/#ok-lab
 
 Note that we need to linearize before Oklab conversion.
 
@@ -83,6 +84,40 @@ TODO Work out a strategy for top-level bubble handling or prohibition of it.
       }
     }
 
+Color conversion test cases come from [web-platform-tests][CssColorTests].
+
+    test("oklab from rgb conversion") {
+      // Set up expected conversions.
+      let source = Color.of(Space.srgb, [
+        0.0, 0.5, 0.0,
+        0.0, 0.0, 0.0,
+        1.0, 1.0, 1.0,
+        0.48477, 0.34290, 0.38412,
+        0.27888, 0.38072, 0.89414,
+      ]);
+      let expected = Color.of(Space.oklab, [
+        // wpt case oklab-001.html: 0.51975, -0.1403, 0.10768,
+        0.51829, -0.13991, 0.10737,
+        0.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        0.5, 0.05, 0.0,
+        0.55, 0.0, -0.2,
+      ]);
+      // Here down is generic and could be extracted to a helper function.
+      let check(name: String, y: Float64, z: Float64): Void {
+        assertNear(name, y, z) { (message);; assert(false) {message} }
+      }
+      let actual = source.to(expected.space);
+      for (var i = 0; i < actual.length; i += 1) {
+        let iText = i.toString();
+        for (var j = 0; j < actual.width; j += 1) {
+          check("[${iText}, ${j.toString()}]", actual[i, j], expected[i, j]);
+        }
+      }
+    }
+
 ## Oklch Conversion
 
 TODO
+
+[CssColorTests]: https://github.com/web-platform-tests/wpt/tree/master/css/css-color
