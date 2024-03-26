@@ -9,7 +9,7 @@ References:
 
 Note that we need to linearize before Oklab conversion.
 
-    export let srgbLinearToOklab(rgb: Matrix): Matrix | Bubble {
+    export let srgbLinearToOklab(rgb: Matrix): Matrix {
       rgb
         .times(srgbLinearToOklab0)
         .map { (x);; cbrt(x) }
