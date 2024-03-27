@@ -72,11 +72,7 @@ TODO Work out a strategy for top-level bubble handling or prohibition of it.
       ]);
       let oklab = rgb0.to(Space.oklab);
       let rgb1 = oklab.to(Space.srgb);
-      for (var i = 0; i < rgb0.length; i += 1) {
-        assertNear(test, "x", rgb0[i, 0], rgb1[i, 0]);
-        assertNear(test, "y", rgb0[i, 1], rgb1[i, 1]);
-        assertNear(test, "z", rgb0[i, 2], rgb1[i, 2]);
-      }
+      assertColors(test, rgb0, rgb1);
     }
 
 Color conversion test cases come from [web-platform-tests][CssColorTests].
@@ -97,7 +93,7 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
         0.5, 0.05, 0.0,
         0.55, 0.0, -0.2,
       ]);
-      assertColors(test, source, expected);
+      assertConvertColors(test, source, expected);
     }
 
 ## Oklch Conversion

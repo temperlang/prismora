@@ -24,10 +24,9 @@ Hardcode the tolerance we expect for our color operations.
 
 ### Assert Color Conversion
 
-Assert color list conversion from one space to another.
+Assert color lists and also conversion from one space to another.
 
-    let assertColors(test: Test, source: Color, expected: Color): Void {
-      let actual = source.to(expected.space);
+    let assertColors(test: Test, actual: Color, expected: Color): Void {
       assert(actual.space == expected.space);
       for (var i = 0; i < actual.length; i += 1) {
         let iText = i.toString();
@@ -36,6 +35,10 @@ Assert color list conversion from one space to another.
           assertNear(test, label, actual[i, j], expected[i, j]);
         }
       }
+    }
+
+    let assertConvertColors(test: Test, source: Color, expected: Color): Void {
+      assertColors(test, source.to(expected.space), expected);
     }
 
 ## Clamp Withing Bounds

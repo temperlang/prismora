@@ -55,17 +55,16 @@ While `rows` is public, it's sometimes nice to skip through it.
 
     test("color conversions") { (test);;
       let srgb = Color.of(Space.srgb, [0.691, 0.139, 0.259]);
-      let linear = srgb.to(Space.srgbLinear);
-      assert(linear.space == Space.srgbLinear)
 
 Might be nice to check against something like
 [this color converter][AjaltConverter], but they use
 [different math][AjaltLinearRgb]. These numbers are fairly close to those,
 however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
 
-      assertNear(test, "r", linear.at(0), 0.43527856667280590);
-      assertNear(test, "g", linear.at(1), 0.01717585039723197);
-      assertNear(test, "b", linear.at(2), 0.05455383078270364);
+      let expected = Color.of(Space.srgbLinear, [
+        0.43527856667280590, 0.01717585039723197, 0.05455383078270364,
+      ]);
+      assertConvertColors(test, srgb, expected)
     }
 
 It would be nice to support expanded value types and also connect with backend
