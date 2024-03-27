@@ -11,16 +11,30 @@ Provides extra info over simple assert. But we don't actually call assert here,
 because we don't prune test-only helpers enough on backends, and we don't want
 to import std/testing in our prod library code.
 
-    let assertNear(
-      name: String, a: Float64, b: Float64, onFail: fn (String): Void
-    ): Void {
+    let assertNear(test: Test, label: String, a: Float64, b: Float64): Void {
 
 Hardcode the tolerance we expect for our color operations.
 
       let absTol = 1e-5;
-      if (!a.near(b, absTol = absTol)) {
+      assert(a.near(b, absTol = absTol)) {
         let info = "with relTol ${absTol.toString()}";
-        onFail("${name} ${a.toString()} not near ${b.toString()} with ${info}");
+        "${label} ${a.toString()} not near ${b.toString()} with ${info}"
+      }
+    }
+
+### Assert Color Conversion
+
+Assert color list conversion from one space to another.
+
+    let assertColors(test: Test, source: Color, expected: Color): Void {
+      let actual = source.to(expected.space);
+      assert(actual.space == expected.space);
+      for (var i = 0; i < actual.length; i += 1) {
+        let iText = i.toString();
+        for (var j = 0; j < actual.width; j += 1) {
+          let label = "[${iText}, ${j.toString()}]";
+          assertNear(test, label, actual[i, j], expected[i, j]);
+        }
       }
     }
 
@@ -61,19 +75,6 @@ Also, we don't have builtin max/min for ints.
 ### Clamp Float to Unit Range
 
     let clampUnit(x: Float64): Float64 { clamp(x, 0.0, 1.0) }
-
-## Control Flow
-
-### For Each Loop
-
-We need this in the language and/or builtins at some point, but this will do for
-now.
-
-    let forEach<T>(items: Listed<T>, action: fn (T): Void): Void {
-      for (var i = 0; i < items.length; i += 1) {
-        action(items[i]);
-      }
-    }
 
 ## Formatting
 

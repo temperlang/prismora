@@ -64,30 +64,24 @@ TODO Work out a strategy for top-level bubble handling or prohibition of it.
 
 ### Tests
 
-    test("oklab round trip") {
-      let rgb0 = new Matrix(3, [
+    test("oklab round trip") { (test);;
+      let rgb0 = Color.of(Space.srgb, [
         0.0, 0.0, 0.0,
         0.3, 0.4, 0.5,
         1.0, 1.0, 1.0,
       ]);
-      let check(name: String, y: Float64, z: Float64): Void {
-        assertNear(name, y, z) { (message);; assert(false) {message} }
-      }
-      let linear0 = srgbGammaToLinear(rgb0);
-      let oklab = srgbLinearToOklab(linear0);
-      let linear1 = oklabToSrgbLinear(oklab);
-      let rgb1 = srgbLinearToGamma(linear1);
-      for (var i = 0; i < rgb0.nrows; i += 1) {
-        check("x", rgb0[i, 0], rgb1[i, 0]);
-        check("y", rgb0[i, 1], rgb1[i, 1]);
-        check("z", rgb0[i, 2], rgb1[i, 2]);
+      let oklab = rgb0.to(Space.oklab);
+      let rgb1 = oklab.to(Space.srgb);
+      for (var i = 0; i < rgb0.length; i += 1) {
+        assertNear(test, "x", rgb0[i, 0], rgb1[i, 0]);
+        assertNear(test, "y", rgb0[i, 1], rgb1[i, 1]);
+        assertNear(test, "z", rgb0[i, 2], rgb1[i, 2]);
       }
     }
 
 Color conversion test cases come from [web-platform-tests][CssColorTests].
 
-    test("oklab from rgb conversion") {
-      // Set up expected conversions.
+    test("oklab from rgb conversion") { (test);;
       let source = Color.of(Space.srgb, [
         0.0, 0.5, 0.0,
         0.0, 0.0, 0.0,
@@ -103,17 +97,7 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
         0.5, 0.05, 0.0,
         0.55, 0.0, -0.2,
       ]);
-      // Here down is generic and could be extracted to a helper function.
-      let check(name: String, y: Float64, z: Float64): Void {
-        assertNear(name, y, z) { (message);; assert(false) {message} }
-      }
-      let actual = source.to(expected.space);
-      for (var i = 0; i < actual.length; i += 1) {
-        let iText = i.toString();
-        for (var j = 0; j < actual.width; j += 1) {
-          check("[${iText}, ${j.toString()}]", actual[i, j], expected[i, j]);
-        }
-      }
+      assertColors(test, source, expected);
     }
 
 ## Oklch Conversion
