@@ -104,8 +104,8 @@ Does this work for any Lab to LCH, whether Ok or otherwise?
       }
     }
 
-    export let lchToLab(lab: Matrix): Matrix {
-      lab.mapRows { (row, builder);;
+    export let lchToLab(lch: Matrix): Matrix {
+      lch.mapRows { (row, builder);;
         let l = row[0];
         let c = row[1];
         let h = row[2];
