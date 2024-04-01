@@ -18,6 +18,10 @@ Note that we need to linearize before Oklab conversion.
         .times(srgbLinearToOklab1)
     }
 
+We could map each row one at a time, combining multiple operations, but the
+matrix form is clearer. Matrix form would also be more efficient in Python if
+using NumPy. Unfortunately, we're not using that. But use matrices, anyway.
+
     let srgbLinearToOklab0 = new Matrix(3, [
       0.4122214708, 0.5363325363, 0.0514459929,
       0.2119034982, 0.6806995451, 0.1073969566,
@@ -29,10 +33,6 @@ Note that we need to linearize before Oklab conversion.
       1.9779984951, -2.4285922050, +0.4505937099,
       0.0259040371, +0.7827717662, -0.8086757660,
     ]).transpose();
-
-So we can map each row one at a time, combining different operations, but the
-matrix form is clearer. Matrix form would also be more efficient in Python if
-using NumPy. Unfortunately, we're not using that. But use matrices, anyway.
 
     let oklabToSrgbLinear(lab: Matrix): Matrix {
       lab
@@ -132,6 +132,8 @@ turnaround Lab for it.
       let lab1 = lch.to(Space.oklab);
       assertColors(test, lab0, lab1);
     }
+
+Also test conversion, again from [web-platform-tests][CssColorTests].
 
     test("oklch from rgb conversion") { (test);;
       let source = Color.of(Space.srgb, [
