@@ -1,4 +1,4 @@
-# Colorflap
+# Prismora
 
 A cross-language color transformation library. Some intended features:
 
@@ -11,7 +11,7 @@ A cross-language color transformation library. Some intended features:
 The current focus excludes opacity/alpha, but I might ought to work out a plan
 for that, too.
 
-Being made in Temper, Colorflap supports the following programming languages
+Being made in Temper, Prismora supports the following programming languages
 automatically:
 
 - C\#
