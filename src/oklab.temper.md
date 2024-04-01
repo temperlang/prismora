@@ -133,4 +133,29 @@ turnaround Lab for it.
       assertColors(test, lab0, lab1);
     }
 
+    test("oklch from rgb conversion") { (test);;
+      let source = Color.of(Space.srgb, [
+        0.0, 0.5, 0.0,
+        0.0, 0.0, 0.0,
+        0.70492, 0.02351, 0.37073,
+        0.23056, 0.31730, 0.82628,
+        1.0, 1.0, 1.0,
+      ]);
+      let expected = Color.of(Space.oklch, [
+        // wpt case oklch-001.html: 0.51975, 0.17686, 0.39582 (142.495 / 360),
+        0.51829, 0.17636, 0.39582,
+        0.0, 0.0, 0.0,
+        0.5, 0.2, 0.0,
+        0.5, 0.2, 0.75,
+
+This case is interesting. We get `c` of about 3.72740e-08 rather than exactly
+zero, which means we also have a semi arbitary angle for `h`. Is there some
+cutoff just for calling `h` zero?
+
+        // wpt case oklch-003.html: 1.0, 0.0, 0.0
+        1.0, 0.0, 0.24965,
+      ]);
+      assertConvertColors(test, source, expected);
+    }
+
 [CssColorTests]: https://github.com/web-platform-tests/wpt/tree/master/css/css-color
