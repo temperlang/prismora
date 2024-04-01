@@ -76,15 +76,18 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
         0.48477, 0.34290, 0.38412,
         0.27888, 0.38072, 0.89414,
       ]);
-      let expected = Color.of(Space.oklab, [
+      assertConvertColors(test, source, oklabExpectedResults());
+    }
+
+    let oklabExpectedResults(): Color {
+      Color.of(Space.oklab, [
         // wpt case oklab-001.html: 0.51975, -0.1403, 0.10768,
         0.51829, -0.13991, 0.10737,
         0.0, 0.0, 0.0,
         1.0, 0.0, 0.0,
         0.5, 0.05, 0.0,
         0.55, 0.0, -0.2,
-      ]);
-      assertConvertColors(test, source, expected);
+      ])      
     }
 
 ## Lab to LCH Conversion
@@ -120,20 +123,11 @@ Does this work for any Lab to LCH, whether Ok or otherwise?
 
 ### Tests
 
+Any Lab space is fine for this test as long as we give the matching LCH and
+turnaround Lab for it.
+
     test("lch round trip") { (test);;
-
-Any Lab space is fine for this test.
-
-      let lab0 = Color.of(Space.oklab, [
-        0.51829, -0.13991, 0.10737,
-        0.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        0.5, 0.05, 0.0,
-        0.55, 0.0, -0.2,
-      ]);
-
-As long as we give the matching LCH and turnaround Lab for it.
-
+      let lab0 = oklabExpectedResults();
       let lch = lab0.to(Space.oklch);
       let lab1 = lch.to(Space.oklab);
       assertColors(test, lab0, lab1);
