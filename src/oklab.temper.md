@@ -56,7 +56,7 @@ using NumPy. Unfortunately, we're not using that. But use matrices, anyway.
 ### Tests
 
     test("oklab round trip") { (test);;
-      let rgb0 = Color.of(Space.srgb, [
+      let rgb0 = Color.from(Space.srgb, [
         0.0, 0.0, 0.0,
         0.3, 0.4, 0.5,
         1.0, 1.0, 1.0,
@@ -69,7 +69,7 @@ using NumPy. Unfortunately, we're not using that. But use matrices, anyway.
 Color conversion test cases come from [web-platform-tests][CssColorTests].
 
     test("oklab from rgb conversion") { (test);;
-      let source = Color.of(Space.srgb, [
+      let source = Color.from(Space.srgb, [
         0.0, 0.5, 0.0,
         0.0, 0.0, 0.0,
         1.0, 1.0, 1.0,
@@ -80,7 +80,7 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
     }
 
     let oklabExpectedResults(): Color {
-      Color.of(Space.oklab, [
+      Color.from(Space.oklab, [
         // wpt case oklab-001.html: 0.51975, -0.1403, 0.10768,
         0.51829, -0.13991, 0.10737,
         0.0, 0.0, 0.0,
@@ -136,14 +136,14 @@ turnaround Lab for it.
 Also test conversion, again from [web-platform-tests][CssColorTests].
 
     test("oklch from rgb conversion") { (test);;
-      let source = Color.of(Space.srgb, [
+      let source = Color.from(Space.srgb, [
         0.0, 0.5, 0.0,
         0.0, 0.0, 0.0,
         0.70492, 0.02351, 0.37073,
         0.23056, 0.31730, 0.82628,
         1.0, 1.0, 1.0,
       ]);
-      let expected = Color.of(Space.oklch, [
+      let expected = Color.from(Space.oklch, [
         // wpt case oklch-001.html: 0.51975, 0.17686, 0.39582 (142.495 / 360),
         0.51829, 0.17636, 0.39582,
         0.0, 0.0, 0.0,

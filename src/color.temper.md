@@ -20,7 +20,7 @@ of colors in the same space. But here's a single color with a defined space.
 
 TODO Default constructor to check ncols vs space.ncols.
 
-      public static of(space: Space, values: List<Float64>): Color {
+      public static from(space: Space, values: List<Float64>): Color {
         { space, rows: { ncols: space.ncols, values } }
       }
 
@@ -54,14 +54,14 @@ While `rows` is public, it's sometimes nice to skip through it.
     }
 
     test("color conversions") { (test);;
-      let srgb = Color.of(Space.srgb, [0.691, 0.139, 0.259]);
+      let srgb = Color.from(Space.srgb, [0.691, 0.139, 0.259]);
 
 Might be nice to check against something like
 [this color converter][AjaltConverter], but they use
 [different math][AjaltLinearRgb]. These numbers are fairly close to those,
 however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
 
-      let expected = Color.of(Space.srgbLinear, [
+      let expected = Color.from(Space.srgbLinear, [
         0.43527856667280590, 0.01717585039723197, 0.05455383078270364,
       ]);
       assertConvertColors(test, srgb, expected)
