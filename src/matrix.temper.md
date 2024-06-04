@@ -196,6 +196,20 @@ Also check non-buffered row access.
       assert(result[1, 2] == 3.0);
     }
 
+### Miscellaneous
+
+    test("matrix misc") {
+      let rowish = Matrix.rowOf([1.2, 3.4, 5.6]);
+      assert(rowish.nrows == 1);
+      assert(rowish.ncols == 3);
+      assert(rowish.at(1) == 3.4);
+      let sumsAsStrings = rowish.mapRowsToList { (row): String;;
+        row.reduceFrom(0.0) { (a: Float64, b): Float64;; a + b }.toString()
+      };
+      assert(sumsAsStrings.length == 1);
+      assert(sumsAsStrings[0] == "10.2");
+    }
+
 ### Multiply
 
     test("matrix multiply") {
