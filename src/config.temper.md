@@ -1,11 +1,6 @@
 # Prismora
 
-This file is used for library configuration.
-
-The `name` export defines the library name:
+Prismora is a colorspace conversion library. It works on arrays of numbers to
+represent bulk color lists more efficiently.
 
     export let name = "prismora";
-
-Modules imported here can have imports of their own:
-
-    import(".");

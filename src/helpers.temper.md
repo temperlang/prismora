@@ -94,19 +94,19 @@ single code point.
 
 Optimize the case where we have no padding to add.
 
-      let needed = minSize - string.codePoints.length;
+      let needed = minSize - string.countBetween(String.start, string.end);
       if (needed <= 0) {
         return string;
       }
 
 We need padding.
 
-      let builder = new ListBuilder<String>();
+      let builder = new StringBuilder();
       for (var i = 0; i < needed; i += 1) {
-        builder.add(pad);
+        builder.append(pad);
       }
-      builder.add(string);
-      join(builder)
+      builder.append(string);
+      builder.toString()
     }
 
     test("padLeft") {
@@ -121,3 +121,7 @@ We need padding.
 Should we implement `cbrt` in Temper implicits?
 
     let cbrt(x: Float64): Float64 { x ** (1.0 / 3.0) }
+
+## Imports
+
+    let { StringBuilder } = import("std/strings");
