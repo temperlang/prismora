@@ -100,29 +100,29 @@ Generic conversion functions call specific functions depending on the spaces
 involved.
 
     export let convert(rows: Matrix, from: Space, to: Space): Matrix | Bubble {
-      match (from) {
-        Space.oklab -> match (to) {
+      when (from) {
+        Space.oklab -> when (to) {
           Space.oklab -> rows;
           Space.oklch -> labToLch(rows);
           Space.srgb -> srgbLinearToGamma(oklabToSrgbLinear(rows));
           Space.srgbLinear -> oklabToSrgbLinear(rows);
           else -> bubble();
         }
-        Space.oklch -> match (to) {
+        Space.oklch -> when (to) {
           Space.oklab -> lchToLab(rows);
           Space.oklch -> rows;
           Space.srgb -> srgbLinearToGamma(oklabToSrgbLinear(lchToLab(rows)));
           Space.srgbLinear -> oklabToSrgbLinear(lchToLab(rows));
           else -> bubble();
         }
-        Space.srgb -> match (to) {
+        Space.srgb -> when (to) {
           Space.oklab -> srgbLinearToOklab(srgbGammaToLinear(rows));
           Space.oklch -> labToLch(srgbLinearToOklab(srgbGammaToLinear(rows)));
           Space.srgb -> rows;
           Space.srgbLinear -> srgbGammaToLinear(rows);
           else -> bubble();
         }
-        Space.srgbLinear -> match (to) {
+        Space.srgbLinear -> when (to) {
           Space.oklab -> srgbLinearToOklab(rows);
           Space.oklch -> labToLch(srgbLinearToOklab(rows));
           Space.srgb -> srgbLinearToGamma(rows);

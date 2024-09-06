@@ -94,7 +94,7 @@ single code point.
 
 Optimize the case where we have no padding to add.
 
-      let needed = minSize - string.countBetween(String.start, string.end);
+      let needed = minSize - string.countBetween(String.begin, string.end);
       if (needed <= 0) {
         return string;
       }
