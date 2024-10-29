@@ -4,7 +4,7 @@ Until we have a builtin backend-connected ND array type, here's a matrix type
 that can efficiently represent lists of color of arbitrary dimensionality. We
 might also want to represent some transforms as matrix operations.
 
-    export class Matrix {
+    export class Matrix(
 
 ## Constructor
 
@@ -18,16 +18,22 @@ Also, an immutable list is passed in so that matrices also are immutable.
 
 TODO Implement nice printing.
 
-      constructor(ncols: Int, values: List<Float64>): Void | Bubble {
+We need to know the number of columns.
+
+      public ncols: Int,
+
+Values is a flat list where each row is made up by a contiguous run of *ncols* entries.
+Keep `values` private in case that makes sense for some backend-connected matrix
+types in the future.
+
+      private values: List<Float64>,
+    ) {
+
+      public nrows: Int = do {
         if (ncols <= 0) { bubble() }
         if (values.length % ncols != 0) { bubble() }
-        this.nrows = values.length / ncols;
-        this.ncols = ncols;
-        this.values = values;
-      }
-
-      public nrows: Int;
-      public ncols: Int;
+        values.length / ncols
+      };
 
 ## Single-Row Factory
 
@@ -154,12 +160,6 @@ TODO Internal stride wrangling to support no-copy transpose?
       )
     }
 
-## Private Members
-
-Keep `values` private in case that makes sense for some backend-connected matrix
-types in the future.
-
-      let values: List<Float64>;
     }
 
 ## Tests
