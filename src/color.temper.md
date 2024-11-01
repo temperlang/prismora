@@ -14,9 +14,10 @@ number of colors that we'll care more about efficiency.
 Given a color, we also want to know what space it's in. Or we might have a list
 of colors in the same space. But here's a single color with a defined space.
 
-    export class Color {
-      public space: Space;
-      public rows: Matrix;
+    export class Color(
+      public space: Space,
+      public rows: Matrix,
+    ) {
 
 TODO Default constructor to check ncols vs space.ncols.
 
@@ -30,13 +31,13 @@ TODO Some consistent representation for opacity?
 
 While `rows` is public, it's sometimes nice to skip through it.
 
-    public get(i: Int, j: Int): Float64 | Bubble { rows[i, j] }
+      public get(i: Int, j: Int): Float64 | Bubble { rows[i, j] }
 
-    public at(i: Int): Float64 | Bubble { rows.at(i) }
+      public at(i: Int): Float64 | Bubble { rows.at(i) }
 
-    public get length(): Int { rows.nrows }
+      public get length(): Int { rows.nrows }
 
-    public get width(): Int { rows.ncols }
+      public get width(): Int { rows.ncols }
 
 ### Conversion
 
@@ -74,13 +75,14 @@ matrices and so on, but this will have to do for now.
 
 TODO How to say that we want to support identity equality on a type?
 
-    export class Space {
+    export class Space(
 
 This class is a simulated enum, although maybe we do want it open beyond spaces
 defined in this library.
 
-      public name: String;
-      public ncols: Int;
+      public name: String,
+      public ncols: Int,
+    ) {
       public toString(): String { name }
 
 Some of the supported spaces here aren't considered by everyone to be true
