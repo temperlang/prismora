@@ -55,6 +55,27 @@ using NumPy. Unfortunately, we're not using that. But use matrices, anyway.
 
 ### Tests
 
+    export let blah(): Void {
+      let values = new ListBuilder<Float64>();
+      for (var i = 0; i < 3e5.toIntUnsafe(); i += 1) {
+        let x = i.toFloat64Unsafe();
+        let rgb = [x / 7.0, x / 11.0, x / 13.0].map { (x): Float64;; x % 1.0 };
+        values.addAll(rgb);
+      }
+      console.log(values.length.toString());
+      let rgb = Color.from(Space.srgb, values.toList());
+      let oklab = rgb.to(Space.oklab);
+      let sum(values: Listed<Float64>): Float64 {
+        values.reduceFrom(0.0) { (sum: Float64, x): Float64;; sum + x }
+      }
+      let total = sum(rgb.rows.mapRowsToList { (row): Float64;; sum(row) });
+      console.log(total.toString());
+      let total = sum(oklab.rows.mapRowsToList { (row): Float64;; sum(row) });
+      console.log(total.toString());
+    }
+
+    blah();
+
     test("oklab round trip") { (test);;
       let rgb0 = Color.from(Space.srgb, [
         0.0, 0.0, 0.0,
