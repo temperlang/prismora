@@ -110,6 +110,17 @@ inconsistent, then bubble.
         { ncols, values: builder.toList() }
       }
 
+Or to create a list of whatever by row.
+
+    public mapRowsToList<T>(transform: fn (Listed<Float64>): T): List<T> {
+      let builder = new ListBuilder<T>();
+      let buffer = new ListBuilder<Float64>();
+      for (var i = 0; i < nrows; i += 1) {
+        builder.add(transform(row(i, buffer)));
+      }
+      builder.toList()
+    }
+
 ## Math
 
 ### Matrix Multiply
@@ -147,23 +158,6 @@ TODO Internal stride wrangling to support no-copy transpose?
         )
       }
 
-    }
-
-## Extension methods
-
-Create a list of whatever by row.
-
-    @extension("mapRowsToList")
-    export let matrixMapRowsToList<T>(
-      matrix: Matrix,
-      transform: fn (Listed<Float64>): T,
-    ): List<T> {
-      let builder = new ListBuilder<T>();
-      let buffer = new ListBuilder<Float64>();
-      for (var i = 0; i < matrix.nrows; i += 1) {
-        builder.add(transform(matrix.row(i, buffer)));
-      }
-      builder.toList()
     }
 
 ## Tests
