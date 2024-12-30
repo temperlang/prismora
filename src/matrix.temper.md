@@ -47,14 +47,14 @@ For convenience, provide a factory method for single-row matrices.
 
 Get by full coordinates.
 
-    public get(i: Int, j: Int): Float64 | Bubble {
-      if (j >= ncols) { bubble() }
-      values[i * ncols + j]
-    }
+      public get(i: Int, j: Int): Float64 | Bubble {
+        if (j >= ncols) { bubble() }
+        values[i * ncols + j]
+      }
 
 Or by flat.
 
-    public at(i: Int): Float64 | Bubble { values[i] }
+      public at(i: Int): Float64 | Bubble { values[i] }
 
 ## Get Whole Row
 
@@ -71,9 +71,7 @@ too long?
       ): Listed<Float64> | Bubble {
         if (i >= nrows) { bubble() }
         let offset = i * ncols;
-        let buf = buffer.as<ListBuilder<Float64>>() orelse do {
-          return values.slice(offset, offset + ncols);
-        };
+        let buf = buffer ?? do { return values.slice(offset, offset + ncols) };
         for (var j = 0; j < ncols; j += 1) {
           let value = values[offset + j];
           if (j < buf.length) {
@@ -89,28 +87,28 @@ too long?
 
 Map individually to create a new matrix.
 
-    public map(transform: fn (Float64): Float64): Matrix {
-      new Matrix(ncols, values.map(transform))
-    }
+      public map(transform: fn (Float64): Float64): Matrix {
+        new Matrix(ncols, values.map(transform))
+      }
 
 Or by row, adding new values on to the provided builder for each call. If
 `this` doesn't have at least one row, or if built rows are empty or
 inconsistent, then bubble.
 
-    public mapRows(
-      build: fn (row: Listed<Float64>, builder: ListBuilder<Float64>): Void,
-    ): Matrix | Bubble {
-      let builder = new ListBuilder<Float64>();
-      let buffer = new ListBuilder<Float64>();
-      var ncols = 0;
-      for (var i = 0; i < nrows; i += 1) {
-        build(row(i, buffer), builder);
-        if (i == 0) {
-          ncols = builder.length;
+      public mapRows(
+        build: fn (row: Listed<Float64>, builder: ListBuilder<Float64>): Void,
+      ): Matrix | Bubble {
+        let builder = new ListBuilder<Float64>();
+        let buffer = new ListBuilder<Float64>();
+        var ncols = 0;
+        for (var i = 0; i < nrows; i += 1) {
+          build(row(i, buffer), builder);
+          if (i == 0) {
+            ncols = builder.length;
+          }
         }
+        { ncols, values: builder.toList() }
       }
-      { ncols, values: builder.toList() }
-    }
 
 Or to create a list of whatever by row.
 
@@ -127,38 +125,38 @@ Or to create a list of whatever by row.
 
 ### Matrix Multiply
 
-    public times(other: Matrix): Matrix | Bubble {
-      if (ncols != other.nrows) { bubble() }
-      mapRows { (row, builder);;
-        for (var k = 0; k < other.ncols; k += 1) {
-          var sum = 0.0;
-          for (var j = 0; j < ncols; j += 1) {
-            sum += row[j] * other[j, k];
+      public times(other: Matrix): Matrix | Bubble {
+        if (ncols != other.nrows) { bubble() }
+        mapRows { (row, builder);;
+          for (var k = 0; k < other.ncols; k += 1) {
+            var sum = 0.0;
+            for (var j = 0; j < ncols; j += 1) {
+              sum += row[j] * other[j, k];
+            }
+            builder.add(sum);
           }
-          builder.add(sum);
         }
       }
-    }
 
 ### Transpose
 
-    public transpose(): Matrix | Bubble {
+      public transpose(): Matrix | Bubble {
 
 TODO Internal stride wrangling to support no-copy transpose?
 
-      new Matrix(
-        nrows,
-        do {
-          let builder = new ListBuilder<Float64>();
-          for (var j = 0; j < ncols; j += 1) {
-            for (var i = 0; i < nrows; i += 1) {
-              builder.add(this[i, j]);
+        new Matrix(
+          nrows,
+          do {
+            let builder = new ListBuilder<Float64>();
+            for (var j = 0; j < ncols; j += 1) {
+              for (var i = 0; i < nrows; i += 1) {
+                builder.add(this[i, j]);
+              }
             }
-          }
-          builder.toList()
-        },
-      )
-    }
+            builder.toList()
+          },
+        )
+      }
 
     }
 
