@@ -45,7 +45,7 @@ While `rows` is public, it's sometimes nice to skip through it.
         { space, rows: rows.map(transform) }
       }
 
-      public to(space: Space): Color {
+      public to(space: Space): Color | Bubble {
         if (space == this.space) {
           this
         } else {

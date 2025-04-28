@@ -30,9 +30,9 @@ types in the future.
     ) {
 
       public nrows: Int = do {
-        if (ncols <= 0) { bubble() }
-        if (values.length % ncols != 0) { bubble() }
-        values.length / ncols
+        if (ncols <= 0) { panic() }
+        if (((values.length % ncols) orelse panic()) != 0) { panic() }
+        (values.length / ncols) orelse panic()
       };
 
 ## Single-Row Factory
@@ -97,12 +97,12 @@ inconsistent, then bubble.
 
       public mapRows(
         build: fn (row: Listed<Float64>, builder: ListBuilder<Float64>): Void,
-      ): Matrix | Bubble {
+      ): Matrix {
         let builder = new ListBuilder<Float64>();
         let buffer = new ListBuilder<Float64>();
         var ncols = 0;
         for (var i = 0; i < nrows; i += 1) {
-          build(row(i, buffer), builder);
+          build(row(i, buffer) orelse panic(), builder);
           if (i == 0) {
             ncols = builder.length;
           }
@@ -116,7 +116,7 @@ Or to create a list of whatever by row.
       let builder = new ListBuilder<T>();
       let buffer = new ListBuilder<Float64>();
       for (var i = 0; i < nrows; i += 1) {
-        builder.add(transform(row(i, buffer)));
+        builder.add(transform(row(i, buffer))) orelse panic();
       }
       builder.toList()
     }
@@ -131,9 +131,9 @@ Or to create a list of whatever by row.
           for (var k = 0; k < other.ncols; k += 1) {
             var sum = 0.0;
             for (var j = 0; j < ncols; j += 1) {
-              sum += row[j] * other[j, k];
+              sum += (row[j] * other[j, k]) orelse panic();
             }
-            builder.add(sum);
+            builder.add(sum) orelse panic();
           }
         }
       }

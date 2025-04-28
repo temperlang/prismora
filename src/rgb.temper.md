@@ -34,15 +34,15 @@ The Wikipedia example linearizes as part of the transformation to CIE XYZ.
 
     export let channelGammaToLinear(x: Float64): Float64 {
       if (x >= 0.04045) {
-        ((x + 0.055) / 1.055) ** 2.4
+        (((x + 0.055) / 1.055) orelse panic()) ** 2.4
       } else {
-        x / 12.92
+        (x / 12.92) orelse panic()
       }
     }
 
     export let channelLinearToGamma(x: Float64): Float64 {
       if (x >= 0.0031308) {
-        1.055 * x ** (1.0 / 2.4) - 0.055
+        1.055 * x ** ((1.0 / 2.4) orelse panic()) - 0.055
       } else {
         12.92 * x
       }

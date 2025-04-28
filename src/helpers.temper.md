@@ -7,9 +7,7 @@ library, we might should move them somewhere else.
 
 ### Assert Near
 
-Provides extra info over simple assert. But we don't actually call assert here,
-because we don't prune test-only helpers enough on backends, and we don't want
-to import std/testing in our prod library code.
+Provides extra info over simple assert.
 
     let assertNear(test: Test, label: String, a: Float64, b: Float64): Void {
 
@@ -32,12 +30,14 @@ Assert color lists and also conversion from one space to another.
         let iText = i.toString();
         for (var j = 0; j < actual.width; j += 1) {
           let label = "[${iText}, ${j.toString()}]";
-          assertNear(test, label, actual[i, j], expected[i, j]);
+          assertNear(test, label, actual[i, j], expected[i, j]) orelse panic();
         }
       }
     }
 
-    let assertConvertColors(test: Test, source: Color, expected: Color): Void {
+    let assertConvertColors(
+      test: Test, source: Color, expected: Color
+    ): Void | Bubble {
       assertColors(test, source.to(expected.space), expected);
     }
 
