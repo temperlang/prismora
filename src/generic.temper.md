@@ -28,15 +28,15 @@ These are safe because we controlled the bounds above.
             builder.add(z.toFloat64Unsafe());
           }
           builder.toList()
-        },
+        } orelse panic(),
       )
     }
 
     export let unitToInt(rows: Matrix): List<Int> {
       unitToByte(rows).mapRowsToList { (row: Listed<Float64>): Int;;
-        let x = clampToIntByte(row[0]);
-        let y = clampToIntByte(row[1]);
-        let z = clampToIntByte(row[2]);
+        let x = clampToIntByte(row[0] orelse panic());
+        let y = clampToIntByte(row[1] orelse panic());
+        let z = clampToIntByte(row[2] orelse panic());
 
 Again, bit shifting would be nice here. Maybe some backends can optimize,
 anyway?
@@ -60,7 +60,10 @@ formatting for RGB with leading "\#" is defined with other RGB operations.
 
 These operate on floats rather than ints.
 
-    export let byteToUnit(rows: Matrix): Matrix { rows.map { (x);; x / 255.0 } }
+    export let byteToUnit(rows: Matrix): Matrix {
+      rows.map { (x);; (x / 255.0) orelse panic() }
+    }
+
     export let unitToByte(rows: Matrix): Matrix { rows.map { (x);; x * 255.0 } }
 
 Presumes that `x` is known to be approximately in the 0 to 255 range already.

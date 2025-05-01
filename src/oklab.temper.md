@@ -9,13 +9,14 @@ References:
 - https://oklch.com/
 - https://www.w3.org/TR/css-color-4/#ok-lab
 
-Note that we need to linearize before Oklab conversion.
+Note that we need to linearize before Oklab conversion. Panics if `rgb` isn't N
+x 3.
 
     export let srgbLinearToOklab(rgb: Matrix): Matrix {
       rgb
         .times(srgbLinearToOklab0)
         .map { (x);; cbrt(x) }
-        .times(srgbLinearToOklab1)
+        .times(srgbLinearToOklab1) orelse panic()
     }
 
 We could map each row one at a time, combining multiple operations, but the
@@ -34,11 +35,13 @@ using NumPy. Unfortunately, we're not using that. But use matrices, anyway.
       0.0259040371, +0.7827717662, -0.8086757660,
     ]).transpose();
 
+Panics if `lab` isn't N x 3.
+
     let oklabToSrgbLinear(lab: Matrix): Matrix {
       lab
         .times(oklabToSrgbLinear0)
         .map { (x);; x * x * x }
-        .times(oklabToSrgbLinear1)
+        .times(oklabToSrgbLinear1) orelse panic()
     }
 
     let oklabToSrgbLinear0 = new Matrix(3, [
@@ -94,30 +97,37 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
 
 Does this work for any Lab to LCH, whether Ok or otherwise?
 
+Meanwhile, these functions considre the first 3 columns of the input and panic
+on fewer than 3 columns.
+
     export let labToLch(lab: Matrix): Matrix {
       lab.mapRows { (row, builder);;
-        let l = row[0];
-        let a = row[1];
-        let b = row[2];
-        let c = (a * a + b * b).sqrt();
-        let h = 0.5 * (1.0 + (-b).atan2(-a) / Float64.pi);
-        builder.add(l);
-        builder.add(c);
-        builder.add(h);
+        do {
+          let l = row[0];
+          let a = row[1];
+          let b = row[2];
+          let c = (a * a + b * b).sqrt();
+          let h = 0.5 * (1.0 + (-b).atan2(-a) / Float64.pi);
+          builder.add(l);
+          builder.add(c);
+          builder.add(h);
+        } orelse panic();
       }
     }
 
     export let lchToLab(lch: Matrix): Matrix {
       lch.mapRows { (row, builder);;
-        let l = row[0];
-        let c = row[1];
-        let h = row[2];
-        let h_ = 2.0 * Float64.pi * h;
-        let a = c * h_.cos();
-        let b = c * h_.sin();
-        builder.add(l);
-        builder.add(a);
-        builder.add(b);
+        do {
+          let l = row[0];
+          let c = row[1];
+          let h = row[2];
+          let h_ = 2.0 * Float64.pi * h;
+          let a = c * h_.cos();
+          let b = c * h_.sin();
+          builder.add(l);
+          builder.add(a);
+          builder.add(b);
+        } orelse panic();
       }
     }
 
