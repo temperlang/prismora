@@ -15,8 +15,7 @@ Hardcode the tolerance we expect for our color operations.
 
       let absTol = 1e-5;
       assert(a.near(b, null, absTol)) {
-        let info = "with relTol ${absTol.toString()}";
-        "${label} ${a.toString()} not near ${b.toString()} with ${info}"
+        "${label} ${a} not near ${b} with absTol ${absTol}"
       }
     }
 
@@ -29,7 +28,7 @@ Assert color lists and also conversion from one space to another.
       for (var i = 0; i < actual.length; i += 1) {
         let iText = i.toString();
         for (var j = 0; j < actual.width; j += 1) {
-          let label = "[${iText}, ${j.toString()}]";
+          let label = "[${iText}, ${j}]";
           assertNear(test, label, actual[i, j], expected[i, j]) orelse panic();
         }
       }
