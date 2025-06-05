@@ -14,7 +14,7 @@ Provides extra info over simple assert.
 Hardcode the tolerance we expect for our color operations.
 
       let absTol = 1e-5;
-      assert(a.near(b, absTol = absTol)) {
+      assert(a.near(b, null, absTol)) {
         let info = "with relTol ${absTol.toString()}";
         "${label} ${a.toString()} not near ${b.toString()} with ${info}"
       }

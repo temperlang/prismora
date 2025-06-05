@@ -49,7 +49,7 @@ While `rows` is public, it's sometimes nice to skip through it.
         if (space == this.space) {
           this
         } else {
-          { space, rows: convert(rows, from = this.space, to = space) }
+          { space, rows: convert(rows, this.space, space) }
         }
       }
     }
