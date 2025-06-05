@@ -97,7 +97,7 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
 
 Does this work for any Lab to LCH, whether Ok or otherwise?
 
-Meanwhile, these functions considre the first 3 columns of the input and panic
+Meanwhile, these functions consider the first 3 columns of the input and panic
 on fewer than 3 columns.
 
     export let labToLch(lab: Matrix): Matrix {

@@ -19,6 +19,7 @@ automatically:
 - JS
 - Lua
 - Python
+- Rust
 - Hopefully more in the future as well
 
 This library is also a testing ground for how well we can support specific
