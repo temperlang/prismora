@@ -31,9 +31,9 @@ TODO Some consistent representation for opacity?
 
 While `rows` is public, it's sometimes nice to skip through it.
 
-      public get(i: Int, j: Int): Float64 | Bubble { rows[i, j] }
+      public get(i: Int, j: Int): Float64 throws Bubble { rows[i, j] }
 
-      public at(i: Int): Float64 | Bubble { rows.at(i) }
+      public at(i: Int): Float64 throws Bubble { rows.at(i) }
 
       public get length(): Int { rows.nrows }
 
@@ -45,7 +45,7 @@ While `rows` is public, it's sometimes nice to skip through it.
         { space, rows: rows.map(transform) }
       }
 
-      public to(space: Space): Color | Bubble {
+      public to(space: Space): Color throws Bubble {
         if (space == this.space) {
           this
         } else {
@@ -54,7 +54,7 @@ While `rows` is public, it's sometimes nice to skip through it.
       }
     }
 
-    test("color conversions") { (test);;
+    test("color conversions") { test =>
       let srgb = Color.from(Space.srgb, [0.691, 0.139, 0.259]);
 
 Might be nice to check against something like
@@ -101,7 +101,7 @@ representations of the same space, but we don't make that distinction here.
 Generic conversion functions call specific functions depending on the spaces
 involved.
 
-    export let convert(rows: Matrix, from: Space, to: Space): Matrix | Bubble {
+    export let convert(rows: Matrix, from: Space, to: Space): Matrix throws Bubble {
       when (from) {
         Space.oklab -> when (to) {
           Space.oklab -> rows;

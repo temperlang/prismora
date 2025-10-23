@@ -47,14 +47,14 @@ For convenience, provide a factory method for single-row matrices.
 
 Get by full coordinates.
 
-      public get(i: Int, j: Int): Float64 | Bubble {
+      public get(i: Int, j: Int): Float64 throws Bubble {
         if (j >= ncols) { bubble() }
         values[i * ncols + j]
       }
 
 Or by flat.
 
-      public at(i: Int): Float64 | Bubble { values[i] }
+      public at(i: Int): Float64 throws Bubble { values[i] }
 
 ## Get Whole Row
 
@@ -67,8 +67,8 @@ too long?
 
       public row(
         i: Int,
-        buffer: ListBuilder<Float64> | Null = null,
-      ): Listed<Float64> | Bubble {
+        buffer: ListBuilder<Float64>? = null,
+      ): Listed<Float64> throws Bubble {
         if (i >= nrows) { bubble() }
         let offset = i * ncols;
         let buf = buffer ?? do { return values.slice(offset, offset + ncols) };
@@ -125,9 +125,9 @@ Or to create a list of whatever by row.
 
 ### Matrix Multiply
 
-      public times(other: Matrix): Matrix | Bubble {
+      public times(other: Matrix): Matrix throws Bubble {
         if (ncols != other.nrows) { bubble() }
-        mapRows { (row, builder);;
+        mapRows { row, builder =>
           for (var k = 0; k < other.ncols; k += 1) {
             var sum = 0.0;
             for (var j = 0; j < ncols; j += 1) {
@@ -140,7 +140,7 @@ Or to create a list of whatever by row.
 
 ### Transpose
 
-      public transpose(): Matrix | Bubble {
+      public transpose(): Matrix throws Bubble {
 
 TODO Internal stride wrangling to support no-copy transpose?
 
@@ -187,7 +187,7 @@ Also check non-buffered row access.
 
     test("matrix map") {
       let matrix = new Matrix(3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-      let result = matrix.map { (x);; x * 0.5 };
+      let result = matrix.map { x => x * 0.5 };
       assert(result.nrows == matrix.nrows);
       assert(result.ncols == matrix.ncols);
       assert(result[0, 0] == 0.5);
@@ -201,8 +201,8 @@ Also check non-buffered row access.
       assert(rowish.nrows == 1);
       assert(rowish.ncols == 3);
       assert(rowish.at(1) == 3.4);
-      let sumsAsStrings = rowish.mapRowsToList { (row): String;;
-        row.reduceFrom(0.0) { (a: Float64, b): Float64;; a + b }.toString()
+      let sumsAsStrings = rowish.mapRowsToList { (row): String =>
+        row.reduceFrom(0.0) { (a: Float64, b): Float64 => a + b }.toString()
       };
       assert(sumsAsStrings.length == 1);
       assert(sumsAsStrings[0] == "10.2");

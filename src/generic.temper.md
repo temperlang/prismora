@@ -23,9 +23,9 @@ TODO Do we have bit shifting?
 
 These are safe because we controlled the bounds above.
 
-            builder.add(x.toFloat64Unsafe());
-            builder.add(y.toFloat64Unsafe());
-            builder.add(z.toFloat64Unsafe());
+            builder.add(x.toFloat64());
+            builder.add(y.toFloat64());
+            builder.add(z.toFloat64());
           }
           builder.toList()
         } orelse panic(),
@@ -33,7 +33,7 @@ These are safe because we controlled the bounds above.
     }
 
     export let unitToInt(rows: Matrix): List<Int> {
-      unitToByte(rows).mapRowsToList { (row: Listed<Float64>): Int;;
+      unitToByte(rows).mapRowsToList { (row: Listed<Float64>): Int =>
         let x = clampToIntByte(row[0] orelse panic());
         let y = clampToIntByte(row[1] orelse panic());
         let z = clampToIntByte(row[2] orelse panic());
@@ -49,7 +49,7 @@ Support convenient string formatting of packed int colors. Common HTML/CSS
 formatting for RGB with leading "\#" is defined with other RGB operations.
 
     export let unitToString(rows: Matrix): List<String> {
-      unitToInt(rows).map { (i): String;; padLeft(i.toString(16), 6, "0") }
+      unitToInt(rows).map { (i): String => padLeft(i.toString(16), 6, "0") }
     }
 
     test("unitToString top bound and left pad") {
@@ -61,13 +61,13 @@ formatting for RGB with leading "\#" is defined with other RGB operations.
 These operate on floats rather than ints.
 
     export let byteToUnit(rows: Matrix): Matrix {
-      rows.map { (x);; (x / 255.0) orelse panic() }
+      rows.map { x => (x / 255.0) orelse panic() }
     }
 
-    export let unitToByte(rows: Matrix): Matrix { rows.map { (x);; x * 255.0 } }
+    export let unitToByte(rows: Matrix): Matrix { rows.map { x => x * 255.0 } }
 
 Presumes that `x` is known to be approximately in the 0 to 255 range already.
 
     export let clampToIntByte(x: Float64): Int {
-      clampByte(x.round().toIntUnsafe())
+      clampByte(x.round().toInt32Unsafe())
     }
