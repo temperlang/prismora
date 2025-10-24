@@ -15,7 +15,7 @@ x 3.
     export let srgbLinearToOklab(rgb: Matrix): Matrix {
       rgb
         .times(srgbLinearToOklab0)
-        .map { (x);; cbrt(x) }
+        .map { x => cbrt(x) }
         .times(srgbLinearToOklab1) orelse panic()
     }
 
@@ -40,7 +40,7 @@ Panics if `lab` isn't N x 3.
     let oklabToSrgbLinear(lab: Matrix): Matrix {
       lab
         .times(oklabToSrgbLinear0)
-        .map { (x);; x * x * x }
+        .map { x => x * x * x }
         .times(oklabToSrgbLinear1) orelse panic()
     }
 
@@ -58,7 +58,7 @@ Panics if `lab` isn't N x 3.
 
 ### Tests
 
-    test("oklab round trip") { (test);;
+    test("oklab round trip") { test =>
       let rgb0 = Color.from(Space.srgb, [
         0.0, 0.0, 0.0,
         0.3, 0.4, 0.5,
@@ -71,7 +71,7 @@ Panics if `lab` isn't N x 3.
 
 Color conversion test cases come from [web-platform-tests][CssColorTests].
 
-    test("oklab from rgb conversion") { (test);;
+    test("oklab from rgb conversion") { test =>
       let source = Color.from(Space.srgb, [
         0.0, 0.5, 0.0,
         0.0, 0.0, 0.0,
@@ -101,7 +101,7 @@ Meanwhile, these functions consider the first 3 columns of the input and panic
 on fewer than 3 columns.
 
     export let labToLch(lab: Matrix): Matrix {
-      lab.mapRows { (row, builder);;
+      lab.mapRows { row, builder =>
         do {
           let l = row[0];
           let a = row[1];
@@ -116,7 +116,7 @@ on fewer than 3 columns.
     }
 
     export let lchToLab(lch: Matrix): Matrix {
-      lch.mapRows { (row, builder);;
+      lch.mapRows { row, builder =>
         do {
           let l = row[0];
           let c = row[1];
@@ -136,7 +136,7 @@ on fewer than 3 columns.
 Any Lab space is fine for this test as long as we give the matching LCH and
 turnaround Lab for it.
 
-    test("lch round trip") { (test);;
+    test("lch round trip") { test =>
       let lab0 = oklabExpectedResults();
       let lch = lab0.to(Space.oklch);
       let lab1 = lch.to(Space.oklab);
@@ -145,7 +145,7 @@ turnaround Lab for it.
 
 Also test conversion, again from [web-platform-tests][CssColorTests].
 
-    test("oklch from rgb conversion") { (test);;
+    test("oklch from rgb conversion") { test =>
       let source = Color.from(Space.srgb, [
         0.0, 0.5, 0.0,
         0.0, 0.0, 0.0,

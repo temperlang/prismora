@@ -36,7 +36,7 @@ Assert color lists and also conversion from one space to another.
 
     let assertConvertColors(
       test: Test, source: Color, expected: Color
-    ): Void | Bubble {
+    ): Void throws Bubble {
       assertColors(test, source.to(expected.space), expected);
     }
 
@@ -82,7 +82,7 @@ Also, we don't have builtin max/min for ints.
 
 ### String Joining
 
-    let join(strings: Listed<String>): String { strings.join("") { (it);; it } }
+    let join(strings: Listed<String>): String { strings.join("") { it => it } }
 
 ### String Padding
 

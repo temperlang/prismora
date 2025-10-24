@@ -11,7 +11,7 @@ means RGB.
 TODO Support css rendering of all spaces?
 
     export let rgbUnitToString(rgb: Matrix): List<String> {
-      unitToString(rgb).map { (it): String;; "#${it}" }
+      unitToString(rgb).map { (it): String => "#${it}" }
     }
 
 ## Gamma-Corrected <-> Linear sRGB
@@ -25,11 +25,11 @@ Sources:
 The Wikipedia example linearizes as part of the transformation to CIE XYZ.
 
     export let srgbGammaToLinear(rgb: Matrix): Matrix {
-      rgb.map { (x);; channelGammaToLinear(x) }
+      rgb.map { x => channelGammaToLinear(x) }
     }
 
     export let srgbLinearToGamma(rgb: Matrix): Matrix {
-      rgb.map { (x);; channelLinearToGamma(x) }
+      rgb.map { x => channelLinearToGamma(x) }
     }
 
     export let channelGammaToLinear(x: Float64): Float64 {
