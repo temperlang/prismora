@@ -119,4 +119,4 @@ We need padding.
 
 Should we implement `cbrt` in Temper implicits?
 
-    let cbrt(x: Float64): Float64 { x ** (1.0 / 3.0) }
+    let cbrt(x: Float64): Float64 { x.sign() * x.abs() ** (1.0 / 3.0) }
