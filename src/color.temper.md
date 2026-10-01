@@ -83,7 +83,14 @@ defined in this library.
       public name: String,
       public ncols: Int,
     ) {
+
+And note that the name for now is considered a unique full identifier. If
+defining new instances outside this library, use some namepace prefix.
+
       public toString(): String { name }
+
+      @operator("==")
+      public eq(other: Space): Boolean { name == other.name }
 
 Some of the supported spaces here aren't considered by everyone to be true
 separate "spaces". For example, some consider RGB and HSV just to be different
