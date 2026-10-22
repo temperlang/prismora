@@ -272,7 +272,8 @@ values and no `none`.
       for (var i = 0; i < tokens.length; i += 1) {
         let token = tokens[i];
         let shouldBeComma = i % 2 == 1;
-        if ((token.kind == COMMA_TOKEN) != shouldBeComma) { bubble() }
+        let isComma = token.kind == COMMA_TOKEN;
+        if (isComma && !shouldBeComma || !isComma && shouldBeComma) { bubble() }
         if (token.kind == SLASH_TOKEN || (token.kind == IDENT && token.text == "none")) {
           bubble()
         }
