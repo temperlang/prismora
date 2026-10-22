@@ -116,14 +116,14 @@ number of values, then panic.
 
 Or to create a list of whatever by row.
 
-    public mapRowsToList<T>(transform: fn (Listed<Float64>): T): List<T> {
-      let builder = new ListBuilder<T>();
-      let buffer = new ListBuilder<Float64>();
-      for (var i = 0; i < nrows; i += 1) {
-        builder.add(transform(row(i, buffer))) orelse panic();
+      public mapRowsToList<T>(transform: fn (Listed<Float64>): T): List<T> {
+        let builder = new ListBuilder<T>();
+        let buffer = new ListBuilder<Float64>();
+        for (var i = 0; i < nrows; i += 1) {
+          builder.add(transform(row(i, buffer))) orelse panic();
+        }
+        builder.toList()
       }
-      builder.toList()
-    }
 
 ## Math
 
