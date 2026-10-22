@@ -24,18 +24,14 @@ jobs:
         with:
           persist-credentials: false
 
-      # Temper's nightly build of main, with its own JRE. Asset names include
-      # the version, so match by pattern.
+      # Temper's nightly build of main, with its own JRE. The asset name
+      # includes the version, so match by pattern.
       - name: Get Temper
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download dev -R temperlang/temper -p '*-linux-x64.tgz' -D "$RUNNER_TEMP/temper"
-          mkdir -p "$RUNNER_TEMP/temper/install"
-          tar -xzf "$RUNNER_TEMP"/temper/*-linux-x64.tgz -C "$RUNNER_TEMP/temper/install"
-          bin=$(dirname "$(find "$RUNNER_TEMP/temper/install" -path '*/bin/temper' -type f | head -1)")
-          echo "$bin" >> "$GITHUB_PATH"
-          "$bin/temper" version
+          gh release download dev -R temperlang/temper -p '*-linux-x64.tgz' -O - | tar -xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP"/temper-*-linux-x64 >> "$GITHUB_PATH"
 
       # Toolchains per backend. Runners already have g++, cargo and Maven.
       - if: matrix.backend == 'py'
