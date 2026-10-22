@@ -7,16 +7,18 @@ A cross-language color transformation library, working toward the color math of
 
 Working now:
 
-- Conversion between sRGB, linear sRGB, Oklab, and OkLCh, for single colors or
-  in bulk
-- Formatting as packed ints and `#rrggbb` strings
+- Conversion between sRGB, linear sRGB, HSL, HSV, HWB, Oklab, and OkLCh, for
+  single colors or in bulk
+- Optional alpha, kept separate from color channels, with interleaved RGBA in
+  and out
+- Parsing hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`) and CSS named colors
+- Formatting as packed ints and `#rrggbb` or `#rrggbbaa` strings
 - Out-of-range values kept exact through conversions, with clamping when
   packing or on request
 
 Planned:
 
-- Alpha, and parsing hex and other CSS formats
-- HSL, HWB, and HSV
+- Parsing other CSS formats, such as `rgb()` and `oklch()`
 - Wide-gamut spaces like Display P3, plus CIE Lab and LCH
 - Gamut mapping, grayscale, and gradients, with defaults that match human
   perception
