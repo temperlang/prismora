@@ -1,4 +1,10 @@
+bin/
+build/
+node_modules/
+obj/
+target/
 temper.keep/
 temper.out/
 .claude/
 .mcp.json
+.venv/

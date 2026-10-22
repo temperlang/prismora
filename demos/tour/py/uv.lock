@@ -1,0 +1,50 @@
+version = 1
+revision = 3
+requires-python = ">=3.11"
+
+[[package]]
+name = "prismora"
+version = "0.0.1"
+source = { editable = "../../../temper.out/py/prismora" }
+dependencies = [
+    { name = "temper-core" },
+    { name = "temper-std" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "temper-core", specifier = "==0.6.0" },
+    { name = "temper-std", specifier = "==0.6.0" },
+]
+
+[[package]]
+name = "prismora-tour"
+version = "0.0.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "prismora" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "prismora", editable = "../../../temper.out/py/prismora" }]
+
+[[package]]
+name = "temper-core"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e9/6a/6d91f865c7f10d87708d76d6d2708ac4191672198704b6ab9855ce341b4d/temper_core-0.6.0.tar.gz", hash = "sha256:45a131eb1a8fb3c04281078427acf0705b15327849d8f63e3f0dcc98e7957b6c", size = 12855, upload-time = "2025-12-30T17:56:48.133Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/91/40/953e7d4781772639abeddf48c0e6124090ecc84226c4504768fe4e19c051/temper_core-0.6.0-py3-none-any.whl", hash = "sha256:8aa9395e57154ec1db8449062ee502ff17c0ca5d4d34d71fb7ca181f3f03d95b", size = 14046, upload-time = "2025-12-30T17:56:46.645Z" },
+]
+
+[[package]]
+name = "temper-std"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "temper-core" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ef/14/a655d7bb76e46f401f98c279d3cd76cdc647dedfc58b3184973380425370/temper_std-0.6.0.tar.gz", hash = "sha256:70c879ce55c41a93d2934801c687c64c1aae7ee92cf9d7b24c579f37b432a4f7", size = 77707, upload-time = "2025-12-30T17:57:07.94Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a8/e8/c3182cd71d2a62cda446bbbc92da06a8f2509a938cb80775235376bd3a57/temper_std-0.6.0-py3-none-any.whl", hash = "sha256:ef3a8bb3b9a780ed6a558b99c463d0e66259eb9afba50544775520c2445ccc6a", size = 81728, upload-time = "2025-12-30T17:57:06.624Z" },
+]
