@@ -46,10 +46,9 @@ representations of the same space, but we don't make that distinction here.
       public static srgb = new Space("srgb", 3, Space.srgbLinear);
       public static oklab = new Space("oklab", 3, Space.srgbLinear);
       public static oklch = new Space("oklch", 3, Space.oklab);
-
-HSV isn't implemented yet, so it has no parent.
-
-      public static hsv = new Space("hsv", 3);
+      public static hsl = new Space("hsl", 3, Space.srgb);
+      public static hsv = new Space("hsv", 3, Space.srgb);
+      public static hwb = new Space("hwb", 3, Space.hsv);
     }
 
 ## Conversion
@@ -113,6 +112,9 @@ functions they reference, and calling function fields directly needs a local.
         Space.srgb -> srgbGammaToLinear(rows);
         Space.oklab -> oklabToSrgbLinear(rows);
         Space.oklch -> lchToLab(rows);
+        Space.hsl -> hslToSrgb(rows);
+        Space.hsv -> hsvToSrgb(rows);
+        Space.hwb -> hwbToHsv(rows);
         else -> bubble();
       }
     }
@@ -122,6 +124,9 @@ functions they reference, and calling function fields directly needs a local.
         Space.srgb -> srgbLinearToGamma(rows);
         Space.oklab -> srgbLinearToOklab(rows);
         Space.oklch -> labToLch(rows);
+        Space.hsl -> srgbToHsl(rows);
+        Space.hsv -> srgbToHsv(rows);
+        Space.hwb -> hsvToHwb(rows);
         else -> bubble();
       }
     }
@@ -131,7 +136,9 @@ functions they reference, and calling function fields directly needs a local.
 Every pair of spaces should round trip.
 
     test("convert round trips between all spaces") { test =>
-      let spaces = [Space.srgb, Space.srgbLinear, Space.oklab, Space.oklch];
+      let spaces = [
+        Space.srgb, Space.srgbLinear, Space.oklab, Space.oklch, Space.hsl, Space.hsv, Space.hwb,
+      ];
       let source = Color.from(Space.srgb, [0.2, 0.4, 0.6, 0.9, 0.1, 0.3]);
       for (var i = 0; i < spaces.length; i += 1) {
         let from = source.to(spaces[i]);
