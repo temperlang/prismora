@@ -1,2 +1,4 @@
 temper.keep/
 temper.out/
+.claude/
+.mcp.json

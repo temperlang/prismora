@@ -91,9 +91,11 @@ Map individually to create a new matrix.
         new Matrix(ncols, values.map(transform))
       }
 
-Or by row, adding new values on to the provided builder for each call. If
-`this` doesn't have at least one row, or if built rows are empty or
-inconsistent, then bubble.
+Or by row, adding new values on to the provided builder for each call. The
+first built row sets the result's `ncols`, and each later row must add the same
+number of values, so result rows always line up with input rows. If `this` has
+no rows, if the first built row is empty, or if any later row adds a different
+number of values, then panic.
 
       public mapRows(
         build: fn (row: Listed<Float64>, builder: ListBuilder<Float64>): Void,
@@ -105,6 +107,8 @@ inconsistent, then bubble.
           build(row(i, buffer) orelse panic(), builder);
           if (i == 0) {
             ncols = builder.length;
+          } else if (builder.length != (i + 1) * ncols) {
+            panic();
           }
         }
         { ncols, values: builder.toList() }
@@ -192,6 +196,23 @@ Also check non-buffered row access.
       assert(result.ncols == matrix.ncols);
       assert(result[0, 0] == 0.5);
       assert(result[1, 2] == 3.0);
+    }
+
+Mapping rows can change the number of columns, as long as each row adds the
+same number of values.
+
+    test("matrix map rows") {
+      let matrix = new Matrix(3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+      let result = matrix.mapRows { row, builder =>
+        builder.add(row[0] + row[1] + row[2]);
+        builder.add(row[0]);
+      };
+      assert(result.nrows == 2);
+      assert(result.ncols == 2);
+      assert(result[0, 0] == 6.0);
+      assert(result[0, 1] == 1.0);
+      assert(result[1, 0] == 15.0);
+      assert(result[1, 1] == 4.0);
     }
 
 ### Miscellaneous
