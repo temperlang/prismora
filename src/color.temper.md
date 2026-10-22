@@ -173,6 +173,48 @@ the first to the last, in `space`.
         gradientColors(this, count, space, hue)
       }
 
+### Adjusting
+
+Changes in OkLCh, converted back to this color's space, with alpha kept.
+Results aren't clamped; use `toGamut` to show them. See
+[adjust](adjust.temper.md).
+
+Adds `amount` to OkLCh lightness, from 0 for black to 1 for white, so
+negative amounts darken.
+
+      public lighten(amount: Float64): Color throws Bubble {
+        new Color(space, adjustLch(this, amount, 1.0, 0.0), alpha)
+      }
+
+Multiplies OkLCh chroma by `factor`: 0 for gray, 2 for twice as vivid.
+
+      public saturate(factor: Float64): Color throws Bubble {
+        new Color(space, adjustLch(this, 0.0, factor, 0.0), alpha)
+      }
+
+Turns hue by `turns`, so 0.5 gives the opposite hue.
+
+      public rotateHue(turns: Float64): Color throws Bubble {
+        new Color(space, adjustLch(this, 0.0, 1.0, turns), alpha)
+      }
+
+Gray with the same OkLCh lightness, like `saturate(0.0)`.
+
+      public grayscale(): Color throws Bubble { saturate(0.0) }
+
+### Contrast
+
+WCAG relative luminance of each row, from 0 for black to 1 for white.
+
+      public luminance(): List<Float64> throws Bubble { luminanceRows(this) }
+
+WCAG contrast ratio with each row of `other`, from 1 to 21. Either may have
+one row, used for every row of the other.
+
+      public contrast(other: Color): List<Float64> throws Bubble {
+        contrastRows(this, other)
+      }
+
 ### Hex
 
 As `#rrggbb` strings, or `#rrggbbaa` with alpha, after mapping to the sRGB

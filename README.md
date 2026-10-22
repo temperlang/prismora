@@ -40,12 +40,16 @@ Working now:
 - Gamut mapping as in CSS Color 4, reducing chroma in OkLCh to fit sRGB,
   Display P3 or another RGB gamut, used for hex output, plus clamping on
   request and the deltaEOK color difference
+- Mixing and gradients as in CSS Color 4 and 5, in Oklab by default or any
+  space, with CSS's hue paths and premultiplied alpha
+- Lightening, saturating, hue rotation and grayscale in OkLCh, so changes
+  look even across colors
+- WCAG luminance and contrast ratios
 
 Planned:
 
-- Parsing other CSS formats, such as `rgb()` and `oklch()`
-- Interpolation and mixing as in CSS Color 4 and 5, then grayscale and
-  gradients, with defaults that match human perception
+- Parsing other CSS formats, such as `rgb()` and `oklch()`, and formatting
+  as CSS
 
 Prismora uses material from CSS Color 4 and web-platform-tests. See
 [NOTICE](NOTICE).
