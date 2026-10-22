@@ -195,7 +195,21 @@ h2 {
 }
 
 .table-scroll {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 22rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.table-scroll th[scope="col"] {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+}
+
+.table-scroll th:first-child,
+.table-scroll td:first-child {
+  padding-left: 0.75rem;
 }
 
 table {
@@ -220,13 +234,30 @@ th {
 td.values,
 td.css {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
+}
+
+td.values span {
+  display: inline-block;
+  margin-right: 0.8em;
   white-space: nowrap;
+}
+
+td.values {
+  width: 32%;
+}
+
+td.css {
+  width: 28%;
+  overflow-wrap: anywhere;
 }
 
 td.about {
   color: var(--muted);
-  min-width: 18rem;
+}
+
+th.name {
+  white-space: nowrap;
 }
 
 .tabs {
@@ -247,9 +278,10 @@ td.about {
 }
 
 pre.source {
+  margin-top: 0;
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0 8px 8px 8px;
   padding: 1rem;
   overflow: auto;
   max-height: 36rem;
@@ -285,11 +317,32 @@ pre.source {
 
 /* The editor: highlighted code drawn behind a transparent textarea. Both
    need the same font, size, padding and wrapping to line up. */
+/* Editable code looks like an input: the brighter surface and an accent
+   border. Read-only code keeps the tinted background and a thin border. */
 .editor {
   position: relative;
+  background: var(--surface);
+  border: 2px solid color-mix(in oklab, var(--accent) 55%, var(--border));
+  border-radius: 0 8px 8px 8px;
+}
+
+.code-label {
+  display: inline-block;
+  padding: 0.1rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.code-label.editable {
+  color: var(--bg);
+  background: color-mix(in oklab, var(--accent) 55%, var(--border));
+  border: 0;
 }
 
 .editor pre,
@@ -395,6 +448,27 @@ pre.output .error {
   vertical-align: -0.1em;
   border-radius: 3px;
   border: 1px solid var(--border);
+}
+
+#tour-run:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+#tour-run-note {
+  color: var(--muted);
+}
+
+.tour-run {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#tour-output {
+  max-height: 24rem;
+  overflow: auto;
 }
 
 footer {

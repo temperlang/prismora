@@ -9,8 +9,7 @@
   <script type="importmap">
     {
       "imports": {
-        "@temperlang/core": "./lib/temper-core/index.js",
-        "prismora": "./lib/prismora/index.js"
+        "prismora": "./lib/prismora.js"
       }
     }
   </script>
@@ -108,6 +107,7 @@
         in C++, C#, Java, Lua, Python and Rust</a>, as read-only example
         programs.
       </p>
+      <div class="code-label editable" aria-hidden="true">✎ Editable JavaScript</div>
       <div class="editor">
         <pre id="play-highlight" aria-hidden="true"><code></code></pre>
         <label for="play-code" class="visually-hidden">JavaScript</label>
@@ -121,12 +121,19 @@
     <section id="code">
       <h2>Same code, seven languages</h2>
       <p>
-        One tour through Prismora's whole API, in each language. Every version
-        prints exactly the same text, and they all run in CI.
+        This is the code you'd write to use Prismora from each language: one
+        tour through the whole API. Every version prints exactly the same
+        text, and they all run in CI.
       </p>
       <div class="tabs" role="tablist" aria-label="Language"></div>
       <p class="run">Run it: <code id="run-command"></code></p>
+      <div class="code-label" id="source-label" aria-hidden="true">Read-only example</div>
       <pre class="source" tabindex="0"><code id="source"></code></pre>
+      <p class="tour-run">
+        <button type="button" id="tour-run" class="primary">Run in your browser</button>
+        <span id="tour-run-note"></span>
+      </p>
+      <pre id="tour-output" class="output" aria-live="polite" hidden></pre>
     </section>
 
     <section id="made">
@@ -136,12 +143,12 @@
         <a href="https://temperlang.dev/">Temper</a>, a language built for
         writing libraries that compile to many other languages. Temper turns
         the same source into a natural library for each one: classes and
-        methods in Java and C#, modules in Python and Lua, a crate in Rust,
+        methods in C# and Java, modules in Lua and Python, a crate in Rust,
         and so on. Tests run on every language.
       </p>
       <p>
-        This page uses the JavaScript version directly, with no framework or
-        bundler:
+        This page uses the JavaScript version directly, with no framework,
+        bundled with <a href="https://esbuild.github.io/">esbuild</a>:
       </p>
       <ul id="sizes"></ul>
     </section>

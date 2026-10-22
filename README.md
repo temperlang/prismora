@@ -96,9 +96,12 @@ prints the same text (see [demos](demos/README.md)):
 
     uv run demos/run.py
 
-Build and preview the site, which uses the JS backend's output:
+Build and preview the site, which uses the JS backend's output, and the
+Rust backend's compiled to wasm:
 
-    temper build -b js
+    temper build -b js -b rust
+    rustup target add wasm32-unknown-unknown
+    npm ci --prefix site
     uv run site/build.py
     python3 -m http.server -d site/build
 

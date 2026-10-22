@@ -1,7 +1,7 @@
 // The page's behavior: the color converter, the code tabs, and library
 // sizes. Prismora comes from Temper's JS output through the import map.
 
-import { Color, Space } from "prismora";
+import { Color, HueMethod, Matrix, Space } from "prismora";
 
 // Spaces in the table, with channel names and what each is for.
 const SPACES = [
@@ -57,17 +57,27 @@ function showColor(text) {
   const rows = SPACES.map(([space, channels, about]) => {
     const converted = color.convert(space);
     const values = converted.rows.toList().map(fmt);
-    const labeled = channels.split(" ").map((name, i) => `${name} ${values[i]}`).join("  ");
-    const alpha = converted.alpha === null ? "" : `  α ${fmt(converted.alphaAt(0))}`;
+    // Each channel is a chip that wraps as a whole, so the table needn't
+    // scroll sideways.
+    const chips = channels.split(" ").map((name, i) => `${name} ${values[i]}`);
+    if (converted.alpha !== null) chips.push(`α ${fmt(converted.alphaAt(0))}`);
     const tr = document.createElement("tr");
-    for (const [cls, content] of [
-      ["name", space.name],
-      ["values", labeled + alpha],
-      ["css", converted.toCss()[0]],
-      ["about", about],
-    ]) {
-      const td = document.createElement(cls === "name" ? "th" : "td");
-      if (cls === "name") td.scope = "row";
+    const name = document.createElement("th");
+    name.scope = "row";
+    name.className = "name";
+    name.textContent = space.name;
+    const valuesCell = document.createElement("td");
+    valuesCell.className = "values";
+    valuesCell.append(
+      ...chips.map((text) => {
+        const chip = document.createElement("span");
+        chip.textContent = text;
+        return chip;
+      }),
+    );
+    tr.append(name, valuesCell);
+    for (const [cls, content] of [["css", converted.toCss()[0]], ["about", about]]) {
+      const td = document.createElement("td");
       td.className = cls;
       td.textContent = content;
       tr.append(td);
@@ -101,8 +111,8 @@ const shared = new URLSearchParams(location.hash.slice(1)).get("color");
 if (shared) input.value = shared;
 showColor(input.value);
 
-// Playground: runs the visitor's own code in their browser, as a module
-// that imports Prismora, with console.log sent to the page.
+// Playground: runs the visitor's own code in their browser, with
+// console.log sent to the page.
 
 const PLAY_START = `// Parse any CSS color.
 const brand = Color.parse("oklch(60% 0.15 250)");
@@ -159,20 +169,23 @@ function showOutput(text, isError = false) {
   playOutput.append(line);
 }
 
+// Runs code as the body of an async function, given Prismora's classes and
+// a console that writes to `log`. Visitors run their own code in their own
+// browser; the page shares nothing with it but these.
+const AsyncFunction = (async () => {}).constructor;
+
+async function runCode(code, log) {
+  const console = { log, error: log, warn: log, info: log };
+  const run = new AsyncFunction("Color", "HueMethod", "Matrix", "Space", "console", code);
+  await run(Color, HueMethod, Matrix, Space, console);
+}
+
 async function runPlay() {
   playOutput.replaceChildren();
-  const log = (...args) => showOutput(args.map(String).join(" "));
-  const source =
-    `import { Color, HueMethod, Matrix, Space } from "prismora";\n` +
-    `export default async function (console) {\n${playCode.value}\n}\n`;
-  const url = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
   try {
-    const module = await import(url);
-    await module.default({ log, error: log, warn: log, info: log });
+    await runCode(playCode.value, (...args) => showOutput(args.map(String).join(" ")));
   } catch (error) {
     showOutput(String(error), true);
-  } finally {
-    URL.revokeObjectURL(url);
   }
 }
 
@@ -188,14 +201,16 @@ runPlay();
 // Code tabs: each language's tour, with a small highlighter.
 
 const LANGUAGES = [
-  ["Python", "py", "uv run tour.py", "#"],
-  ["JavaScript", "js", "npm install && npm start", "//"],
-  ["Java", "java", "./gradlew run", "//"],
-  ["C#", "cs", "dotnet run", "//"],
-  ["Rust", "rs", "cargo run", "//"],
   ["C++", "cpp", "cmake -B build && cmake --build build && ./build/tour", "//"],
+  ["C#", "cs", "dotnet run", "//"],
+  ["Java", "java", "./gradlew run", "//"],
+  ["JavaScript", "js", "npm install && npm start", "//"],
   ["Lua", "lua", "lua -l paths tour.lua", "--"],
+  ["Python", "py", "uv run tour.py", "#"],
+  ["Rust", "rs", "cargo run", "//"],
 ];
+// Python is well known, and JavaScript already has the playground above.
+const DEFAULT_LANGUAGE = "py";
 
 const KEYWORDS = new Set(
   ("and as async auto await bool break case catch class const continue def do double else elif end except export " +
@@ -238,12 +253,77 @@ async function selectTab(index) {
     button.tabIndex = i === index ? 0 : -1;
   }
   $("run-command").textContent = run;
+  $("source-label").textContent = `Read-only example: ${LANGUAGES[index][0]}`;
   if (!sources.has(file)) {
     const response = await fetch(`tour/tour.${file}`);
     sources.set(file, response.ok ? await response.text() : "// Couldn't load this tour.");
   }
   $("source").innerHTML = highlight(sources.get(file), comment);
+  selectedTour = file;
+  $("tour-run").disabled = !(file in TOUR_RUNNERS);
+  $("tour-output").hidden = true;
+  $("tour-run-note").textContent = RUN_NOTES[file] ?? "Only JavaScript and Rust run in this page; run this one locally with the command above.";
 }
+
+// Tours the page can run: Rust compiled to wasm, whose println! calls an
+// imported print function, and JavaScript as a module, with console.log
+// sent to the page.
+
+let selectedTour = null;
+
+// Compiled once, on the first run, then reused; each run gets a fresh
+// instance, so runs don't share memory.
+let rustModule = null;
+
+async function runRustTour() {
+  rustModule ??= WebAssembly.compileStreaming(fetch("tour/tour.wasm"))
+    // Some servers don't label wasm as such, which streaming needs.
+    .catch(() => fetch("tour/tour.wasm").then((r) => r.arrayBuffer()).then((b) => WebAssembly.compile(b)))
+    .catch((error) => {
+      rustModule = null; // Try again next time.
+      throw error;
+    });
+  let memory;
+  let out = "";
+  const decoder = new TextDecoder();
+  const instance = await WebAssembly.instantiate(await rustModule, {
+    env: { print: (ptr, len) => (out += decoder.decode(new Uint8Array(memory.buffer, ptr, len))) },
+  });
+  memory = instance.exports.memory;
+  instance.exports.run();
+  return out;
+}
+
+async function runJsTour() {
+  // The tour's import line names what runCode passes in.
+  const code = sources.get("js").replace(/^import .* from "prismora";$/m, "");
+  const lines = [];
+  await runCode(code, (...args) => lines.push(args.map(String).join(" ")));
+  return lines.map((line) => line + "\n").join("");
+}
+
+const TOUR_RUNNERS = { rs: runRustTour, js: runJsTour };
+const RUN_NOTES = {
+  js: "Runs as JavaScript in this page.",
+  rs: "Precompiled to WebAssembly, and run in this page.",
+};
+
+$("tour-run").addEventListener("click", async () => {
+  const output = $("tour-output");
+  const note = $("tour-run-note");
+  output.hidden = false;
+  output.textContent = "Running…";
+  try {
+    const out = await TOUR_RUNNERS[selectedTour]();
+    output.textContent = out;
+    // TOUR_EXPECTED is the tours' shared output, which CI checks in every
+    // language; the site build fills it in.
+    note.textContent = out === TOUR_EXPECTED ? "✓ The same output as every other language." : "The output differs from the other languages.";
+  } catch (error) {
+    output.textContent = String(error);
+    note.textContent = "";
+  }
+});
 
 for (const [i, [name]] of LANGUAGES.entries()) {
   const button = document.createElement("button");
@@ -261,9 +341,6 @@ for (const [i, [name]] of LANGUAGES.entries()) {
   });
   tabs.append(button);
 }
-selectTab(0);
-fitEditor();
-syncHighlight();
 
 // Library sizes, measured when the site was built.
 
@@ -277,3 +354,8 @@ fetch("sizes.json")
     $("sizes").innerHTML = items.join("");
   })
   .catch(() => {});
+
+// Start up, once everything above is defined.
+selectTab(LANGUAGES.findIndex(([, file]) => file === DEFAULT_LANGUAGE));
+fitEditor();
+syncHighlight();

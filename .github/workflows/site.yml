@@ -26,9 +26,15 @@ jobs:
           gh release download dev -R temperlang/temper -p '*-linux-x64.tgz' -O - | tar -xz -C "$RUNNER_TEMP"
           echo "$RUNNER_TEMP"/temper-*-linux-x64 >> "$GITHUB_PATH"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Build
         run: |
-          temper build -b js
+          temper build -b js -b rust
+          rustup target add wasm32-unknown-unknown
+          npm ci --prefix site
           python3 site/build.py
 
       - uses: actions/upload-pages-artifact@v3
