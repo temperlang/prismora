@@ -3,9 +3,6 @@
 -- The same tour exists for each language Prismora supports, and they all
 -- print the same text. See ../README.md for how to run them.
 
--- Finds the libraries `temper build` generates at the repo's top.
-package.path = "../../../temper.out/lua/?/init.lua;../../../temper.out/lua/?.lua;" .. package.path
-
 local prismora = require("prismora")
 -- Prismora's null is temper-core's `null`, not Lua's `nil`.
 local is_null = require("temper-core").is_null

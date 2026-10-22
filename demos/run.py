@@ -32,7 +32,7 @@ COMMANDS = {
     "csharp": [["dotnet", "run", "-v", "q", "--nologo"]],
     "java": [["./gradlew", "-q", "--no-daemon", "run"]],
     "js": [["npm", "install", "--silent", "--no-audit", "--no-fund"], ["npm", "start", "--silent"]],
-    "lua": [["lua", "tour.lua"]],
+    "lua": [["lua", "-l", "paths", "tour.lua"]],
     "py": [["uv", "run", "-q", "tour.py"]],
     "rust": [["cargo", "run", "-q", "--release"]],
 }

@@ -22,7 +22,7 @@ one from its directory:
 | C# | `csharp` | `dotnet run` |
 | Java | `java` | `./gradlew run` |
 | JS | `js` | `npm install && npm start` |
-| Lua | `lua` | `lua tour.lua` |
+| Lua | `lua` | `lua -l paths tour.lua` |
 | Python | `py` | `uv run tour.py` |
 | Rust | `rust` | `cargo run` |
 
