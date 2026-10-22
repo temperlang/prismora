@@ -49,6 +49,14 @@ representations of the same space, but we don't make that distinction here.
       public static hsl = new Space("hsl", 3, Space.srgb);
       public static hsv = new Space("hsv", 3, Space.srgb);
       public static hwb = new Space("hwb", 3, Space.hsv);
+      public static displayP3 = new Space("displayP3", 3, Space.srgbLinear);
+      public static a98Rgb = new Space("a98Rgb", 3, Space.srgbLinear);
+      public static prophotoRgb = new Space("prophotoRgb", 3, Space.srgbLinear);
+      public static rec2020 = new Space("rec2020", 3, Space.srgbLinear);
+      public static xyzD65 = new Space("xyzD65", 3, Space.srgbLinear);
+      public static xyzD50 = new Space("xyzD50", 3, Space.xyzD65);
+      public static lab = new Space("lab", 3, Space.xyzD50);
+      public static lch = new Space("lch", 3, Space.lab);
     }
 
 ## Conversion
@@ -115,6 +123,14 @@ functions they reference, and calling function fields directly needs a local.
         Space.hsl -> hslToSrgb(rows);
         Space.hsv -> hsvToSrgb(rows);
         Space.hwb -> hwbToHsv(rows);
+        Space.displayP3 -> displayP3ToSrgbLinear(rows);
+        Space.a98Rgb -> a98RgbToSrgbLinear(rows);
+        Space.prophotoRgb -> prophotoRgbToSrgbLinear(rows);
+        Space.rec2020 -> rec2020ToSrgbLinear(rows);
+        Space.xyzD65 -> xyzD65ToSrgbLinear(rows);
+        Space.xyzD50 -> xyzD50ToXyzD65(rows);
+        Space.lab -> labToXyzD50(rows);
+        Space.lch -> cieLchToLab(rows);
         else -> bubble();
       }
     }
@@ -127,6 +143,14 @@ functions they reference, and calling function fields directly needs a local.
         Space.hsl -> srgbToHsl(rows);
         Space.hsv -> srgbToHsv(rows);
         Space.hwb -> hsvToHwb(rows);
+        Space.displayP3 -> srgbLinearToDisplayP3(rows);
+        Space.a98Rgb -> srgbLinearToA98Rgb(rows);
+        Space.prophotoRgb -> srgbLinearToProphotoRgb(rows);
+        Space.rec2020 -> srgbLinearToRec2020(rows);
+        Space.xyzD65 -> srgbLinearToXyzD65(rows);
+        Space.xyzD50 -> xyzD65ToXyzD50(rows);
+        Space.lab -> xyzD50ToLab(rows);
+        Space.lch -> cieLabToLch(rows);
         else -> bubble();
       }
     }
@@ -138,6 +162,8 @@ Every pair of spaces should round trip.
     test("convert round trips between all spaces") { test =>
       let spaces = [
         Space.srgb, Space.srgbLinear, Space.oklab, Space.oklch, Space.hsl, Space.hsv, Space.hwb,
+        Space.displayP3, Space.a98Rgb, Space.prophotoRgb, Space.rec2020,
+        Space.xyzD65, Space.xyzD50, Space.lab, Space.lch,
       ];
       let source = Color.from(Space.srgb, [0.2, 0.4, 0.6, 0.9, 0.1, 0.3]);
       for (var i = 0; i < spaces.length; i += 1) {

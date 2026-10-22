@@ -7,8 +7,9 @@ A cross-language color transformation library, working toward the color math of
 
 Working now:
 
-- Conversion between sRGB, linear sRGB, HSL, HSV, HWB, Oklab, and OkLCh, for
-  single colors or in bulk
+- Conversion between sRGB, linear sRGB, HSL, HSV, HWB, Oklab, OkLCh, Display
+  P3, A98 RGB, ProPhoto RGB, Rec. 2020, XYZ (D65 and D50), CIE Lab, and CIE
+  LCH, for single colors or in bulk
 - Optional alpha, kept separate from color channels, with interleaved RGBA in
   and out
 - Parsing hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`) and CSS named colors
@@ -19,9 +20,11 @@ Working now:
 Planned:
 
 - Parsing other CSS formats, such as `rgb()` and `oklch()`
-- Wide-gamut spaces like Display P3, plus CIE Lab and LCH
 - Gamut mapping, grayscale, and gradients, with defaults that match human
   perception
+
+Prismora uses material from CSS Color 4 and web-platform-tests. See
+[NOTICE](NOTICE).
 
 ## Languages
 

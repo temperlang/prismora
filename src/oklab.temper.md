@@ -14,46 +14,51 @@ x 3.
 
     export let srgbLinearToOklab(rgb: Matrix): Matrix {
       rgb
-        .times(srgbLinearToOklab0)
+        .times(srgbLinearToLmsMatrix)
         .map { x => cbrt(x) }
-        .times(srgbLinearToOklab1) orelse panic()
+        .times(lmsToOklabMatrix) orelse panic()
     }
 
 We could map each row one at a time, combining multiple operations, but the
 matrix form is clearer. Matrix form would also be more efficient in Python if
 using NumPy. Unfortunately, we're not using that. But use matrices, anyway.
 
-    let srgbLinearToOklab0 = new Matrix(3, [
-      0.4122214708, 0.5363325363, 0.0514459929,
-      0.2119034982, 0.6806995451, 0.1073969566,
-      0.0883024619, 0.2817188376, 0.6299787005,
+The matrices come from CSS Color 4's sample code, which has more precision
+than Ottosson's original 10-digit coefficients, so that each forward and
+inverse pair round trips to within about 1e-16. The sRGB to LMS matrices
+combine the spec's sRGB to XYZ and XYZ to LMS steps.
+
+    let srgbLinearToLmsMatrix = new Matrix(3, [
+      0.412221469470763, 0.5363325372617348, 0.051445993267502196,
+      0.21190349581782525, 0.6806995506452344, 0.10739695353694055,
+      0.08830245919005643, 0.2817188391361215, 0.6299787016738222,
     ]).transpose();
 
-    let srgbLinearToOklab1 = new Matrix(3, [
-      0.2104542553, +0.7936177850, -0.0040720468,
-      1.9779984951, -2.4285922050, +0.4505937099,
-      0.0259040371, +0.7827717662, -0.8086757660,
+    let lmsToOklabMatrix = new Matrix(3, [
+      0.210454268309314, 0.7936177747023054, -0.0040720430116193,
+      1.9779985324311684, -2.42859224204858, 0.450593709617411,
+      0.0259040424655478, 0.7827717124575296, -0.8086757549230774,
     ]).transpose();
 
 Panics if `lab` isn't N x 3.
 
     let oklabToSrgbLinear(lab: Matrix): Matrix {
       lab
-        .times(oklabToSrgbLinear0)
+        .times(oklabToLmsMatrix)
         .map { x => x * x * x }
-        .times(oklabToSrgbLinear1) orelse panic()
+        .times(lmsToSrgbLinearMatrix) orelse panic()
     }
 
-    let oklabToSrgbLinear0 = new Matrix(3, [
-      1.0, +0.3963377774, +0.2158037573,
-      1.0, -0.1055613458, -0.0638541728,
-      1.0, -0.0894841775, -1.2914855480,
+    let oklabToLmsMatrix = new Matrix(3, [
+      1.0, 0.3963377773761749, 0.2158037573099136,
+      1.0, -0.1055613458156586, -0.0638541728258133,
+      1.0, -0.0894841775298119, -1.2914855480194092,
     ]).transpose();
 
-    let oklabToSrgbLinear1 = new Matrix(3, [
-      +4.0767416621, -3.3077115913, +0.2309699292,
-      -1.2684380046, +2.6097574011, -0.3413193965,
-      -0.0041960863, -0.7034186147, +1.7076147010,
+    let lmsToSrgbLinearMatrix = new Matrix(3, [
+      4.076741636075958, -3.307711539258062, 0.23096990318210447,
+      -1.268437973285032, 2.6097573492876887, -0.34131937600265727,
+      -0.004196076138675553, -0.7034186179359363, 1.7076146940746117,
     ]).transpose();
 
 ### Tests
@@ -118,6 +123,13 @@ Mixing can still spot grays by their chroma.
     let achromaticChroma = 0.000004;
 
     export let labToLch(lab: Matrix): Matrix {
+      labToPolar(lab, achromaticChroma)
+    }
+
+The same for any Lab space, given the chroma below which it counts as gray.
+CIE Lab, for example, has a larger scale than Oklab.
+
+    let labToPolar(lab: Matrix, achromaticChroma: Float64): Matrix {
       lab.mapRows { row, builder =>
         do {
           let l = row[0];
