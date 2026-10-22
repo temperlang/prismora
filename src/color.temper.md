@@ -215,6 +215,18 @@ one row, used for every row of the other.
         contrastRows(this, other)
       }
 
+### CSS
+
+Parses CSS color syntax: hex, named colors, and functions such as
+`rgb()`, `hsl()`, `oklch()` and `color()`. Bubbles on anything else. See
+[css](css.temper.md).
+
+      public static parse(text: String): Color throws Bubble { parseCssColor(text) }
+
+Each row as CSS in this color's own space, such as `oklch(0.7 0.1 180)`.
+
+      public toCss(): List<String> throws Bubble { cssStrings(this) }
+
 ### Hex
 
 As `#rrggbb` strings, or `#rrggbbaa` with alpha, after mapping to the sRGB
