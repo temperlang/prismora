@@ -30,10 +30,7 @@ COMMANDS = {
         ["./build/tour"],
     ],
     "csharp": [["dotnet", "run", "-v", "q", "--nologo"]],
-    "java": [
-        ["sh", "-c", "javac -nowarn -d build $(find ../../../temper.out/java/*/src/main/java -name '*.java')"],
-        ["java", "-cp", "build", "Tour.java"],
-    ],
+    "java": [["./gradlew", "-q", "--no-daemon", "run"]],
     "js": [["npm", "install", "--silent", "--no-audit", "--no-fund"], ["npm", "start", "--silent"]],
     "lua": [["lua", "tour.lua"]],
     "py": [["uv", "run", "-q", "tour.py"]],
@@ -41,20 +38,10 @@ COMMANDS = {
 }
 
 
-def java_built(dir):
-    """Whether compiled Java is newer than the generated sources, since
-    compiling them all takes minutes."""
-    built = dir / "build" / "prismora" / "Color.class"
-    source = ROOT / "temper.out" / "java" / "prismora" / "src" / "main" / "java" / "prismora" / "Color.java"
-    return built.exists() and built.stat().st_mtime > source.stat().st_mtime
-
-
 def run_tour(language):
     """Builds and runs one tour, returning its output."""
     dir = TOUR / language
     for args in COMMANDS[language]:
-        if language == "java" and args[0] == "sh" and java_built(dir):
-            continue
         result = subprocess.run(args, cwd=dir, capture_output=True, text=True)
         if result.returncode != 0:
             raise RuntimeError(f"{' '.join(args)} failed:\n{result.stderr}{result.stdout}")

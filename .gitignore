@@ -6,5 +6,6 @@ target/
 temper.keep/
 temper.out/
 .claude/
+.gradle/
 .mcp.json
 .venv/

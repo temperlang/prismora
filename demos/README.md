@@ -20,7 +20,7 @@ one from its directory:
 |---|---|---|
 | C++ | `cpp` | `cmake -B build && cmake --build build && ./build/tour` |
 | C# | `csharp` | `dotnet run` |
-| Java | `java` | `javac -d build $(find ../../../temper.out/java/*/src/main/java -name '*.java')`, then `java -cp build Tour.java` |
+| Java | `java` | `./gradlew run` |
 | JS | `js` | `npm install && npm start` |
 | Lua | `lua` | `lua tour.lua` |
 | Python | `py` | `uv run tour.py` |
@@ -30,5 +30,6 @@ Or run them all and compare each with `expected.txt`:
 
     uv run demos/run.py [LANGUAGE ...]
 
-Java compiles the generated sources directly, because the generated Maven
-projects expect a JDK 8 toolchain and release signing.
+Java's Gradle build compiles the generated sources along with the tour,
+because the generated Maven projects expect a JDK 8 toolchain and release
+signing.

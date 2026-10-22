@@ -17,7 +17,15 @@ The methods are on `Color`: `mix`, `mixHue`, `gradient` and `gradientHue`.
 
 Which way around the hue wheel to go, when blending in a space with hue.
 
-    export class HueMethod(public name: String) {
+    export class HueMethod {
+      public name: String;
+
+The constructor is private: blending handles exactly the methods below.
+
+      private constructor(name: String) {
+        this.name = name;
+      }
+
       public toString(): String { name }
 
       @operator("==")

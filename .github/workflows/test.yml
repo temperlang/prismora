@@ -60,3 +60,11 @@ jobs:
 
       - name: Test
         run: temper test -b ${{ matrix.backend }}
+
+      # The tour in demos/ must print the same text in every language. Each
+      # language's own tools build it against the output `temper test` left
+      # in temper.out/.
+      - if: matrix.backend == 'py'
+        uses: astral-sh/setup-uv@v6
+      - name: Tour
+        run: python3 demos/run.py ${{ matrix.backend }}
