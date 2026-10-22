@@ -51,9 +51,12 @@ Working now:
   look even across colors
 - WCAG luminance and contrast ratios
 
+Also: a [tour](demos/README.md) of the whole API in each language, with
+identical output, and a [site](site/) to try colors in the browser.
+
 Planned:
 
-- Demos in each language, and a demo site
+- More demos, and a richer site
 - Later: NumPy arrays for Python, CSS relative color syntax, and more color
   difference formulas
 
@@ -88,9 +91,21 @@ Or on all of them:
 
     temper test -b cpp -b csharp -b java -b js -b lua -b py -b rust
 
-CI runs the tests on every backend for pull requests and pushes to `main`,
-using Temper's nightly `dev` build. Source files in `src/` are literate
-Markdown, with tests next to the code they cover.
+Run the API tour in every language against `temper.out/`, checking each
+prints the same text (see [demos](demos/README.md)):
+
+    uv run demos/run.py
+
+Build and preview the site, which uses the JS backend's output:
+
+    temper build -b js
+    uv run site/build.py
+    python3 -m http.server -d site/build
+
+CI runs the tests and the tour on every backend for pull requests and pushes
+to `main`, using Temper's nightly `dev` build, and publishes the site from
+`main`. Source files in `src/` are literate Markdown, with tests next to the
+code they cover.
 
 [CssColor4]: https://www.w3.org/TR/css-color-4/
 [CssColor5]: https://www.w3.org/TR/css-color-5/

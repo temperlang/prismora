@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prismora: color math for every language</title>
+  <meta name="description" content="Convert, parse, gamut-map and mix colors the way CSS Color 4 and 5 do, from C++, C#, Java, JavaScript, Lua, Python or Rust.">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "@temperlang/core": "./lib/temper-core/index.js",
+        "prismora": "./lib/prismora/index.js"
+      }
+    }
+  </script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <h1>Prismora</h1>
+      <p class="lead">
+        Color math for every language. Convert between color spaces, parse
+        any CSS color, fit colors to a screen's gamut, and mix them the way
+        CSS Color 4 and 5 do, from C++, C#, Java, JavaScript, Lua, Python or
+        Rust.
+      </p>
+      <nav>
+        <a href="#try">Try it</a>
+        <a href="#spaces">Color spaces</a>
+        <a href="#code">Code</a>
+        <a href="#made">How it's made</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="try">
+      <h2>Try it</h2>
+      <p>
+        Type any CSS color: a name, hex, <code>rgb()</code>,
+        <code>hsl()</code>, <code>oklch()</code>, <code>color(display-p3 …)</code>
+        and more.
+      </p>
+      <div class="try">
+        <div class="entry">
+          <label for="color-input">Color</label>
+          <input id="color-input" type="text" value="oklch(70% 0.2 30)"
+                 spellcheck="false" autocomplete="off" aria-describedby="color-status">
+          <div class="examples" aria-label="Examples">
+            <button type="button">rebeccapurple</button>
+            <button type="button">#36c8</button>
+            <button type="button">hsl(200 80% 45%)</button>
+            <button type="button">color(display-p3 1 0 0)</button>
+            <button type="button">lab(60% 70 -20)</button>
+          </div>
+          <p id="color-status" class="status" role="status"></p>
+        </div>
+        <div class="swatches">
+          <figure>
+            <div id="swatch-color" class="swatch"></div>
+            <figcaption>As written</figcaption>
+          </figure>
+          <figure id="mapped-figure" hidden>
+            <div id="swatch-mapped" class="swatch"></div>
+            <figcaption>Closest in sRGB</figcaption>
+          </figure>
+        </div>
+      </div>
+      <p id="gamut-note" class="note" hidden>
+        This color is outside sRGB, the range most screens and the web assume.
+        On a wide-gamut screen, the first swatch shows it as written. The
+        second shows the closest sRGB color, found the way CSS does: keeping
+        lightness and hue, and reducing only chroma (colorfulness).
+      </p>
+    </section>
+
+    <section id="spaces">
+      <h2>The same color in every space</h2>
+      <p>
+        A <dfn>color space</dfn> is a way to describe colors with numbers.
+        Each one suits a different job. Prismora's numbers run from 0 to 1,
+        with hue in turns (0 to 1) rather than degrees; the CSS column shows
+        each space as CSS writes it.
+      </p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">Space</th><th scope="col">Values</th><th scope="col">CSS</th><th scope="col">What it's for</th></tr>
+          </thead>
+          <tbody id="spaces-body"></tbody>
+        </table>
+      </div>
+      <p class="note" id="contrast"></p>
+    </section>
+
+    <section id="code">
+      <h2>Same code, seven languages</h2>
+      <p>
+        One tour through Prismora's whole API, in each language. Every version
+        prints exactly the same text, and they all run in CI.
+      </p>
+      <div class="tabs" role="tablist" aria-label="Language"></div>
+      <p class="run">Run it: <code id="run-command"></code></p>
+      <pre class="source" tabindex="0"><code id="source"></code></pre>
+    </section>
+
+    <section id="made">
+      <h2>How it's made</h2>
+      <p>
+        Prismora is written once, in
+        <a href="https://temperlang.dev/">Temper</a>, a language built for
+        writing libraries that compile to many other languages. Temper turns
+        the same source into a natural library for each one: classes and
+        methods in Java and C#, modules in Python and Lua, a crate in Rust,
+        and so on. Tests run on every language.
+      </p>
+      <p>
+        This page uses the JavaScript version directly, with no framework or
+        bundler:
+      </p>
+      <ul id="sizes"></ul>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>
+      Prismora is open source:
+      <a href="https://github.com/temperlang/prismora">github.com/temperlang/prismora</a>.
+      It uses material from CSS Color 4 and web-platform-tests; see its
+      <a href="https://github.com/temperlang/prismora/blob/main/NOTICE">NOTICE</a>.
+    </p>
+  </footer>
+</body>
+</html>

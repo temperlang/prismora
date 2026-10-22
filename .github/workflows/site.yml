@@ -1,0 +1,51 @@
+name: site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # Temper's nightly build of main, as in test.yml.
+      - name: Get Temper
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download dev -R temperlang/temper -p '*-linux-x64.tgz' -O - | tar -xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP"/temper-*-linux-x64 >> "$GITHUB_PATH"
+
+      - name: Build
+        run: |
+          temper build -b js
+          python3 site/build.py
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/build
+
+  # Publishes only from main. Needs Settings > Pages > Source: GitHub Actions.
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
