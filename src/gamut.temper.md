@@ -68,8 +68,8 @@ an edge counts as out, and mapping then clamps it.
       builder.toList()
     }
 
-Converts to `space`, mapping each row into its gamut. Colors already in gamut
-are just converted. Alpha passes through.
+Rows converted to `space`, each mapped into its gamut. Colors already in
+gamut are just converted.
 
 For HSL, HSV and HWB, mapping and clamping happen in sRGB, which keeps them
 consistent with the sRGB gamut, where CSS's sample code would clamp the
@@ -78,10 +78,10 @@ HSL or HWB channels themselves.
 Null narrowing doesn't yet survive an early return in Temper, so this uses
 if/else.
 
-    let mapToGamut(color: Color, space: Space): Color throws Bubble {
+    let mapToGamut(color: Color, space: Space): Matrix throws Bubble {
       let gamut = gamutOf(space);
       if (gamut == null) {
-        color.to(space)
+        convert(color.rows, color.space, space)
       } else {
         let lch = color.to(Space.oklch).rows;
         let builder = new ListBuilder<Float64>();
@@ -91,8 +91,7 @@ if/else.
           builder.add(mapped.at(1));
           builder.add(mapped.at(2));
         }
-        let rows = convert(new Matrix(3, builder.toList()), gamut, space);
-        { space, rows, alpha: color.alpha }
+        convert(new Matrix(3, builder.toList()), gamut, space)
       }
     }
 
@@ -180,14 +179,14 @@ and `color(display-p3 1.1 0.4 0.2)` to about `color(display-p3 1 0.473 0.314)`.
 
     let gamutSources(): Color {
       Color.fromAlpha(Space.oklch, [
-        0.7, 0.1, 0.1,
-        0.76, 0.27, 60.0 / 360.0,
-        0.6, 0.4, 0.75,
-        0.9, 0.3, 0.3,
-        0.2, 0.2, 0.6,
-        1.1, 0.1, 0.2,
-        -0.1, 0.1, 0.2,
-      ], [1.0, 0.5, 1.0, 1.0, 1.0, 0.25, 1.0])
+        0.7, 0.1, 0.1, 1.0,
+        0.76, 0.27, 60.0 / 360.0, 0.5,
+        0.6, 0.4, 0.75, 1.0,
+        0.9, 0.3, 0.3, 1.0,
+        0.2, 0.2, 0.6, 1.0,
+        1.1, 0.1, 0.2, 0.25,
+        -0.1, 0.1, 0.2, 1.0,
+      ])
     }
 
     test("gamut map to srgb") { test =>

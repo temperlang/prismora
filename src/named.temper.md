@@ -7,9 +7,9 @@ arbitrary set, not evenly spaced in any way, so they make poor palettes.
     export let parseNamed(name: String): Color throws Bubble {
       let lower = asciiLower(name);
       if (lower == "transparent") {
-        return Color.fromAlpha(Space.srgb, [0.0, 0.0, 0.0], [0.0]);
+        return Color.fromAlpha(Space.srgb, [0.0, 0.0, 0.0, 0.0]);
       }
-      { space: Space.srgb, rows: intToUnit([namedColors.get(lower)]) }
+      Color.fromRows(Space.srgb, intToUnit([namedColors.get(lower)]))
     }
 
 Lowercases only ASCII letters, which is all color names need.
