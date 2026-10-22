@@ -1,0 +1,13 @@
+{
+  "name": "prismora-tour",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node tour.js"
+  },
+  "dependencies": {
+    "@temperlang/core": "file:../../../temper.out/js/temper-core",
+    "@temperlang/std": "file:../../../temper.out/js/std",
+    "prismora": "file:../../../temper.out/js/prismora"
+  }
+}

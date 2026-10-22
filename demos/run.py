@@ -1,0 +1,86 @@
+# /// script
+# requires-python = ">=3.11"
+# ///
+"""Runs Prismora's tour in each language and checks the output matches.
+
+Usage, from anywhere in the repo, after building the libraries:
+
+    temper build -b cpp -b csharp -b java -b js -b lua -b py -b rust
+    uv run demos/run.py [LANGUAGE ...]
+
+Each `demos/tour/<language>/` builds and runs with that language's usual
+tools, as its README section shows; this runs the same commands. Every tour
+must print exactly `demos/tour/expected.txt`. Exits non-zero on any failure.
+"""
+
+import argparse
+import difflib
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+TOUR = ROOT / "demos" / "tour"
+
+# Commands per language, run in its directory. All but the last only build.
+COMMANDS = {
+    "cpp": [
+        ["cmake", "-B", "build", "-DCMAKE_BUILD_TYPE=Release"],
+        ["cmake", "--build", "build", "-j", "4"],
+        ["./build/tour"],
+    ],
+    # Building first keeps compiler warnings out of the tour's output.
+    "csharp": [["dotnet", "build", "-v", "q", "--nologo"], ["dotnet", "run", "--no-build"]],
+    "java": [["./gradlew", "-q", "--no-daemon", "run"]],
+    "js": [["npm", "install", "--silent", "--no-audit", "--no-fund"], ["npm", "start", "--silent"]],
+    "lua": [["lua", "-l", "paths", "tour.lua"]],
+    "py": [["uv", "run", "-q", "tour.py"]],
+    "rust": [["cargo", "run", "-q", "--release"]],
+}
+
+
+def run_tour(language):
+    """Builds and runs one tour, returning its output."""
+    dir = TOUR / language
+    for args in COMMANDS[language]:
+        result = subprocess.run(args, cwd=dir, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"{' '.join(args)} failed:\n{result.stderr}{result.stdout}")
+    return result.stdout
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("languages", nargs="*", metavar="LANGUAGE", help=", ".join(COMMANDS))
+    languages = parser.parse_args().languages or list(COMMANDS)
+    unknown = set(languages) - set(COMMANDS)
+    if unknown:
+        parser.error(f"unknown: {', '.join(sorted(unknown))}")
+    expected = (TOUR / "expected.txt").read_text()
+    failed = []
+    for language in languages:
+        try:
+            actual = run_tour(language)
+        except (RuntimeError, OSError) as error:
+            print(f"{language}: error\n{error}")
+            failed.append(language)
+            continue
+        if actual == expected:
+            print(f"{language}: ok, {len(actual.splitlines())} lines match")
+        else:
+            print(f"{language}: output differs")
+            diff = difflib.unified_diff(
+                expected.splitlines(keepends=True),
+                actual.splitlines(keepends=True),
+                "expected.txt",
+                language,
+            )
+            sys.stdout.writelines(diff)
+            failed.append(language)
+    if failed:
+        print(f"Failed: {' '.join(failed)}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

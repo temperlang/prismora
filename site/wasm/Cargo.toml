@@ -1,0 +1,21 @@
+[package]
+name = "prismora-tour-wasm"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# The Rust tour, compiled to wasm for the site. See src/lib.rs.
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Built by `temper build -b rust` at the repo's top.
+prismora = { path = "../../temper.out/rust/prismora" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

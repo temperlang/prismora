@@ -1,0 +1,492 @@
+:root {
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --text: #1d1d24;
+  --muted: #5b5b6b;
+  --border: #dedde6;
+  --accent: #5b3fd1;
+  --code-bg: #f3f2f8;
+  --keyword: #8a2be2;
+  --string: #0f7a4a;
+  --number: #b0461a;
+  --comment: #707084;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131318;
+    --surface: #1b1b22;
+    --text: #e9e8f0;
+    --muted: #a3a2b4;
+    --border: #33323f;
+    --accent: #a993ff;
+    --code-bg: #1f1e27;
+    --keyword: #c9a0ff;
+    --string: #7fd4a4;
+    --number: #f0a274;
+    --comment: #8d8ca2;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.wrap {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+code,
+pre,
+input {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+code {
+  font-size: 0.92em;
+}
+
+h1,
+h2 {
+  line-height: 1.2;
+}
+
+h2 {
+  margin-top: 3rem;
+}
+
+.hero {
+  padding: 3rem 0 2rem;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  /* A full hue circle: the long way from a hue back to itself. */
+  background-image: linear-gradient(90deg in oklch longer hue, oklch(75% 0.12 0), oklch(75% 0.12 0));
+  background-size: 100% 6px;
+  background-repeat: no-repeat;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 3rem;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  max-width: 44rem;
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+
+.hero nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+
+.try {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.entry label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.entry input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 1.1rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.entry input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.examples button,
+.tabs button {
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  cursor: pointer;
+}
+
+.examples button:hover,
+.tabs button:hover {
+  border-color: var(--accent);
+}
+
+.status {
+  min-height: 1.6em;
+  color: var(--muted);
+}
+
+.status.error {
+  color: #c62828;
+}
+
+.swatches {
+  display: flex;
+  gap: 1rem;
+}
+
+.swatches figure {
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.swatch {
+  width: 8rem;
+  height: 8rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  /* A checkerboard behind see-through colors. */
+  background-image: conic-gradient(#ccc 25%, #fff 0 50%, #ccc 0 75%, #fff 0);
+  background-size: 16px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--swatch, transparent);
+}
+
+.note {
+  color: var(--muted);
+  max-width: 48rem;
+}
+
+.table-scroll {
+  overflow: auto;
+  max-height: 22rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.table-scroll th[scope="col"] {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+}
+
+.table-scroll th:first-child,
+.table-scroll td:first-child {
+  padding-left: 0.75rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.75rem 0.45rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+td.values,
+td.css {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+td.values span {
+  display: inline-block;
+  margin-right: 0.8em;
+  white-space: nowrap;
+}
+
+td.values {
+  width: 32%;
+}
+
+td.css {
+  width: 28%;
+  overflow-wrap: anywhere;
+}
+
+td.about {
+  color: var(--muted);
+}
+
+th.name {
+  white-space: nowrap;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tabs button[aria-selected="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.run {
+  color: var(--muted);
+  margin: 0.75rem 0 0.5rem;
+}
+
+pre.source {
+  margin-top: 0;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 0 8px 8px 8px;
+  padding: 1rem;
+  overflow: auto;
+  max-height: 36rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.tok-keyword {
+  color: var(--keyword);
+}
+
+.tok-string {
+  color: var(--string);
+}
+
+.tok-number {
+  color: var(--number);
+}
+
+.tok-comment {
+  color: var(--comment);
+  font-style: italic;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The editor: highlighted code drawn behind a transparent textarea. Both
+   need the same font, size, padding and wrapping to line up. */
+/* Editable code looks like an input: the brighter surface and an accent
+   border. Read-only code keeps the tinted background and a thin border. */
+.editor {
+  position: relative;
+  background: var(--surface);
+  border: 2px solid color-mix(in oklab, var(--accent) 55%, var(--border));
+  border-radius: 0 8px 8px 8px;
+}
+
+.code-label {
+  display: inline-block;
+  padding: 0.1rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.code-label.editable {
+  color: var(--bg);
+  background: color-mix(in oklab, var(--accent) 55%, var(--border));
+  border: 0;
+}
+
+.editor pre,
+.editor textarea {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  letter-spacing: normal;
+  word-spacing: normal;
+  tab-size: 2;
+  white-space: pre;
+  border: 0;
+  /* Phones may enlarge text, and not always in both layers. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Not the smaller size other code gets, or the layers drift apart. */
+.editor pre code {
+  font: inherit;
+}
+
+.editor pre {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.editor textarea {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 8rem;
+  color: transparent;
+  caret-color: var(--text);
+  background: transparent;
+  resize: vertical;
+  overflow: auto;
+}
+
+.editor textarea::selection {
+  color: transparent;
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+.editor textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 8px;
+}
+
+.more {
+  margin: 1rem 0;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg));
+}
+
+.more a {
+  text-decoration: none;
+}
+
+.more a:hover {
+  text-decoration: underline;
+}
+
+button.primary {
+  font: inherit;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 1.2rem;
+  cursor: pointer;
+}
+
+pre.output {
+  min-height: 3rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  white-space: pre-wrap;
+}
+
+pre.output .error {
+  color: #c62828;
+}
+
+.chip {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.25em;
+  vertical-align: -0.1em;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+#tour-run:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+#tour-run-note {
+  color: var(--muted);
+}
+
+.tour-run {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#tour-output {
+  max-height: 24rem;
+  overflow: auto;
+}
+
+footer {
+  margin-top: 4rem;
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 40rem) {
+  .try {
+    grid-template-columns: 1fr;
+  }
+
+  .swatch {
+    width: 6rem;
+    height: 6rem;
+  }
+}

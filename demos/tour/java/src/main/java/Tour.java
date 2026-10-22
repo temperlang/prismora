@@ -1,0 +1,222 @@
+// A tour of Prismora's whole public API, from Java.
+//
+// The same tour exists for each language Prismora supports, and they all
+// print the same text. See ../README.md for how to run them.
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import prismora.Color;
+import prismora.HueMethod;
+import prismora.Matrix;
+import prismora.Space;
+
+public class Tour {
+    // Numbers print with 4 decimals, the same way in every language.
+    static String num(double x) {
+        if (Math.abs(x) < 0.00005) {
+            x = 0.0; // No "-0.0000".
+        }
+        return String.format(Locale.ROOT, "%.4f", x);
+    }
+
+    static String nums(List<Double> values) {
+        return values.stream().map(Tour::num).collect(Collectors.joining(", ", "[", "]"));
+    }
+
+    static String yes(boolean b) {
+        return b ? "yes" : "no";
+    }
+
+    static void show(String label, Color color) {
+        System.out.printf(
+            "%s (%s, %d x %d):%n", label, color.getSpace().getName(), color.getLength(), color.getWidth());
+        for (int i = 0; i < color.getLength(); i++) {
+            List<Double> row = new ArrayList<>();
+            for (int j = 0; j < color.getWidth(); j++) {
+                row.add(color.get(i, j));
+            }
+            String alpha = color.getAlpha() == null ? "" : " alpha " + num(color.alphaAt(i));
+            System.out.println("  " + nums(row) + alpha);
+        }
+    }
+
+    static void section(String title) {
+        System.out.println();
+        System.out.println("## " + title);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("# Prismora tour");
+
+        section("1. Making colors");
+
+        // Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+        Color orange = Color.fromList(Space.srgb, List.of(1.0, 0.5, 0.0));
+        show("orange", orange);
+
+        // A Color holds any number of colors, one per row, channels back to back.
+        Color pair = Color.fromList(Space.oklch, List.of(0.7, 0.1, 0.4, 0.5, 0.2, 0.8));
+        show("two OkLCh colors", pair);
+
+        // Alpha (opacity, 0 to 1) goes after each row's channels.
+        Color seeThrough = Color.fromAlpha(Space.srgb, List.of(1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25));
+        show("red and blue, see-through", seeThrough);
+        show("orange at 80%", orange.withAlpha(List.of(0.8)));
+
+        // Packed 0xRRGGBB ints, as in hex literals or canvas pixels.
+        show("from ints", Color.fromRgbInts(List.of(0x663399, 0x00ff80)));
+
+        // From a Matrix: a flat list read as rows of a given width.
+        show("from rows", Color.fromRows(Space.hsl, new Matrix(3, List.of(0.5, 1.0, 0.25, 0.0, 0.0, 0.5))));
+
+        // Any CSS color. Each keeps the space it was written in.
+        for (String text : List.of(
+            "rebeccapurple",
+            "#ff8000",
+            "#36c8",
+            "rgb(255 128 0 / 50%)",
+            "hsl(120deg 60% 40%)",
+            "hwb(200 10% 20%)",
+            "lab(50% 40 -30)",
+            "lch(60% 50 120)",
+            "oklab(0.6 0.1 -0.1)",
+            "oklch(70% 0.15 200)",
+            "color(display-p3 1 0 0)",
+            "color(rec2020 0 1 0)"
+        )) {
+            show(text, Color.parse(text));
+        }
+
+        // Text that isn't a color fails.
+        try {
+            Color.parse("not a color");
+            System.out.println("parsed?");
+        } catch (RuntimeException e) {
+            System.out.println("'not a color' fails to parse");
+        }
+
+        section("2. Spaces and converting");
+
+        List<Space> spaces = List.of(
+            Space.srgb, Space.srgbLinear, Space.hsl, Space.hsv, Space.hwb,
+            Space.oklab, Space.oklch, Space.displayP3, Space.a98Rgb,
+            Space.prophotoRgb, Space.rec2020, Space.xyzD65, Space.xyzD50,
+            Space.lab, Space.lch);
+
+        // Each space converts through its parent, up to linear sRGB at the root.
+        // Its gamut is the RGB space whose 0-to-1 cube bounds it, if any.
+        for (Space space : spaces) {
+            String parent = space.getParent() == null ? "none" : space.getParent().getName();
+            String gamut = space.getGamut() == null ? "none" : space.getGamut().getName();
+            System.out.printf(
+                "%s: %d channels, parent %s, depth %d, gamut %s%n",
+                space.getName(), space.getNcols(), parent, space.getDepth(), gamut);
+        }
+
+        // The same orange in every space.
+        for (Space space : spaces) {
+            System.out.println("orange in " + space.getName() + ": " + nums(orange.convert(space).getRows().toList()));
+        }
+
+        section("3. Formatting");
+
+        // Hex and ints fit colors into sRGB first; CSS keeps each color's space.
+        Color mixed = Color.parse("oklch(70% 0.15 200 / 50%)");
+        for (Color color : List.of(orange, seeThrough, pair, mixed, Color.parse("color(display-p3 1 0 0)"))) {
+            System.out.println("hex " + String.join(", ", color.toHex()));
+            System.out.println("css " + String.join(", ", color.toCss()));
+            System.out.println("ints " + color.toRgbInts().stream()
+                .map(n -> String.format("%06x", n)).collect(Collectors.joining(", ")));
+        }
+
+        section("4. Gamuts");
+
+        // Display P3's red is redder than any sRGB color: as sRGB, it's out of the
+        // 0-to-1 range.
+        Color p3Red = Color.fromList(Space.displayP3, List.of(1.0, 0.0, 0.0));
+        System.out.printf(
+            "P3 red in sRGB? %s; in P3? %s%n",
+            yes(p3Red.inGamut(Space.srgb).get(0)), yes(p3Red.inGamut(Space.displayP3).get(0)));
+        show("P3 red as sRGB", p3Red.convert(Space.srgb));
+
+        // To show a color like this vivid blue on an sRGB screen, either map it into
+        // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
+        // clip each channel, which can change lightness and hue too.
+        Color vivid = Color.fromList(Space.oklch, List.of(0.6, 0.35, 0.75));
+        Color mapped = vivid.toGamut(Space.srgb);
+        Color clipped = vivid.clip(Space.srgb);
+        show("vivid blue", vivid);
+        show("mapped, in OkLCh", mapped.convert(Space.oklch));
+        show("clipped, in OkLCh", clipped.convert(Space.oklch));
+
+        // deltaEOK measures how different two colors look: under about 0.02 is hard
+        // to see.
+        System.out.println("mapped vs clipped: " + num(mapped.deltaEOk(clipped).get(0)));
+
+        section("5. Mixing and gradients");
+
+        Color red = Color.parse("red");
+        Color blue = Color.parse("blue");
+        // Oklab mixes look even; sRGB mixes go dull in the middle.
+        System.out.println("halfway in oklab: " + red.mix(blue, 0.5, Space.oklab).toHex().get(0));
+        System.out.println("halfway in srgb: " + red.mix(blue, 0.5, Space.srgb).toHex().get(0));
+
+        // In a space with hue, choose which way around the hue wheel to go.
+        for (HueMethod hue : List.of(HueMethod.shorter, HueMethod.longer, HueMethod.increasing, HueMethod.decreasing)) {
+            System.out.println(
+                "halfway in oklch, " + hue.getName() + ": " + red.mixHue(blue, 0.5, Space.oklch, hue).toHex().get(0));
+        }
+
+        // Alpha mixes too, premultiplied as in CSS.
+        show("see-through mix", seeThrough.mix(orange, 0.5, Space.oklab));
+
+        // Gradients run through all rows as stops.
+        Color stops = Color.fromList(Space.srgb, List.of(1.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+        System.out.println("gradient: " + String.join(" ", stops.gradient(5, Space.oklab).toHex()));
+        System.out.println("long way: " + String.join(" ", stops.gradientHue(5, Space.oklch, HueMethod.longer).toHex()));
+
+        section("6. Adjusting");
+
+        // Adjustments happen in OkLCh, so equal steps look equal.
+        Color steel = Color.parse("steelblue");
+        System.out.println("steelblue " + steel.toHex().get(0));
+        System.out.println("lighter " + steel.lighten(0.1).toHex().get(0) + ", darker " + steel.lighten(-0.1).toHex().get(0));
+        System.out.println(
+            "more saturated " + steel.saturate(1.5).toHex().get(0) + ", less " + steel.saturate(0.5).toHex().get(0));
+        System.out.println(
+            "opposite hue " + steel.rotateHue(0.5).toHex().get(0) + ", gray " + steel.grayscale().toHex().get(0));
+
+        // Or change every channel value directly.
+        show("orange halved", orange.map(x -> x / 2));
+
+        section("7. Contrast");
+
+        // Relative luminance and contrast ratios, as WCAG defines them. Text needs
+        // 4.5 or more against its background for normal sizes.
+        Color white = Color.parse("white");
+        Color texts = Color.fromRgbInts(List.of(0x000000, 0x767676, 0x999999));
+        System.out.println("luminance " + nums(texts.luminance()));
+        System.out.println("against white " + nums(texts.contrast(white)));
+
+        section("8. Matrix");
+
+        // A Color's rows are a Matrix: one flat list, row after row.
+        Matrix rows = pair.getRows();
+        System.out.println(rows.getNrows() + " rows of " + rows.getNcols());
+        System.out.println("row 1, column 2: " + num(rows.get(1, 2)) + "; flat 4: " + num(rows.at(4)));
+        System.out.println("values " + nums(rows.toList()));
+        System.out.println("doubled " + nums(rows.map(x -> x * 2).toList()));
+        System.out.println("one row " + nums(Matrix.rowOf(List.of(0.1, 0.2, 0.3)).toList()));
+        System.out.println("with alpha " + nums(seeThrough.rowsWithAlpha().toList()));
+
+        // Reading past the end fails.
+        try {
+            pair.get(0, 5);
+            System.out.println("got?");
+        } catch (RuntimeException e) {
+            System.out.println("column 5 doesn't exist");
+        }
+    }
+}
