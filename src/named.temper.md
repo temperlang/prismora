@@ -9,7 +9,7 @@ arbitrary set, not evenly spaced in any way, so they make poor palettes.
       if (lower == "transparent") {
         return Color.fromAlpha(Space.srgb, [0.0, 0.0, 0.0, 0.0]);
       }
-      { space: Space.srgb, rows: intToUnit([namedColors.get(lower)]) }
+      Color.fromRows(Space.srgb, intToUnit([namedColors.get(lower)]))
     }
 
 Lowercases only ASCII letters, which is all color names need.

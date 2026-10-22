@@ -14,9 +14,9 @@ number of colors that we'll care more about efficiency.
 Given a color, we also want to know what space it's in. Or we might have a list
 of colors in the same space. But here's a single color with a defined space.
 
-    export class Color(
-      public space: Space,
-      public rows: Matrix,
+    export class Color {
+      public space: Space;
+      public rows: Matrix;
 
 ### Alpha
 
@@ -27,27 +27,40 @@ like other channels, it isn't clamped until formatting.
 Alpha is stored apart from `rows` because conversions never touch it, so they
 stay simple and fast. To give or get alpha inline with the channels, as in
 `[r, g, b, a, ...]`, use `fromAlpha` and `rowsWithAlpha` below. To give alpha
-as its own list, use the constructor, as in
-`new Color(space, new Matrix(3, values), alpha)`.
+as its own list, use `withAlpha`.
 
-      public alpha: List<Float64>? = null,
-    ) {
+      public alpha: List<Float64>?;
 
+The number of rows, which is the number of colors.
+
+      public length: Int;
+
+### Construction
+
+The constructor is private, so colors come from the factories below. That
+keeps calls plain in every backend, such as Rust, where an omitted optional
+list needs a typed `None`, and leaves room to change how colors are stored.
 Checking here panics on mismatched shapes, like the `Matrix` constructor does.
 
-      public length: Int = do {
+      private constructor(space: Space, rows: Matrix, alpha: List<Float64>?) {
         if (rows.ncols != space.ncols) { panic() }
-        let a = alpha;
-        if (a != null && a.length != rows.nrows) { panic() }
-        rows.nrows
-      };
+        if (alpha != null && alpha.length != rows.nrows) { panic() }
+        this.space = space;
+        this.rows = rows;
+        this.alpha = alpha;
+        this.length = rows.nrows;
+      }
 
-Separate factories rather than an optional `alpha` argument keep calls plain in
-every backend, such as Rust, where an omitted optional list needs a typed
-`None`.
+Opaque colors from a flat list of channels, such as `[r, g, b, r, g, b]`.
 
       public static from(space: Space, values: List<Float64>): Color {
-        { space, rows: { ncols: space.ncols, values } }
+        new Color(space, new Matrix(space.ncols, values), null)
+      }
+
+Opaque colors from a matrix with one color per row.
+
+      public static fromRows(space: Space, rows: Matrix): Color {
+        new Color(space, rows, null)
       }
 
 Each row's channels followed by its alpha, as in `[r, g, b, a, r, g, b, a]`
@@ -65,7 +78,13 @@ for sRGB, in any space. Panics unless the values divide into rows.
           }
           alpha.add(values[offset + ncols] orelse panic());
         }
-        { space, rows: { ncols, values: channels.toList() }, alpha: alpha.toList() }
+        new Color(space, new Matrix(ncols, channels.toList()), alpha.toList())
+      }
+
+A copy with the given alpha, one value per row. Panics if the lengths differ.
+
+      public withAlpha(alpha: List<Float64>): Color {
+        new Color(space, rows, alpha)
       }
 
 ### Convenience Access
@@ -95,14 +114,14 @@ Alpha for row `i`, which is 1 if `alpha` is null.
 Both of these keep alpha as is, since `transform` applies only to channels.
 
       public map(transform: fn (Float64): Float64): Color {
-        { space, rows: rows.map(transform), alpha }
+        new Color(space, rows.map(transform), alpha)
       }
 
       public to(space: Space): Color throws Bubble {
         if (space == this.space) {
           this
         } else {
-          { space, rows: convert(rows, this.space, space), alpha }
+          new Color(space, convert(rows, this.space, space), alpha)
         }
       }
 
@@ -111,7 +130,9 @@ Both of these keep alpha as is, since `transform` applies only to channels.
 Converts to `space`, reducing chroma where needed to fit its gamut, while
 keeping lightness and hue. See [gamut](gamut.temper.md).
 
-      public toGamut(space: Space): Color throws Bubble { mapToGamut(this, space) }
+      public toGamut(space: Space): Color throws Bubble {
+        new Color(space, mapToGamut(this, space), alpha)
+      }
 
 Whether each row fits in the gamut of `space`.
 
@@ -206,10 +227,10 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
       assert(Color.from(Space.srgb, [0.1, 0.2, 0.3]).rowsWithAlpha()[0, 3] == 1.0);
     }
 
-A separate alpha list still works through the constructor.
+A separate alpha list goes through `withAlpha`.
 
     test("separate alpha list") {
-      let color = new Color(Space.srgb, new Matrix(3, [0.1, 0.2, 0.3]), [0.75]);
+      let color = Color.from(Space.srgb, [0.1, 0.2, 0.3]).withAlpha([0.75]);
       assert(color.alphaAt(0) == 0.75);
       let flat = color.rowsWithAlpha().toList();
       assert(flat.length == 4);

@@ -68,8 +68,8 @@ an edge counts as out, and mapping then clamps it.
       builder.toList()
     }
 
-Converts to `space`, mapping each row into its gamut. Colors already in gamut
-are just converted. Alpha passes through.
+Rows converted to `space`, each mapped into its gamut. Colors already in
+gamut are just converted.
 
 For HSL, HSV and HWB, mapping and clamping happen in sRGB, which keeps them
 consistent with the sRGB gamut, where CSS's sample code would clamp the
@@ -78,10 +78,10 @@ HSL or HWB channels themselves.
 Null narrowing doesn't yet survive an early return in Temper, so this uses
 if/else.
 
-    let mapToGamut(color: Color, space: Space): Color throws Bubble {
+    let mapToGamut(color: Color, space: Space): Matrix throws Bubble {
       let gamut = gamutOf(space);
       if (gamut == null) {
-        color.to(space)
+        convert(color.rows, color.space, space)
       } else {
         let lch = color.to(Space.oklch).rows;
         let builder = new ListBuilder<Float64>();
@@ -91,8 +91,7 @@ if/else.
           builder.add(mapped.at(1));
           builder.add(mapped.at(2));
         }
-        let rows = convert(new Matrix(3, builder.toList()), gamut, space);
-        { space, rows, alpha: color.alpha }
+        convert(new Matrix(3, builder.toList()), gamut, space)
       }
     }
 
