@@ -70,7 +70,7 @@ else bubbles.
       }
       let values = channels.toList();
       if (nchannels == 4) {
-        Color.fromAlpha(Space.srgb, values.slice(0, 3), [values[3]])
+        Color.fromAlpha(Space.srgb, values)
       } else {
         Color.from(Space.srgb, values)
       }

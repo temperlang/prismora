@@ -83,6 +83,12 @@ too long?
         buf
       }
 
+## Flat Values
+
+All values in row-major order, as given to the constructor.
+
+      public toList(): List<Float64> { values }
+
 ## Map Values
 
 Map individually to create a new matrix.

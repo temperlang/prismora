@@ -10,8 +10,8 @@ Working now:
 - Conversion between sRGB, linear sRGB, HSL, HSV, HWB, Oklab, OkLCh, Display
   P3, A98 RGB, ProPhoto RGB, Rec. 2020, XYZ (D65 and D50), CIE Lab, and CIE
   LCH, for single colors or in bulk
-- Optional alpha, kept separate from color channels, with interleaved RGBA in
-  and out
+- Optional alpha, given and read inline with the channels in any space, and
+  stored apart so conversions skip it
 - Parsing hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`) and CSS named colors
 - Formatting as packed ints and `#rrggbb` or `#rrggbbaa` strings
 - Out-of-range values kept exact through conversions, with clamping when
