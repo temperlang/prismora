@@ -4,11 +4,12 @@ These operations might be appropriate for more than one color space.
 
 ## 8-Bit <-> Unit-Bounded
 
-These take an byte-per-channel int value, such as 0x112233. This requires at
-least 24 bits in the backend int representation. TODO Can we promise that?
+These convert between packed byte-per-channel ints, such as 0x112233, and
+unit-bounded floats from 0 to 1. Packing requires at least 24 bits in the
+backend int representation. TODO Can we promise that?
 
     export let intToUnit(rows: List<Int>): Matrix {
-      new Matrix(
+      byteToUnit(new Matrix(
         3,
         do {
           let builder = new ListBuilder<Float64>();
@@ -29,7 +30,7 @@ These are safe because we controlled the bounds above.
           }
           builder.toList()
         } orelse panic(),
-      )
+      ))
     }
 
     export let unitToInt(rows: Matrix): List<Int> {
@@ -56,6 +57,17 @@ formatting for RGB with leading "\#" is defined with other RGB operations.
       let rows = Matrix.rowOf([0.0, 0.5, 1.0]);
       assert(unitToInt(rows)[0] == 0x0080ff);
       assert(unitToString(rows)[0] == "0080ff");
+    }
+
+    test("intToUnit scale and round trip") {
+      let ints = [0x000000, 0x112233, 0x0080ff, 0xffffff];
+      let units = intToUnit(ints);
+      assert(units[1, 0] == 17.0 / 255.0);
+      assert(units[2, 2] == 1.0);
+      let back = unitToInt(units);
+      for (var i = 0; i < ints.length; i += 1) {
+        assert(back[i] == ints[i]);
+      }
     }
 
 These operate on floats rather than ints.
