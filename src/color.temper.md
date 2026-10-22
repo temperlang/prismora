@@ -143,6 +143,36 @@ just noticeable. Panics if the lengths differ.
 
       public deltaEOk(other: Color): List<Float64> throws Bubble { deltaEOkRows(this, other) }
 
+### Mixing
+
+Blends with `other` in `space`, by `amount` from 0 (all this color) to 1
+(all `other`), going the shorter way around any hue. The result is in
+`space`. Either color may have one row, used for every row of the other;
+otherwise their lengths must match. See [mix](mix.temper.md).
+
+      public mix(other: Color, amount: Float64, space: Space): Color throws Bubble {
+        mixColors(this, other, amount, space, HueMethod.shorter)
+      }
+
+The same, with a chosen path around the hue wheel.
+
+      public mixHue(
+        other: Color, amount: Float64, space: Space, hue: HueMethod,
+      ): Color throws Bubble {
+        mixColors(this, other, amount, space, hue)
+      }
+
+`count` colors evenly spaced along this color's rows, used as stops, from
+the first to the last, in `space`.
+
+      public gradient(count: Int, space: Space): Color throws Bubble {
+        gradientColors(this, count, space, HueMethod.shorter)
+      }
+
+      public gradientHue(count: Int, space: Space, hue: HueMethod): Color throws Bubble {
+        gradientColors(this, count, space, hue)
+      }
+
 ### Hex
 
 As `#rrggbb` strings, or `#rrggbbaa` with alpha, after mapping to the sRGB
