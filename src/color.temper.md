@@ -40,10 +40,18 @@ Checking here panics on mismatched shapes, like the `Matrix` constructor does.
         rows.nrows
       };
 
-      public static from(
+Separate factories rather than an optional `alpha` argument keep calls plain in
+every backend, such as Rust, where an omitted optional list needs a typed
+`None`.
+
+      public static from(space: Space, values: List<Float64>): Color {
+        { space, rows: { ncols: space.ncols, values } }
+      }
+
+      public static fromAlpha(
         space: Space,
         values: List<Float64>,
-        alpha: List<Float64>? = null,
+        alpha: List<Float64>,
       ): Color {
         { space, rows: { ncols: space.ncols, values }, alpha }
       }
@@ -138,7 +146,7 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
 ### Alpha Tests
 
     test("alpha passes through conversion and map") {
-      let source = Color.from(
+      let source = Color.fromAlpha(
         Space.srgb, [0.2, 0.4, 0.6, 0.9, 0.1, 0.3], [0.5, 0.25],
       );
       let lch = source.to(Space.oklch);
@@ -156,7 +164,7 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
     }
 
     test("rgba round trip") { test =>
-      let source = Color.from(
+      let source = Color.fromAlpha(
         Space.oklab, [0.5, 0.1, 0.05, 0.8, -0.02, 0.03], [0.5, 1.0],
       );
       let rgba = source.toRgba();

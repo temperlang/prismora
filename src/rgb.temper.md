@@ -2,39 +2,37 @@
 
 ## RGB Formatting
 
-Renders as an HTML/CSS `#rrggbb` string, or `#rrggbbaa` if given alpha with
-one value per row. For now, it gives lowercase hex, although that could maybe
-change in the future. Like the color channels, alpha is clamped when packed.
+Renders as an HTML/CSS `#rrggbb` string. For now, it gives lowercase hex,
+although that could maybe change in the future.
 
 And this technically could apply to any color space, but the format typically
 means RGB.
 
 TODO Support css rendering of all spaces?
 
-    export let rgbUnitToString(
-      rgb: Matrix,
-      alpha: List<Float64>? = null,
-    ): List<String> {
-      let hexes = unitToString(rgb);
-      let a = alpha;
-      if (a == null) {
-        hexes.map { (it): String => "#${it}" }
-      } else {
-        if (a.length != hexes.length) { panic() }
-        let builder = new ListBuilder<String>();
-        for (var i = 0; i < hexes.length; i += 1) {
-          let alphaByte = clampToIntByte((a[i] orelse panic()) * 255.0);
-          let alphaHex = padLeft(alphaByte.toString(16), 2, "0");
-          builder.add("#${hexes[i] orelse panic()}${alphaHex}");
-        }
-        builder.toList()
-      }
+    export let rgbUnitToString(rgb: Matrix): List<String> {
+      unitToString(rgb).map { (it): String => "#${it}" }
     }
 
-    test("rgbUnitToString with and without alpha") {
+Or as `#rrggbbaa`, with one alpha value per row. Like the color channels,
+alpha is clamped when packed.
+
+    export let rgbaUnitToString(rgb: Matrix, alpha: List<Float64>): List<String> {
+      let hexes = unitToString(rgb);
+      if (alpha.length != hexes.length) { panic() }
+      let builder = new ListBuilder<String>();
+      for (var i = 0; i < hexes.length; i += 1) {
+        let alphaByte = clampToIntByte((alpha[i] orelse panic()) * 255.0);
+        let alphaHex = padLeft(alphaByte.toString(16), 2, "0");
+        builder.add("#${hexes[i] orelse panic()}${alphaHex}");
+      }
+      builder.toList()
+    }
+
+    test("rgb and rgba unit to string") {
       let rgb = new Matrix(3, [0.0, 0.5, 1.0, 1.0, 1.0, 1.0]);
       assert(rgbUnitToString(rgb)[0] == "#0080ff");
-      let withAlpha = rgbUnitToString(rgb, [0.5, 2.0]);
+      let withAlpha = rgbaUnitToString(rgb, [0.5, 2.0]);
       assert(withAlpha[0] == "#0080ff80");
       assert(withAlpha[1] == "#ffffffff");
     }
