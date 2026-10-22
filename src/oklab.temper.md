@@ -111,7 +111,9 @@ on fewer than 3 columns. Hue is in turns, from 0 up to 1, rather than degrees.
 
 Grays have no meaningful hue, and rounding noise in their chroma would
 otherwise give them an arbitrary one. So below this chroma, hue is 0, much like
-CSS Color 4 treats hue as powerless for achromatic colors.
+CSS Color 4 treats hue as powerless for achromatic colors. CSS would make it
+`none`, but we keep plain numbers, avoiding NaN and its cross-language quirks.
+Mixing can still spot grays by their chroma.
 
     let achromaticChroma = 0.000004;
 
