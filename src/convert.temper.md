@@ -35,6 +35,11 @@ Roots have depth 0.
 
       public toString(): String { name }
 
+The RGB space whose unit cube bounds this one, or null if unbounded. See
+[gamut](gamut.temper.md).
+
+      public get gamut(): Space? { gamutOf(this) }
+
       @operator("==")
       public eq(other: Space): Boolean { name == other.name }
 

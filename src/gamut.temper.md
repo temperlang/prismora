@@ -8,13 +8,16 @@ a clamped color once it's within a just noticeable difference.
 
 Of the algorithms CSS allows, this is the Binary Search with Local MINDE.
 
+The public API is on `Color` (`toGamut`, `inGamut` and `deltaEOk`) and
+`Space` (`gamut`). These functions do the work.
+
 ## Gamuts
 
 The RGB space whose unit cube bounds a space, or null if the space has no
 gamut limits, as for XYZ, Lab and Oklab. HSL, HSV and HWB share sRGB's gamut.
 Spaces defined outside Prismora count as unbounded.
 
-    export let gamutSpace(space: Space): Space? {
+    let gamutOf(space: Space): Space? {
       when (space) {
         Space.srgb, Space.hsl, Space.hsv, Space.hwb -> Space.srgb;
         Space.srgbLinear, Space.displayP3, Space.a98Rgb, Space.prophotoRgb,
@@ -28,7 +31,7 @@ Spaces defined outside Prismora count as unbounded.
 Distance in Oklab, called deltaEOK in CSS, for each pair of rows. About 0.02
 is just noticeable. Panics if the colors have different lengths.
 
-    export let deltaEOk(a: Color, b: Color): List<Float64> throws Bubble {
+    let deltaEOkRows(a: Color, b: Color): List<Float64> throws Bubble {
       if (a.length != b.length) { panic() }
       let labA = a.to(Space.oklab).rows;
       let labB = b.to(Space.oklab).rows;
@@ -51,8 +54,8 @@ Whether each row is in the gamut of `space`, after converting to it. Always
 true for unbounded spaces. There's no tolerance, so rounding noise just past
 an edge counts as out, and mapping then clamps it.
 
-    export let inGamut(color: Color, space: Space): List<Boolean> throws Bubble {
-      let gamut = gamutSpace(space);
+    let inGamutRows(color: Color, space: Space): List<Boolean> throws Bubble {
+      let gamut = gamutOf(space);
       let builder = new ListBuilder<Boolean>();
       if (gamut == null) {
         for (var i = 0; i < color.length; i += 1) { builder.add(true) }
@@ -72,8 +75,8 @@ For HSL, HSV and HWB, mapping and clamping happen in sRGB, which keeps them
 consistent with the sRGB gamut, where CSS's sample code would clamp the
 HSL or HWB channels themselves.
 
-    export let toGamut(color: Color, space: Space): Color throws Bubble {
-      let gamut = gamutSpace(space);
+    let mapToGamut(color: Color, space: Space): Color throws Bubble {
+      let gamut = gamutOf(space);
       if (gamut == null) {
         return color.to(space);
       }
@@ -184,7 +187,7 @@ and `color(display-p3 1.1 0.4 0.2)` to about `color(display-p3 1 0.473 0.314)`.
     }
 
     test("gamut map to srgb") { test =>
-      let mapped = toGamut(gamutSources(), Space.srgb);
+      let mapped = gamutSources().toGamut(Space.srgb);
       assertColors(test, mapped, Color.from(Space.srgb, [
         0.833627002848, 0.531871356164, 0.449552940042,
         1.0, 0.548554506922, 0.0,
@@ -199,7 +202,7 @@ and `color(display-p3 1.1 0.4 0.2)` to about `color(display-p3 1 0.473 0.314)`.
     }
 
     test("gamut map to display p3") { test =>
-      assertColors(test, toGamut(gamutSources(), Space.displayP3), Color.from(Space.displayP3, [
+      assertColors(test, gamutSources().toGamut(Space.displayP3), Color.from(Space.displayP3, [
         0.790739120765, 0.545501485469, 0.466200353057,
         1.0, 0.545792071593, 0.0,
         0.315356275266, 0.393245093513, 1.0,
@@ -209,7 +212,7 @@ and `color(display-p3 1.1 0.4 0.2)` to about `color(display-p3 1 0.473 0.314)`.
         0.0, 0.0, 0.0,
       ]));
       let p3 = Color.from(Space.displayP3, [1.1, 0.4, 0.2]);
-      assertColors(test, toGamut(p3, Space.displayP3), Color.from(Space.displayP3, [
+      assertColors(test, p3.toGamut(Space.displayP3), Color.from(Space.displayP3, [
         1.0, 0.472833690532, 0.314161886196,
       ]));
     }
@@ -218,27 +221,35 @@ HSL maps through sRGB, and unbounded spaces just convert.
 
     test("gamut map to hsl and unbounded spaces") { test =>
       let sources = gamutSources();
-      assertConvertColors(test, toGamut(sources, Space.srgb), toGamut(sources, Space.hsl));
-      assertColors(test, toGamut(sources, Space.lab), sources.to(Space.lab));
-      let unbounded = gamutSpace(Space.oklab) == null;
+      assertConvertColors(test, sources.toGamut(Space.srgb), sources.toGamut(Space.hsl));
+      assertColors(test, sources.toGamut(Space.lab), sources.to(Space.lab));
+      let unbounded = Space.oklab.gamut == null;
+      assert(Space.hsl.gamut == Space.srgb);
       assert(unbounded);
     }
 
+Hex output maps to sRGB first. Display P3 red would clamp to `#ff0000`, but
+mapping keeps its lightness and hue.
+
+    test("hex maps to the srgb gamut") {
+      assert(Color.from(Space.displayP3, [1.0, 0.0, 0.0]).toHex()[0] == "#ff0b0c");
+    }
+
     test("in gamut") {
-      let checks = inGamut(gamutSources(), Space.srgb);
+      let checks = gamutSources().inGamut(Space.srgb);
       assert(checks[0]);
       assert(!checks[1]);
       assert(!checks[2]);
       let vivid = Color.from(Space.srgb, [1.05, 0.5, 0.5]);
-      assert(!inGamut(vivid, Space.srgb)[0]);
-      assert(inGamut(vivid, Space.displayP3)[0]);
-      assert(inGamut(vivid, Space.oklab)[0]);
+      assert(!vivid.inGamut(Space.srgb)[0]);
+      assert(vivid.inGamut(Space.displayP3)[0]);
+      assert(vivid.inGamut(Space.oklab)[0]);
     }
 
     test("delta e ok") { test =>
       let black = Color.from(Space.srgb, [0.0, 0.0, 0.0, 0.3, 0.4, 0.5]);
       let white = Color.from(Space.srgb, [1.0, 1.0, 1.0, 0.3, 0.4, 0.5]);
-      let deltas = deltaEOk(black, white);
+      let deltas = black.deltaEOk(white);
       assertNear(test, "black to white", deltas[0], 1.0);
       assertNear(test, "same", deltas[1], 0.0);
     }
