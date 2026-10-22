@@ -29,7 +29,8 @@ COMMANDS = {
         ["cmake", "--build", "build", "-j", "4"],
         ["./build/tour"],
     ],
-    "csharp": [["dotnet", "run", "-v", "q", "--nologo"]],
+    # Building first keeps compiler warnings out of the tour's output.
+    "csharp": [["dotnet", "build", "-v", "q", "--nologo"], ["dotnet", "run", "--no-build"]],
     "java": [["./gradlew", "-q", "--no-daemon", "run"]],
     "js": [["npm", "install", "--silent", "--no-audit", "--no-fund"], ["npm", "start", "--silent"]],
     "lua": [["lua", "-l", "paths", "tour.lua"]],
