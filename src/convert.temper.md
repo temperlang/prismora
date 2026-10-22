@@ -2,11 +2,11 @@
 
 ## Spaces
 
-Each space can have a parent space, plus functions to convert to and from it.
-Spaces form trees, with linear sRGB as the root for those defined here.
-Converting climbs from the source to the nearest space shared with the target,
-then walks down to the target. So a new space needs only one pair of functions,
-and nearby spaces take no detours, such as Oklab to OkLCh.
+Each space can have a parent space it converts to and from. Spaces form trees,
+with linear sRGB as the root for those defined here. Converting climbs from the
+source to the nearest space shared with the target, then walks down to the
+target. So a new space needs only one pair of functions, and nearby spaces take
+no detours, such as Oklab to OkLCh.
 
 Linear sRGB is the root, rather than CSS's XYZ-D65, so common conversions need
 no extra matrix multiply. Other RGB spaces can still go through XYZ by
@@ -22,12 +22,10 @@ this library, use some namespace prefix.
       public name: String,
       public ncols: Int,
 
-A space without a parent is a root. Its conversion functions are never called.
-So `new Space("custom", 3)` is valid, but it converts only to itself.
+A space without a parent is a root. So `new Space("custom", 3)` is valid, but
+it converts only to itself.
 
       public parent: Space? = null,
-      public toParent: fn (Matrix): Matrix = fn (rows: Matrix): Matrix { rows },
-      public fromParent: fn (Matrix): Matrix = fn (rows: Matrix): Matrix { rows },
     ) {
 
 Roots have depth 0.
@@ -46,25 +44,10 @@ Some of the supported spaces here aren't considered by everyone to be true
 separate "spaces". For example, some consider RGB and HSV just to be different
 representations of the same space, but we don't make that distinction here.
 
-TODO Pass functions directly once the py backend defines functions before
-statics that reference them. For now, wrapping defers the lookup.
-
       public static srgbLinear = new Space("srgbLinear", 3);
-      public static srgb = new Space(
-        "srgb", 3, Space.srgbLinear,
-        fn (rows: Matrix): Matrix { srgbGammaToLinear(rows) },
-        fn (rows: Matrix): Matrix { srgbLinearToGamma(rows) },
-      );
-      public static oklab = new Space(
-        "oklab", 3, Space.srgbLinear,
-        fn (rows: Matrix): Matrix { oklabToSrgbLinear(rows) },
-        fn (rows: Matrix): Matrix { srgbLinearToOklab(rows) },
-      );
-      public static oklch = new Space(
-        "oklch", 3, Space.oklab,
-        fn (rows: Matrix): Matrix { lchToLab(rows) },
-        fn (rows: Matrix): Matrix { labToLch(rows) },
-      );
+      public static srgb = new Space("srgb", 3, Space.srgbLinear);
+      public static oklab = new Space("oklab", 3, Space.srgbLinear);
+      public static oklch = new Space("oklch", 3, Space.oklab);
 
 HSV isn't implemented yet, so it has no parent.
 
@@ -73,8 +56,8 @@ HSV isn't implemented yet, so it has no parent.
 
 ## Conversion
 
-Conversion just follows fields, with no lookups and nothing allocated beyond
-the converted matrices, which matters for single colors.
+Climbing just follows fields, and nothing is allocated beyond the converted
+matrices, which matters for single colors.
 
     export let convert(rows: Matrix, from: Space, to: Space): Matrix throws Bubble {
       if (from == to) {
@@ -89,26 +72,18 @@ different trees never meet, so climbing past a root bubbles.
       var up = from;
       var meet = to;
       while (up.depth > meet.depth) {
-        current = climb(current, up);
+        current = toParent(current, up);
         up = parentOf(up);
       }
       while (meet.depth > up.depth) {
         meet = parentOf(meet);
       }
       while (up != meet) {
-        current = climb(current, up);
+        current = toParent(current, up);
         up = parentOf(up);
         meet = parentOf(meet);
       }
       descend(current, up, to)
-    }
-
-Calling a function field directly as `space.toParent(rows)` doesn't work in
-Temper yet, so copy it to a local first.
-
-    let climb(rows: Matrix, space: Space): Matrix {
-      let step = space.toParent;
-      step(rows)
     }
 
     let parentOf(space: Space): Space throws Bubble {
@@ -123,8 +98,33 @@ stays shallow.
       if (space == ancestor) {
         rows
       } else {
-        let step = space.fromParent;
-        step(descend(rows, ancestor, parentOf(space)))
+        fromParent(descend(rows, ancestor, parentOf(space)), space)
+      }
+    }
+
+## Steps
+
+Each space's conversion to and from its parent.
+
+TODO Store these as function fields on `Space` instead, which would let users
+add connected spaces. For now, the py backend defines class statics before the
+functions they reference, and calling function fields directly needs a local.
+
+    let toParent(rows: Matrix, space: Space): Matrix throws Bubble {
+      when (space) {
+        Space.srgb -> srgbGammaToLinear(rows);
+        Space.oklab -> oklabToSrgbLinear(rows);
+        Space.oklch -> lchToLab(rows);
+        else -> bubble();
+      }
+    }
+
+    let fromParent(rows: Matrix, space: Space): Matrix throws Bubble {
+      when (space) {
+        Space.srgb -> srgbLinearToGamma(rows);
+        Space.oklab -> srgbLinearToOklab(rows);
+        Space.oklch -> labToLch(rows);
+        else -> bubble();
       }
     }
 
@@ -150,19 +150,4 @@ Converting between spaces in different trees bubbles.
       let custom = new Space("custom", 3);
       assert(do { convert(rows, Space.srgb, custom); false } orelse true);
       assert(do { convert(rows, custom, Space.srgb); false } orelse true);
-    }
-
-A custom space can join the tree with its own functions.
-
-    test("convert custom child space") { test =>
-      let halved = new Space(
-        "test.halved", 3, Space.srgb,
-        fn (rows: Matrix): Matrix { rows.map { x => x * 2.0 } },
-        fn (rows: Matrix): Matrix { rows.map { x => x * 0.5 } },
-      );
-      let source = Color.from(Space.oklab, [0.5, 0.1, 0.05]);
-      let viaHalved = source.to(halved);
-      let viaSrgb = source.to(Space.srgb);
-      assertNear(test, "halved", viaHalved[0, 1], viaSrgb[0, 1] * 0.5);
-      assertColors(test, source, viaHalved.to(Space.oklab));
     }
