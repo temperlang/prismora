@@ -51,6 +51,9 @@ And on all of them before a pull request:
 
     temper test -b cpp -b csharp -b java -b js -b lua -b py -b rust
 
+CI runs the tests on every backend for pull requests and pushes to `main`,
+using Temper's nightly `dev` build.
+
 [CssColor4]: https://www.w3.org/TR/css-color-4/
 [CssColor5]: https://www.w3.org/TR/css-color-5/
 [Temper]: https://temperlang.dev/
