@@ -16,12 +16,14 @@ Working now:
 - Formatting as packed ints and `#rrggbb` or `#rrggbbaa` strings
 - Out-of-range values kept exact through conversions, with clamping when
   packing or on request
+- Gamut mapping as in CSS Color 4, reducing chroma in OkLCh to fit sRGB,
+  Display P3 or another RGB gamut, plus the deltaEOK color difference
 
 Planned:
 
 - Parsing other CSS formats, such as `rgb()` and `oklch()`
-- Gamut mapping, grayscale, and gradients, with defaults that match human
-  perception
+- Interpolation and mixing as in CSS Color 4 and 5, then grayscale and
+  gradients, with defaults that match human perception
 
 Prismora uses material from CSS Color 4 and web-platform-tests. See
 [NOTICE](NOTICE).

@@ -6,8 +6,9 @@ CSS Color Module Level 4
 
 This software includes material copied from or derived from CSS Color Module
 Level 4 (https://www.w3.org/TR/css-color-4/): color space conversion matrices,
-transfer functions, the named color table, and the specification's sample
-conversion code, used to compute expected test values.
+transfer functions, the named color table, the gamut mapping algorithm, and
+the specification's sample conversion code, used to compute expected test
+values.
 Copyright © 2026 World Wide Web Consortium.
 https://www.w3.org/copyright/software-license-2023/
 

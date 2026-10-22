@@ -90,8 +90,8 @@ Presumes that `x` is known to be approximately in the 0 to 255 range already.
 
 Conversions between spaces don't clamp, so out-of-range results, such as Oklab
 colors outside the sRGB gamut, stay exact and round trip. Packing to ints or
-strings clamps, as above. To clamp floats, use this. Better gamut mapping might
-come later as a separate function.
+strings clamps, as above. To clamp floats, use this. For colors that keep
+their hue and lightness, see `toGamut` in [gamut](gamut.temper.md).
 
     export let clampToUnit(rows: Matrix): Matrix {
       rows.map { x => clampUnit(x) }
