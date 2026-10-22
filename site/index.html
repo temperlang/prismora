@@ -103,8 +103,17 @@
         <code>Space</code>, <code>HueMethod</code> and <code>Matrix</code>.
         Hex colors in the output get a swatch. Ctrl+Enter runs it too.
       </p>
-      <label for="play-code" class="visually-hidden">JavaScript</label>
-      <textarea id="play-code" rows="12" spellcheck="false"></textarea>
+      <p class="more">
+        Using another language? <a href="#code">See below for the same API
+        in C++, C#, Java, Lua, Python and Rust</a>, as read-only example
+        programs.
+      </p>
+      <div class="editor">
+        <pre id="play-highlight" aria-hidden="true"><code></code></pre>
+        <label for="play-code" class="visually-hidden">JavaScript</label>
+        <textarea id="play-code" rows="12" spellcheck="false" wrap="off"
+                  autocapitalize="off" autocomplete="off"></textarea>
+      </div>
       <p><button type="button" id="play-run" class="primary">Run</button></p>
       <pre id="play-output" class="output" aria-live="polite"></pre>
     </section>

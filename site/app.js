@@ -109,7 +109,11 @@ const brand = Color.parse("oklch(60% 0.15 250)");
 console.log("brand", brand.toHex()[0]);
 
 // Five shades, evenly spaced in OkLCh lightness, from dark to light.
-const ends = Color.fromList(Space.oklch, [0.3, 0.12, 0.69, 0.9, 0.05, 0.69]);
+// A Color can hold many colors: each row is lightness, chroma and hue.
+const ends = Color.fromList(Space.oklch, [
+  0.3, 0.12, 0.69, // dark blue
+  0.9, 0.05, 0.69, // pale blue
+]);
 console.log(ends.gradient(5, Space.oklch).toHex().join(" "));
 
 // Is white text readable on it? WCAG wants 4.5 or more.
@@ -118,7 +122,26 @@ console.log("contrast", brand.contrast(Color.parse("white"))[0].toFixed(2));
 
 const playCode = $("play-code");
 const playOutput = $("play-output");
+const playHighlight = $("play-highlight");
 playCode.value = PLAY_START;
+
+// Redraws the highlighted copy behind the textarea, and keeps it scrolled
+// the same. A trailing newline needs a space after it to be drawn.
+function syncHighlight() {
+  playHighlight.firstChild.innerHTML = highlight(playCode.value + " ", "//");
+  playHighlight.scrollTop = playCode.scrollTop;
+  playHighlight.scrollLeft = playCode.scrollLeft;
+}
+// Grows the editor to fit its code, so it doesn't scroll up and down.
+function fitEditor() {
+  playCode.style.height = "auto";
+  playCode.style.height = `${playCode.scrollHeight + 2}px`;
+}
+playCode.addEventListener("input", () => {
+  fitEditor();
+  syncHighlight();
+});
+playCode.addEventListener("scroll", syncHighlight);
 
 function showOutput(text, isError = false) {
   const line = document.createElement("div");
@@ -175,10 +198,10 @@ const LANGUAGES = [
 ];
 
 const KEYWORDS = new Set(
-  ("and as auto bool break case catch class const continue def do double else elif end except " +
+  ("and as async auto await bool break case catch class const continue def do double else elif end except export " +
     "false fn for foreach from function if import in int let local match mut new None nil not null " +
-    "or private public return self static string struct template then true True False try type " +
-    "typename use using var void while")
+    "of or private public return self static string struct template then this throw true True False try " +
+    "type typename typeof use using var void while")
     .split(" "),
 );
 
@@ -239,6 +262,8 @@ for (const [i, [name]] of LANGUAGES.entries()) {
   tabs.append(button);
 }
 selectTab(0);
+fitEditor();
+syncHighlight();
 
 // Library sizes, measured when the site was built.
 

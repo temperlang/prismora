@@ -283,17 +283,82 @@ pre.source {
   white-space: nowrap;
 }
 
-#play-code {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--text);
+/* The editor: highlighted code drawn behind a transparent textarea. Both
+   need the same font, size, padding and wrapping to line up. */
+.editor {
+  position: relative;
   background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+.editor pre,
+.editor textarea {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  letter-spacing: normal;
+  word-spacing: normal;
   tab-size: 2;
+  white-space: pre;
+  border: 0;
+  /* Phones may enlarge text, and not always in both layers. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Not the smaller size other code gets, or the layers drift apart. */
+.editor pre code {
+  font: inherit;
+}
+
+.editor pre {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.editor textarea {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 8rem;
+  color: transparent;
+  caret-color: var(--text);
+  background: transparent;
   resize: vertical;
+  overflow: auto;
+}
+
+.editor textarea::selection {
+  color: transparent;
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+.editor textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 8px;
+}
+
+.more {
+  margin: 1rem 0;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg));
+}
+
+.more a {
+  text-decoration: none;
+}
+
+.more a:hover {
+  text-decoration: underline;
 }
 
 button.primary {
