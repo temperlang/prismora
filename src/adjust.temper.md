@@ -16,8 +16,8 @@ Grays keep hue 0, as elsewhere in Prismora.
     let adjustLch(
       color: Color, lightness: Float64, chromaFactor: Float64, turns: Float64,
     ): Matrix throws Bubble {
-      let lch = color.to(Space.oklch).rows;
-      let adjusted = lch.mapRows { row, builder =>
+      let lch = color.convert(Space.oklch).rows;
+      let adjusted = mapRows(lch) { row, builder =>
         do {
           let chroma = row[1] * chromaFactor;
           builder.add(row[0] + lightness);
@@ -25,7 +25,7 @@ Grays keep hue 0, as elsewhere in Prismora.
           builder.add(if (chroma == 0.0) { 0.0 } else { wrap(row[2] + turns, 1.0) });
         } orelse panic();
       };
-      convert(adjusted, Space.oklch, color.space)
+      convertRows(adjusted, Space.oklch, color.space)
     }
 
 ### Tests
@@ -35,8 +35,8 @@ Grays keep hue 0, as elsewhere in Prismora.
       let lighter = color.lighten(0.1);
       assert(lighter.space == Space.srgb);
       assert(lighter.alphaAt(0) == 0.5);
-      let before = color.to(Space.oklch);
-      let after = lighter.to(Space.oklch);
+      let before = color.convert(Space.oklch);
+      let after = lighter.convert(Space.oklch);
       assertNear(test, "lightness", after[0, 0], before[0, 0] + 0.1);
       assertNear(test, "chroma", after[0, 1], before[0, 1]);
       assertNear(test, "hue", after[0, 2], before[0, 2]);
@@ -44,11 +44,11 @@ Grays keep hue 0, as elsewhere in Prismora.
     }
 
     test("saturate, rotate hue and grayscale") { test =>
-      let color = Color.from(Space.oklch, [0.6, 0.1, 0.8]);
-      assertColors(test, color.saturate(2.0), Color.from(Space.oklch, [0.6, 0.2, 0.8]));
-      assertColors(test, color.rotateHue(0.5), Color.from(Space.oklch, [0.6, 0.1, 0.3]));
-      assertColors(test, color.grayscale(), Color.from(Space.oklch, [0.6, 0.0, 0.0]));
-      let gray = Color.from(Space.srgb, [0.9, 0.2, 0.3]).grayscale();
+      let color = Color.fromList(Space.oklch, [0.6, 0.1, 0.8]);
+      assertColors(test, color.saturate(2.0), Color.fromList(Space.oklch, [0.6, 0.2, 0.8]));
+      assertColors(test, color.rotateHue(0.5), Color.fromList(Space.oklch, [0.6, 0.1, 0.3]));
+      assertColors(test, color.grayscale(), Color.fromList(Space.oklch, [0.6, 0.0, 0.0]));
+      let gray = Color.fromList(Space.srgb, [0.9, 0.2, 0.3]).grayscale();
       assertNear(test, "gray g", gray[0, 1], gray[0, 0]);
       assertNear(test, "gray b", gray[0, 2], gray[0, 0]);
     }
@@ -64,7 +64,7 @@ the sRGB curve as CSS defines it, which WCAG 2.2 also uses. Colors outside
 sRGB are gamut-mapped first, since WCAG is about displayed colors.
 
     let luminanceRows(color: Color): List<Float64> throws Bubble {
-      let xyz = color.toGamut(Space.srgb).to(Space.xyzD65).rows;
+      let xyz = color.toGamut(Space.srgb).convert(Space.xyzD65).rows;
       let builder = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
         builder.add(xyz[i, 1]);
@@ -100,9 +100,9 @@ Known ratios: 21 for black on white, about 4.54 for `#767676` on white (the
 lightest gray that passes for normal text), and about 4.0 for red on white.
 
     test("contrast") { test =>
-      let white = Color.from(Space.srgb, [1.0, 1.0, 1.0]);
+      let white = Color.fromList(Space.srgb, [1.0, 1.0, 1.0]);
       assertNear(test, "white luminance", white.luminance()[0], 1.0);
-      let others = Color.from(Space.srgb, [
+      let others = Color.fromList(Space.srgb, [
         0.0, 0.0, 0.0,
         118.0 / 255.0, 118.0 / 255.0, 118.0 / 255.0,
         1.0, 0.0, 0.0,

@@ -12,26 +12,30 @@ Linear sRGB is the root, rather than CSS's XYZ-D65, so common conversions need
 no extra matrix multiply. Other RGB spaces can still go through XYZ by
 precombining matrices.
 
-    export class Space(
+    export class Space {
 
-The name is considered a unique full identifier. If defining new spaces outside
-this library, use some namespace prefix.
+The name identifies the space, as in `Space.oklch.name == "oklch"`.
 
-      public name: String,
-      public ncols: Int,
+      public name: String;
+      public ncols: Int;
 
-A space without a parent is a root. So `new Space("custom", 3)` is valid, but
-it converts only to itself.
+The space this one converts to and from, or null for the root, linear sRGB.
 
-      public parent: Space? = null,
-    ) {
+      public parent: Space?;
 
 Roots have depth 0.
 
-      public depth: Int = do {
-        let p = parent;
-        if (p == null) { 0 } else { p.depth + 1 }
-      };
+      public depth: Int;
+
+The constructor is private: conversions are defined for exactly the spaces
+below, so a space made elsewhere couldn't convert to anything.
+
+      private constructor(name: String, ncols: Int, parent: Space?) {
+        this.name = name;
+        this.ncols = ncols;
+        this.parent = parent;
+        this.depth = if (parent == null) { 0 } else { parent.depth + 1 };
+      }
 
       public toString(): String { name }
 
@@ -47,7 +51,7 @@ Some of the supported spaces here aren't considered by everyone to be true
 separate "spaces". For example, some consider RGB and HSV just to be different
 representations of the same space, but we don't make that distinction here.
 
-      public static srgbLinear = new Space("srgbLinear", 3);
+      public static srgbLinear = new Space("srgbLinear", 3, null);
       public static srgb = new Space("srgb", 3, Space.srgbLinear);
       public static oklab = new Space("oklab", 3, Space.srgbLinear);
       public static oklch = new Space("oklch", 3, Space.oklab);
@@ -69,14 +73,14 @@ representations of the same space, but we don't make that distinction here.
 Climbing just follows fields, and nothing is allocated beyond the converted
 matrices, which matters for single colors.
 
-    export let convert(rows: Matrix, from: Space, to: Space): Matrix throws Bubble {
+    let convertRows(rows: Matrix, from: Space, to: Space): Matrix {
       if (from == to) {
         return rows;
       }
 
 Climb the deeper side until both sides are at the same depth, then climb both
-until they meet. Only the source side converts on the way up. Spaces in
-different trees never meet, so climbing past a root bubbles.
+until they meet. Only the source side converts on the way up. All spaces
+share the root, so they always meet.
 
       var current = rows;
       var up = from;
@@ -96,15 +100,15 @@ different trees never meet, so climbing past a root bubbles.
       descend(current, up, to)
     }
 
-    let parentOf(space: Space): Space throws Bubble {
+    let parentOf(space: Space): Space {
       let parent = space.parent;
-      if (parent == null) { bubble() } else { parent }
+      if (parent == null) { panic() } else { parent }
     }
 
 Convert down from an ancestor to a descendant. Trees are shallow, so recursion
 stays shallow.
 
-    let descend(rows: Matrix, ancestor: Space, space: Space): Matrix throws Bubble {
+    let descend(rows: Matrix, ancestor: Space, space: Space): Matrix {
       if (space == ancestor) {
         rows
       } else {
@@ -116,11 +120,7 @@ stays shallow.
 
 Each space's conversion to and from its parent.
 
-TODO Store these as function fields on `Space` instead, which would let users
-add connected spaces. For now, the py backend defines class statics before the
-functions they reference, and calling function fields directly needs a local.
-
-    let toParent(rows: Matrix, space: Space): Matrix throws Bubble {
+    let toParent(rows: Matrix, space: Space): Matrix {
       when (space) {
         Space.srgb -> srgbGammaToLinear(rows);
         Space.oklab -> oklabToSrgbLinear(rows);
@@ -136,11 +136,11 @@ functions they reference, and calling function fields directly needs a local.
         Space.xyzD50 -> xyzD50ToXyzD65(rows);
         Space.lab -> labToXyzD50(rows);
         Space.lch -> cieLchToLab(rows);
-        else -> bubble();
+        else -> panic();
       }
     }
 
-    let fromParent(rows: Matrix, space: Space): Matrix throws Bubble {
+    let fromParent(rows: Matrix, space: Space): Matrix {
       when (space) {
         Space.srgb -> srgbLinearToGamma(rows);
         Space.oklab -> srgbLinearToOklab(rows);
@@ -156,7 +156,7 @@ functions they reference, and calling function fields directly needs a local.
         Space.xyzD50 -> xyzD65ToXyzD50(rows);
         Space.lab -> xyzD50ToLab(rows);
         Space.lch -> cieLabToLch(rows);
-        else -> bubble();
+        else -> panic();
       }
     }
 
@@ -170,20 +170,11 @@ Every pair of spaces should round trip.
         Space.displayP3, Space.a98Rgb, Space.prophotoRgb, Space.rec2020,
         Space.xyzD65, Space.xyzD50, Space.lab, Space.lch,
       ];
-      let source = Color.from(Space.srgb, [0.2, 0.4, 0.6, 0.9, 0.1, 0.3]);
+      let source = Color.fromList(Space.srgb, [0.2, 0.4, 0.6, 0.9, 0.1, 0.3]);
       for (var i = 0; i < spaces.length; i += 1) {
-        let from = source.to(spaces[i]);
+        let from = source.convert(spaces[i]);
         for (var j = 0; j < spaces.length; j += 1) {
-          assertColors(test, from, from.to(spaces[j]).to(spaces[i]));
+          assertColors(test, from, from.convert(spaces[j]).convert(spaces[i]));
         }
       }
-    }
-
-Converting between spaces in different trees bubbles.
-
-    test("convert unconnected space bubbles") {
-      let rows = Matrix.rowOf([0.5, 0.5, 0.5]);
-      let custom = new Space("custom", 3);
-      assert(do { convert(rows, Space.srgb, custom); false } orelse true);
-      assert(do { convert(rows, custom, Space.srgb); false } orelse true);
     }

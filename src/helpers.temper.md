@@ -37,7 +37,7 @@ Assert color lists and also conversion from one space to another.
     let assertConvertColors(
       test: Test, source: Color, expected: Color
     ): Void throws Bubble {
-      assertColors(test, source.to(expected.space), expected);
+      assertColors(test, source.convert(expected.space), expected);
     }
 
 ## Clamp Withing Bounds

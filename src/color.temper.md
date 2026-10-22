@@ -53,7 +53,7 @@ Checking here panics on mismatched shapes, like the `Matrix` constructor does.
 
 Opaque colors from a flat list of channels, such as `[r, g, b, r, g, b]`.
 
-      public static from(space: Space, values: List<Float64>): Color {
+      public static fromList(space: Space, values: List<Float64>): Color {
         new Color(space, new Matrix(space.ncols, values), null)
       }
 
@@ -61,6 +61,12 @@ Opaque colors from a matrix with one color per row.
 
       public static fromRows(space: Space, rows: Matrix): Color {
         new Color(space, rows, null)
+      }
+
+Opaque sRGB colors from packed `0xRRGGBB` ints, as in `[0x663399]`.
+
+      public static fromRgbInts(ints: List<Int>): Color {
+        new Color(Space.srgb, intToUnit(ints), null)
       }
 
 Each row's channels followed by its alpha, as in `[r, g, b, a, r, g, b, a]`
@@ -93,8 +99,6 @@ While `rows` is public, it's sometimes nice to skip through it.
 
       public get(i: Int, j: Int): Float64 throws Bubble { rows[i, j] }
 
-      public at(i: Int): Float64 throws Bubble { rows.at(i) }
-
       public get width(): Int { rows.ncols }
 
 Alpha for row `i`, which is 1 if `alpha` is null.
@@ -112,16 +116,17 @@ Alpha for row `i`, which is 1 if `alpha` is null.
 ### Conversion
 
 Both of these keep alpha as is, since `transform` applies only to channels.
+Conversion never fails, since every space converts to every other.
 
       public map(transform: fn (Float64): Float64): Color {
         new Color(space, rows.map(transform), alpha)
       }
 
-      public to(space: Space): Color throws Bubble {
+      public convert(space: Space): Color {
         if (space == this.space) {
           this
         } else {
-          new Color(space, convert(rows, this.space, space), alpha)
+          new Color(space, convertRows(rows, this.space, space), alpha)
         }
       }
 
@@ -130,18 +135,25 @@ Both of these keep alpha as is, since `transform` applies only to channels.
 Converts to `space`, reducing chroma where needed to fit its gamut, while
 keeping lightness and hue. See [gamut](gamut.temper.md).
 
-      public toGamut(space: Space): Color throws Bubble {
-        new Color(space, mapToGamut(this, space), alpha)
+      public toGamut(space: Space): Color {
+        new Color(space, mapToGamut(this, space) orelse panic(), alpha)
+      }
+
+Converts to `space` and clamps each channel to its gamut, as CSS's simple
+"clip" does: faster than `toGamut`, but it can shift hue and lightness.
+
+      public clip(space: Space): Color {
+        new Color(space, clipRows(this, space), alpha)
       }
 
 Whether each row fits in the gamut of `space`.
 
-      public inGamut(space: Space): List<Boolean> throws Bubble { inGamutRows(this, space) }
+      public inGamut(space: Space): List<Boolean> { inGamutRows(this, space) orelse panic() }
 
 The deltaEOK color difference from each row of `other`, where about 0.02 is
 just noticeable. Panics if the lengths differ.
 
-      public deltaEOk(other: Color): List<Float64> throws Bubble { deltaEOkRows(this, other) }
+      public deltaEOk(other: Color): List<Float64> { deltaEOkRows(this, other) orelse panic() }
 
 ### Mixing
 
@@ -150,27 +162,27 @@ Blends with `other` in `space`, by `amount` from 0 (all this color) to 1
 `space`. Either color may have one row, used for every row of the other;
 otherwise their lengths must match. See [mix](mix.temper.md).
 
-      public mix(other: Color, amount: Float64, space: Space): Color throws Bubble {
-        mixColors(this, other, amount, space, HueMethod.shorter)
+      public mix(other: Color, amount: Float64, space: Space): Color {
+        mixColors(this, other, amount, space, HueMethod.shorter) orelse panic()
       }
 
 The same, with a chosen path around the hue wheel.
 
       public mixHue(
         other: Color, amount: Float64, space: Space, hue: HueMethod,
-      ): Color throws Bubble {
-        mixColors(this, other, amount, space, hue)
+      ): Color {
+        mixColors(this, other, amount, space, hue) orelse panic()
       }
 
 `count` colors evenly spaced along this color's rows, used as stops, from
 the first to the last, in `space`.
 
-      public gradient(count: Int, space: Space): Color throws Bubble {
-        gradientColors(this, count, space, HueMethod.shorter)
+      public gradient(count: Int, space: Space): Color {
+        gradientColors(this, count, space, HueMethod.shorter) orelse panic()
       }
 
-      public gradientHue(count: Int, space: Space, hue: HueMethod): Color throws Bubble {
-        gradientColors(this, count, space, hue)
+      public gradientHue(count: Int, space: Space, hue: HueMethod): Color {
+        gradientColors(this, count, space, hue) orelse panic()
       }
 
 ### Adjusting
@@ -182,37 +194,37 @@ Results aren't clamped; use `toGamut` to show them. See
 Adds `amount` to OkLCh lightness, from 0 for black to 1 for white, so
 negative amounts darken.
 
-      public lighten(amount: Float64): Color throws Bubble {
-        new Color(space, adjustLch(this, amount, 1.0, 0.0), alpha)
+      public lighten(amount: Float64): Color {
+        new Color(space, adjustLch(this, amount, 1.0, 0.0) orelse panic(), alpha)
       }
 
 Multiplies OkLCh chroma by `factor`: 0 for gray, 2 for twice as vivid.
 
-      public saturate(factor: Float64): Color throws Bubble {
-        new Color(space, adjustLch(this, 0.0, factor, 0.0), alpha)
+      public saturate(factor: Float64): Color {
+        new Color(space, adjustLch(this, 0.0, factor, 0.0) orelse panic(), alpha)
       }
 
 Turns hue by `turns`, so 0.5 gives the opposite hue.
 
-      public rotateHue(turns: Float64): Color throws Bubble {
-        new Color(space, adjustLch(this, 0.0, 1.0, turns), alpha)
+      public rotateHue(turns: Float64): Color {
+        new Color(space, adjustLch(this, 0.0, 1.0, turns) orelse panic(), alpha)
       }
 
 Gray with the same OkLCh lightness, like `saturate(0.0)`.
 
-      public grayscale(): Color throws Bubble { saturate(0.0) }
+      public grayscale(): Color { saturate(0.0) }
 
 ### Contrast
 
 WCAG relative luminance of each row, from 0 for black to 1 for white.
 
-      public luminance(): List<Float64> throws Bubble { luminanceRows(this) }
+      public luminance(): List<Float64> { luminanceRows(this) orelse panic() }
 
 WCAG contrast ratio with each row of `other`, from 1 to 21. Either may have
 one row, used for every row of the other.
 
-      public contrast(other: Color): List<Float64> throws Bubble {
-        contrastRows(this, other)
+      public contrast(other: Color): List<Float64> {
+        contrastRows(this, other) orelse panic()
       }
 
 ### CSS
@@ -225,15 +237,14 @@ Parses CSS color syntax: hex, named colors, and functions such as
 
 Each row as CSS in this color's own space, such as `oklch(0.7 0.1 180)`.
 
-      public toCss(): List<String> throws Bubble { cssStrings(this) }
+      public toCss(): List<String> { cssStrings(this) orelse panic() }
 
 ### Hex
 
 As `#rrggbb` strings, or `#rrggbbaa` with alpha, after mapping to the sRGB
-gamut, since hex is for display. Alpha is clamped when packed. See also
-`parseHex`.
+gamut, since hex is for display. Alpha is clamped when packed.
 
-      public toHex(): List<String> throws Bubble {
+      public toHex(): List<String> {
         let rgb = toGamut(Space.srgb).rows;
         let a = alpha;
         if (a == null) {
@@ -242,6 +253,13 @@ gamut, since hex is for display. Alpha is clamped when packed. See also
           rgbaUnitToString(rgb, a)
         }
       }
+
+### Packed Ints
+
+As packed `0xRRGGBB` ints, after mapping to the sRGB gamut, the reverse of
+`fromRgbInts`. Alpha isn't included.
+
+      public toRgbInts(): List<Int> { unitToInt(toGamut(Space.srgb).rows) }
 
 ### Channels With Alpha
 
@@ -263,14 +281,14 @@ pixels or NumPy arrays, convert to sRGB first.
     }
 
     test("color conversions") { test =>
-      let srgb = Color.from(Space.srgb, [0.691, 0.139, 0.259]);
+      let srgb = Color.fromList(Space.srgb, [0.691, 0.139, 0.259]);
 
 Might be nice to check against something like
 [this color converter][AjaltConverter], but they use
 [different math][AjaltLinearRgb]. These numbers are fairly close to those,
 however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
 
-      let expected = Color.from(Space.srgbLinear, [
+      let expected = Color.fromList(Space.srgbLinear, [
         0.43527856667280590, 0.01717585039723197, 0.05455383078270364,
       ]);
       assertConvertColors(test, srgb, expected)
@@ -283,14 +301,14 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
         0.2, 0.4, 0.6, 0.5,
         0.9, 0.1, 0.3, 0.25,
       ]);
-      let lch = source.to(Space.oklch);
+      let lch = source.convert(Space.oklch);
       assert(lch.alphaAt(0) == 0.5);
       assert(lch.alphaAt(1) == 0.25);
       assert(source.map { x => x * 0.5 }.alphaAt(1) == 0.25);
     }
 
     test("opaque alpha") {
-      let opaque = Color.from(Space.srgb, [0.1, 0.2, 0.3]);
+      let opaque = Color.fromList(Space.srgb, [0.1, 0.2, 0.3]);
       let noAlpha = opaque.alpha == null;
       assert(noAlpha);
       assert(opaque.alphaAt(0) == 1.0);
@@ -302,24 +320,38 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
         0.5, 0.1, 0.05, 0.5,
         0.8, -0.02, 0.03, 1.0,
       ]);
-      let rgba = source.to(Space.srgb).rowsWithAlpha();
+      let rgba = source.convert(Space.srgb).rowsWithAlpha();
       assert(rgba.ncols == 4);
       assert(rgba[0, 3] == 0.5);
       let back = Color.fromAlpha(Space.srgb, rgba.toList());
       assert(back.alphaAt(0) == 0.5);
-      assertColors(test, source, back.to(Space.oklab));
-      assert(Color.from(Space.srgb, [0.1, 0.2, 0.3]).rowsWithAlpha()[0, 3] == 1.0);
+      assertColors(test, source, back.convert(Space.oklab));
+      assert(Color.fromList(Space.srgb, [0.1, 0.2, 0.3]).rowsWithAlpha()[0, 3] == 1.0);
     }
 
 A separate alpha list goes through `withAlpha`.
 
     test("separate alpha list") {
-      let color = Color.from(Space.srgb, [0.1, 0.2, 0.3]).withAlpha([0.75]);
+      let color = Color.fromList(Space.srgb, [0.1, 0.2, 0.3]).withAlpha([0.75]);
       assert(color.alphaAt(0) == 0.75);
       let flat = color.rowsWithAlpha().toList();
       assert(flat.length == 4);
       assert(flat[2] == 0.3);
       assert(flat[3] == 0.75);
+    }
+
+### Packed Ints and Clipping
+
+    test("packed ints and clip") { test =>
+      let colors = Color.fromRgbInts([0x663399, 0xff8000]);
+      assert(colors.toHex()[1] == "#ff8000");
+      let ints = colors.toRgbInts();
+      assert(ints[0] == 0x663399);
+      assert(ints[1] == 0xff8000);
+      let vivid = Color.fromList(Space.displayP3, [1.0, 0.0, 0.0]);
+      assertColors(test, vivid.clip(Space.srgb), Color.fromList(Space.srgb, [1.0, 0.0, 0.0]));
+      assert(vivid.toRgbInts()[0] == 0xff0b0c);
+      assertColors(test, vivid.clip(Space.lab), vivid.convert(Space.lab));
     }
 
 It would be nice to support expanded value types and also connect with backend

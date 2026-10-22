@@ -344,7 +344,7 @@ Hue in turns, from a number of degrees or an angle with a unit, wrapped to
     let finish(space: Space, channels: List<Float64>, args: CssArgs): Color throws Bubble {
       let alpha = args.alpha;
       if (alpha == null) {
-        Color.from(space, channels)
+        Color.fromList(space, channels)
       } else {
         Color.fromAlpha(space, [channels[0], channels[1], channels[2], alphaValue(alpha)])
       }
@@ -450,7 +450,7 @@ sRGB within range uses `rgb()`, out of range `color(srgb ...)`, since
 outside Prismora bubble.
 
     let cssStrings(color: Color): List<String> throws Bubble {
-      let source = if (color.space == Space.hsv) { color.to(Space.srgb) } else { color };
+      let source = if (color.space == Space.hsv) { color.convert(Space.srgb) } else { color };
       let space = source.space;
       let rows = source.rows;
       let builder = new ListBuilder<String>();
@@ -532,38 +532,38 @@ backend, unlike float `toString`.
 ## Tests
 
     test("parse rgb") { test =>
-      assertColors(test, Color.parse("rgb(255 128 0)"), Color.from(Space.srgb, [1.0, 128.0 / 255.0, 0.0]));
+      assertColors(test, Color.parse("rgb(255 128 0)"), Color.fromList(Space.srgb, [1.0, 128.0 / 255.0, 0.0]));
       let half = Color.parse("rgb(100% 50% 0% / 50%)");
-      assertColors(test, half, Color.from(Space.srgb, [1.0, 0.5, 0.0]));
+      assertColors(test, half, Color.fromList(Space.srgb, [1.0, 0.5, 0.0]));
       assert(half.alphaAt(0) == 0.5);
       let legacy = Color.parse("  RGBA(255, 0, 0, 0.25) ");
-      assertColors(test, legacy, Color.from(Space.srgb, [1.0, 0.0, 0.0]));
+      assertColors(test, legacy, Color.fromList(Space.srgb, [1.0, 0.0, 0.0]));
       assert(legacy.alphaAt(0) == 0.25);
-      assertColors(test, Color.parse("rgb(300 -10 none)"), Color.from(Space.srgb, [1.0, 0.0, 0.0]));
+      assertColors(test, Color.parse("rgb(300 -10 none)"), Color.fromList(Space.srgb, [1.0, 0.0, 0.0]));
       let opaque = Color.parse("rgb(1 2 3)").alpha == null;
       assert(opaque);
     }
 
     test("parse hsl and hwb") { test =>
-      assertColors(test, Color.parse("hsl(120deg 100% 50%)"), Color.from(Space.hsl, [1.0 / 3.0, 1.0, 0.5]));
-      assertColors(test, Color.parse("hsl(0.5turn 50 25)"), Color.from(Space.hsl, [0.5, 0.5, 0.25]));
-      assertColors(test, Color.parse("hsla(-90, 10%, 20%, 1)"), Color.from(Space.hsl, [0.75, 0.1, 0.2]));
-      assertColors(test, Color.parse("hwb(200grad 20% 30%)"), Color.from(Space.hwb, [0.5, 0.2, 0.3]));
+      assertColors(test, Color.parse("hsl(120deg 100% 50%)"), Color.fromList(Space.hsl, [1.0 / 3.0, 1.0, 0.5]));
+      assertColors(test, Color.parse("hsl(0.5turn 50 25)"), Color.fromList(Space.hsl, [0.5, 0.5, 0.25]));
+      assertColors(test, Color.parse("hsla(-90, 10%, 20%, 1)"), Color.fromList(Space.hsl, [0.75, 0.1, 0.2]));
+      assertColors(test, Color.parse("hwb(200grad 20% 30%)"), Color.fromList(Space.hwb, [0.5, 0.2, 0.3]));
     }
 
     test("parse lab, lch, oklab and oklch") { test =>
-      assertColors(test, Color.parse("lab(50% 40 -20)"), Color.from(Space.lab, [50.0, 40.0, -20.0]));
-      assertColors(test, Color.parse("lch(50 100% 270deg)"), Color.from(Space.lch, [50.0, 150.0, 0.75]));
-      assertColors(test, Color.parse("oklab(50% 25% -25%)"), Color.from(Space.oklab, [0.5, 0.1, -0.1]));
-      assertColors(test, Color.parse("oklch(0.7 0.1 180)"), Color.from(Space.oklch, [0.7, 0.1, 0.5]));
-      assertColors(test, Color.parse("oklch(.5 none 1.5708rad)"), Color.from(Space.oklch, [0.5, 0.0, 0.25]));
-      assertColors(test, Color.parse("oklch(120% -0.1 0)"), Color.from(Space.oklch, [1.0, 0.0, 0.0]));
+      assertColors(test, Color.parse("lab(50% 40 -20)"), Color.fromList(Space.lab, [50.0, 40.0, -20.0]));
+      assertColors(test, Color.parse("lch(50 100% 270deg)"), Color.fromList(Space.lch, [50.0, 150.0, 0.75]));
+      assertColors(test, Color.parse("oklab(50% 25% -25%)"), Color.fromList(Space.oklab, [0.5, 0.1, -0.1]));
+      assertColors(test, Color.parse("oklch(0.7 0.1 180)"), Color.fromList(Space.oklch, [0.7, 0.1, 0.5]));
+      assertColors(test, Color.parse("oklch(.5 none 1.5708rad)"), Color.fromList(Space.oklch, [0.5, 0.0, 0.25]));
+      assertColors(test, Color.parse("oklch(120% -0.1 0)"), Color.fromList(Space.oklch, [1.0, 0.0, 0.0]));
     }
 
     test("parse color and others") { test =>
-      assertColors(test, Color.parse("color(display-p3 1 50% 0)"), Color.from(Space.displayP3, [1.0, 0.5, 0.0]));
-      assertColors(test, Color.parse("color(xyz 0.2 0.3 0.4)"), Color.from(Space.xyzD65, [0.2, 0.3, 0.4]));
-      assertColors(test, Color.parse("color(srgb 1.2 -0.1 0.5e0)"), Color.from(Space.srgb, [1.2, -0.1, 0.5]));
+      assertColors(test, Color.parse("color(display-p3 1 50% 0)"), Color.fromList(Space.displayP3, [1.0, 0.5, 0.0]));
+      assertColors(test, Color.parse("color(xyz 0.2 0.3 0.4)"), Color.fromList(Space.xyzD65, [0.2, 0.3, 0.4]));
+      assertColors(test, Color.parse("color(srgb 1.2 -0.1 0.5e0)"), Color.fromList(Space.srgb, [1.2, -0.1, 0.5]));
       assert(Color.parse("RebeccaPurple").toHex()[0] == "#663399");
       assert(Color.parse("#0f08").toHex()[0] == "#00ff0088");
       for (let bad of [
@@ -577,12 +577,12 @@ backend, unlike float `toString`.
     }
 
     test("format css") {
-      assert(Color.from(Space.srgb, [1.0, 0.5, 0.0]).toCss()[0] == "rgb(255 127.5 0)");
-      assert(Color.from(Space.srgb, [1.1, 0.0, 0.0]).toCss()[0] == "color(srgb 1.1 0 0)");
-      assert(Color.from(Space.oklch, [0.7, 0.1, 0.5]).toCss()[0] == "oklch(0.7 0.1 180)");
-      assert(Color.from(Space.hsl, [0.25, 0.5, 0.125]).toCss()[0] == "hsl(90 50% 12.5%)");
+      assert(Color.fromList(Space.srgb, [1.0, 0.5, 0.0]).toCss()[0] == "rgb(255 127.5 0)");
+      assert(Color.fromList(Space.srgb, [1.1, 0.0, 0.0]).toCss()[0] == "color(srgb 1.1 0 0)");
+      assert(Color.fromList(Space.oklch, [0.7, 0.1, 0.5]).toCss()[0] == "oklch(0.7 0.1 180)");
+      assert(Color.fromList(Space.hsl, [0.25, 0.5, 0.125]).toCss()[0] == "hsl(90 50% 12.5%)");
       assert(Color.fromAlpha(Space.displayP3, [1.0, 0.0, 0.25, 0.5]).toCss()[0] == "color(display-p3 1 0 0.25 / 0.5)");
-      assert(Color.from(Space.lab, [50.0, -20.0, 0.00001]).toCss()[0] == "lab(50 -20 0)");
+      assert(Color.fromList(Space.lab, [50.0, -20.0, 0.00001]).toCss()[0] == "lab(50 -20 0)");
     }
 
 Formatting then parsing gives back about the same color in every space.
@@ -594,7 +594,7 @@ Formatting then parsing gives back about the same color in every space.
         Space.oklab, Space.oklch, Space.displayP3, Space.a98Rgb, Space.prophotoRgb,
         Space.rec2020, Space.xyzD65, Space.xyzD50,
       ]) {
-        let color = srgb.to(space);
+        let color = srgb.convert(space);
         let back = Color.parse(color.toCss()[0]);
         assert(back.space == space);
         assertConvertColors(test, back, srgb);

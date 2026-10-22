@@ -4,7 +4,7 @@ The 148 named colors of [CSS Color 4][Css4Named], plus `transparent`. Names are
 case-insensitive, as in CSS. These are handy for input, but they're a fixed and
 arbitrary set, not evenly spaced in any way, so they make poor palettes.
 
-    export let parseNamed(name: String): Color throws Bubble {
+    let parseNamed(name: String): Color throws Bubble {
       let lower = asciiLower(name);
       if (lower == "transparent") {
         return Color.fromAlpha(Space.srgb, [0.0, 0.0, 0.0, 0.0]);

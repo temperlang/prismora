@@ -56,33 +56,6 @@ Or by flat.
 
       public at(i: Int): Float64 throws Bubble { values[i] }
 
-## Get Whole Row
-
-For retrieving a row, if you pass in a buffer, it gets returned. Otherwise,
-returns a new `List`. If you pass in a buffer, if its length is less than
-`ncols`, new values are appended. Otherwise, values are just set.
-
-TODO If we provide a way to shrink ListBuilders, should we do that here if it's
-too long?
-
-      public row(
-        i: Int,
-        buffer: ListBuilder<Float64>? = null,
-      ): Listed<Float64> throws Bubble {
-        if (i >= nrows) { bubble() }
-        let offset = i * ncols;
-        let buf = buffer ?? do { return values.slice(offset, offset + ncols) };
-        for (var j = 0; j < ncols; j += 1) {
-          let value = values[offset + j];
-          if (j < buf.length) {
-            buf[j] = value;
-          } else {
-            buf.add(value);
-          }
-        }
-        buf
-      }
-
 ## Flat Values
 
 All values in row-major order, as given to the constructor.
@@ -97,77 +70,104 @@ Map individually to create a new matrix.
         new Matrix(ncols, values.map(transform))
       }
 
-Or by row, adding new values on to the provided builder for each call. The
-first built row sets the result's `ncols`, and each later row must add the same
-number of values, so result rows always line up with input rows. If `this` has
-no rows, if the first built row is empty, or if any later row adds a different
-number of values, then panic.
+Rows, row mapping, multiplying and transposing are internal tools below,
+outside the class, so they stay out of the public API in every language.
 
-      public mapRows(
-        build: fn (row: Listed<Float64>, builder: ListBuilder<Float64>): Void,
-      ): Matrix {
-        let builder = new ListBuilder<Float64>();
-        let buffer = new ListBuilder<Float64>();
-        var ncols = 0;
-        for (var i = 0; i < nrows; i += 1) {
-          build(row(i, buffer) orelse panic(), builder);
-          if (i == 0) {
-            ncols = builder.length;
-          } else if (builder.length != (i + 1) * ncols) {
-            panic();
-          }
+    }
+
+## Internal Tools
+
+### Rows
+
+For retrieving a row, if you pass in a buffer, it gets returned. Otherwise,
+returns a new `List`. If you pass in a buffer, if its length is less than
+`ncols`, new values are appended. Otherwise, values are just set.
+
+    let matrixRow(
+      m: Matrix,
+      i: Int,
+      buffer: ListBuilder<Float64>? = null,
+    ): Listed<Float64> throws Bubble {
+      if (i >= m.nrows) { bubble() }
+      let ncols = m.ncols;
+      let values = m.toList();
+      let offset = i * ncols;
+      let buf = buffer ?? do { return values.slice(offset, offset + ncols) };
+      for (var j = 0; j < ncols; j += 1) {
+        let value = values[offset + j];
+        if (j < buf.length) {
+          buf[j] = value;
+        } else {
+          buf.add(value);
         }
-        { ncols, values: builder.toList() }
       }
+      buf
+    }
+
+### Mapping Rows
+
+Adds new values on to the provided builder for each row. The first built row
+sets the result's `ncols`, and each later row must add the same number of
+values, so result rows always line up with input rows. If `m` has no rows, if
+the first built row is empty, or if any later row adds a different number of
+values, then panic.
+
+    let mapRows(
+      m: Matrix,
+      build: fn (row: Listed<Float64>, builder: ListBuilder<Float64>): Void,
+    ): Matrix {
+      let builder = new ListBuilder<Float64>();
+      let buffer = new ListBuilder<Float64>();
+      var ncols = 0;
+      for (var i = 0; i < m.nrows; i += 1) {
+        build(matrixRow(m, i, buffer) orelse panic(), builder);
+        if (i == 0) {
+          ncols = builder.length;
+        } else if (builder.length != (i + 1) * ncols) {
+          panic();
+        }
+      }
+      new Matrix(ncols, builder.toList())
+    }
 
 Or to create a list of whatever by row.
 
-      public mapRowsToList<T>(transform: fn (Listed<Float64>): T): List<T> {
-        let builder = new ListBuilder<T>();
-        let buffer = new ListBuilder<Float64>();
-        for (var i = 0; i < nrows; i += 1) {
-          builder.add(transform(row(i, buffer))) orelse panic();
-        }
-        builder.toList()
+    let mapRowsToList<T>(m: Matrix, transform: fn (Listed<Float64>): T): List<T> {
+      let builder = new ListBuilder<T>();
+      let buffer = new ListBuilder<Float64>();
+      for (var i = 0; i < m.nrows; i += 1) {
+        builder.add(transform(matrixRow(m, i, buffer) orelse panic()));
       }
-
-## Math
+      builder.toList()
+    }
 
 ### Matrix Multiply
 
-      public times(other: Matrix): Matrix throws Bubble {
-        if (ncols != other.nrows) { bubble() }
-        mapRows { row, builder =>
-          for (var k = 0; k < other.ncols; k += 1) {
-            var sum = 0.0;
-            for (var j = 0; j < ncols; j += 1) {
-              sum += (row[j] * other[j, k]) orelse panic();
-            }
-            builder.add(sum) orelse panic();
+    let times(a: Matrix, b: Matrix): Matrix throws Bubble {
+      if (a.ncols != b.nrows) { bubble() }
+      mapRows(a) { row, builder =>
+        for (var k = 0; k < b.ncols; k += 1) {
+          var sum = 0.0;
+          for (var j = 0; j < a.ncols; j += 1) {
+            sum += (row[j] * b[j, k]) orelse panic();
           }
+          builder.add(sum);
         }
       }
+    }
 
 ### Transpose
 
-      public transpose(): Matrix throws Bubble {
-
 TODO Internal stride wrangling to support no-copy transpose?
 
-        new Matrix(
-          nrows,
-          do {
-            let builder = new ListBuilder<Float64>();
-            for (var j = 0; j < ncols; j += 1) {
-              for (var i = 0; i < nrows; i += 1) {
-                builder.add(this[i, j]);
-              }
-            }
-            builder.toList()
-          },
-        )
+    let transpose(m: Matrix): Matrix {
+      let builder = new ListBuilder<Float64>();
+      for (var j = 0; j < m.ncols; j += 1) {
+        for (var i = 0; i < m.nrows; i += 1) {
+          builder.add(m[i, j] orelse panic());
+        }
       }
-
+      new Matrix(m.nrows, builder.toList())
     }
 
 ## Tests
@@ -185,12 +185,12 @@ Results for [0, 1] or [1, 0] depend on row vs column major.
 Check both return value and buffer mutation.
 
       let row = new ListBuilder<Float64>();
-      assert(matrix.row(1, row)[0] == 5.6);
+      assert(matrixRow(matrix, 1, row)[0] == 5.6);
       assert(row[1] == 7.8);
 
 Also check non-buffered row access.
 
-      assert(matrix.row(0)[1] == 3.4);
+      assert(matrixRow(matrix, 0)[1] == 3.4);
     }
 
 ### Map
@@ -209,7 +209,7 @@ same number of values.
 
     test("matrix map rows") {
       let matrix = new Matrix(3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-      let result = matrix.mapRows { row, builder =>
+      let result = mapRows(matrix) { row, builder =>
         builder.add(row[0] + row[1] + row[2]);
         builder.add(row[0]);
       };
@@ -228,7 +228,7 @@ same number of values.
       assert(rowish.nrows == 1);
       assert(rowish.ncols == 3);
       assert(rowish.at(1) == 3.4);
-      let sumsAsStrings = rowish.mapRowsToList { (row): String =>
+      let sumsAsStrings = mapRowsToList(rowish) { (row): String =>
         row.reduceFrom(0.0) { (a: Float64, b): Float64 => a + b }.toString()
       };
       assert(sumsAsStrings.length == 1);
@@ -241,7 +241,7 @@ same number of values.
       let values = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
       let a = new Matrix(3, values);
       let b = new Matrix(2, values);
-      let result = a.times(b);
+      let result = times(a, b);
       assert(result.nrows == a.nrows);
       assert(result.ncols == b.ncols);
       assert(result[0, 0] == 22.0);
@@ -254,7 +254,7 @@ same number of values.
 
     test("matrix transpose") {
       let matrix = new Matrix(3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-      let result = matrix.transpose();
+      let result = transpose(matrix);
       assert(result.nrows == matrix.ncols);
       assert(result.ncols == matrix.nrows);
       assert(result[0, 0] == matrix[0, 0]);
