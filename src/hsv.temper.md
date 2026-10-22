@@ -172,6 +172,16 @@ Expected values follow the CSS Color 4 examples, with hue in turns.
       assertConvertColors(test, hsl, rgb);
     }
 
+Out-of-range input can give negative saturation, which flips to the opposite
+hue, and still round trips.
+
+    test("hsl out of range") { test =>
+      let rgb = Color.from(Space.srgb, [1.5, 1.2, 1.1]);
+      let hsl = Color.from(Space.hsl, [13.0 / 24.0, 2.0 / 3.0, 1.3]);
+      assertConvertColors(test, rgb, hsl);
+      assertConvertColors(test, hsl, rgb);
+    }
+
     test("hsv conversions") { test =>
       let rgb = Color.from(Space.srgb, [
         1.0, 0.0, 0.0,
