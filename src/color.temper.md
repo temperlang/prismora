@@ -94,6 +94,21 @@ Both of these keep alpha as is, since `transform` applies only to channels.
         }
       }
 
+### Hex
+
+As `#rrggbb` strings, or `#rrggbbaa` with alpha, after converting to sRGB.
+Channels are clamped when packed. See also `parseHex`.
+
+      public toHex(): List<String> throws Bubble {
+        let rgb = to(Space.srgb).rows;
+        let a = alpha;
+        if (a == null) {
+          rgbUnitToString(rgb)
+        } else {
+          rgbaUnitToString(rgb, a)
+        }
+      }
+
 ### Interleaved RGBA
 
 As sRGB rows of red, green, blue, and alpha, all from 0 to 1, but unclamped.
