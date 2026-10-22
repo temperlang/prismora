@@ -1,28 +1,54 @@
 # Prismora
 
-A cross-language color transformation library. Some intended features:
+A cross-language color transformation library, working toward the color math of
+[CSS Color 4][CssColor4] and the mixing of [CSS Color 5][CssColor5].
 
-- Color formatting
-- Translation between spaces like RGB, HSV, and Oklab
-- Color to grayscale
-- Color gradients
-- Default behavior supporting human perceptual expectations
+## Status
 
-The current focus excludes opacity/alpha, but I might ought to work out a plan
-for that, too.
+Working now:
 
-Being made in Temper, Prismora supports the following programming languages
-automatically:
+- Conversion between sRGB, linear sRGB, Oklab, and OkLCh, for single colors or
+  in bulk
+- Formatting as packed ints and `#rrggbb` strings
+- Out-of-range values kept exact through conversions, with clamping when
+  packing or on request
 
+Planned:
+
+- Alpha, and parsing hex and other CSS formats
+- HSL, HWB, and HSV
+- Wide-gamut spaces like Display P3, plus CIE Lab and LCH
+- Gamut mapping, grayscale, and gradients, with defaults that match human
+  perception
+
+## Languages
+
+Being made in Temper, Prismora supports these languages automatically, and its
+tests run on each:
+
+- C++
 - C\#
 - Java
 - JS
 - Lua
 - Python
 - Rust
-- Hopefully more in the future as well
 
 This library is also a testing ground for how well we can support specific
 language needs. For example, it would be nice to support NumPy arrays of colors
 out of the box for Python. This library might help figure out what Temper still
 needs for things like that.
+
+## Development
+
+Run tests with [Temper][Temper], on one backend while working:
+
+    temper test -b py
+
+And on all of them before a pull request:
+
+    temper test -b cpp -b csharp -b java -b js -b lua -b py -b rust
+
+[CssColor4]: https://www.w3.org/TR/css-color-4/
+[CssColor5]: https://www.w3.org/TR/css-color-5/
+[Temper]: https://temperlang.dev/
