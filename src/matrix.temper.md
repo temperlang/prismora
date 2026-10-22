@@ -142,6 +142,52 @@ Or to create a list of whatever by row.
         }
       }
 
+### Channels and Extra Columns
+
+Color conversions work on the first few columns, the channels, and pass any
+later columns through unchanged, such as alpha. Without extra columns, these
+just call `map` and `times`.
+
+      public mapChannels(
+        nchannels: Int,
+        transform: fn (Float64): Float64,
+      ): Matrix {
+        if (nchannels >= ncols) {
+          return map(transform);
+        }
+        let builder = new ListBuilder<Float64>();
+        for (var i = 0; i < values.length; i += ncols) {
+          for (var j = 0; j < ncols; j += 1) {
+            let value = values[i + j] orelse panic();
+            let result = if (j < nchannels) { transform(value) } else { value };
+            builder.add(result);
+          }
+        }
+        new Matrix(ncols, builder.toList())
+      }
+
+Multiplies the first `other.nrows` columns by `other`, then appends the rest.
+
+      public timesChannels(other: Matrix): Matrix throws Bubble {
+        if (ncols == other.nrows) {
+          return times(other);
+        }
+        if (ncols < other.nrows) { bubble() }
+        let k = other.nrows;
+        mapRows { row, builder =>
+          for (var c = 0; c < other.ncols; c += 1) {
+            var sum = 0.0;
+            for (var j = 0; j < k; j += 1) {
+              sum += (row[j] * other[j, c]) orelse panic();
+            }
+            builder.add(sum);
+          }
+          for (var j = k; j < ncols; j += 1) {
+            builder.add(row[j] orelse panic());
+          }
+        }
+      }
+
 ### Transpose
 
       public transpose(): Matrix throws Bubble {

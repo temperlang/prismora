@@ -14,9 +14,9 @@ x 3.
 
     export let srgbLinearToOklab(rgb: Matrix): Matrix {
       rgb
-        .times(srgbLinearToOklab0)
-        .map { x => cbrt(x) }
-        .times(srgbLinearToOklab1) orelse panic()
+        .timesChannels(srgbLinearToOklab0)
+        .mapChannels(3) { x => cbrt(x) }
+        .timesChannels(srgbLinearToOklab1) orelse panic()
     }
 
 We could map each row one at a time, combining multiple operations, but the
@@ -39,9 +39,9 @@ Panics if `lab` isn't N x 3.
 
     let oklabToSrgbLinear(lab: Matrix): Matrix {
       lab
-        .times(oklabToSrgbLinear0)
-        .map { x => x * x * x }
-        .times(oklabToSrgbLinear1) orelse panic()
+        .timesChannels(oklabToSrgbLinear0)
+        .mapChannels(3) { x => x * x * x }
+        .timesChannels(oklabToSrgbLinear1) orelse panic()
     }
 
     let oklabToSrgbLinear0 = new Matrix(3, [
@@ -106,12 +106,14 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
 
 Does this work for any Lab to LCH, whether Ok or otherwise?
 
-Meanwhile, these functions consider the first 3 columns of the input and panic
-on fewer than 3 columns. Hue is in turns, from 0 up to 1, rather than degrees.
+Meanwhile, these functions convert the first 3 columns of the input, pass any
+later columns through, and panic on fewer than 3 columns. Hue is in turns, from 0 up to 1, rather than degrees.
 
 Grays have no meaningful hue, and rounding noise in their chroma would
 otherwise give them an arbitrary one. So below this chroma, hue is 0, much like
-CSS Color 4 treats hue as powerless for achromatic colors.
+CSS Color 4 treats hue as powerless for achromatic colors. CSS would make it
+`none`, but we keep plain numbers, avoiding NaN and its cross-language quirks.
+Mixing can still spot grays by their chroma.
 
     let achromaticChroma = 0.000004;
 
@@ -130,6 +132,7 @@ CSS Color 4 treats hue as powerless for achromatic colors.
           builder.add(l);
           builder.add(c);
           builder.add(h);
+          for (var j = 3; j < row.length; j += 1) { builder.add(row[j]); }
         } orelse panic();
       }
     }
@@ -146,6 +149,7 @@ CSS Color 4 treats hue as powerless for achromatic colors.
           builder.add(l);
           builder.add(a);
           builder.add(b);
+          for (var j = 3; j < row.length; j += 1) { builder.add(row[j]); }
         } orelse panic();
       }
     }
