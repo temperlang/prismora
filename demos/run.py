@@ -66,7 +66,7 @@ def main():
             failed.append(language)
             continue
         if actual == expected:
-            print(f"{language}: ok")
+            print(f"{language}: ok, {len(actual.splitlines())} lines match")
         else:
             print(f"{language}: output differs")
             diff = difflib.unified_diff(

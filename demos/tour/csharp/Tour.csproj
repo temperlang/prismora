@@ -3,6 +3,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <!-- Run on newer .NET runtimes too, such as CI's 8 and later. -->
+    <RollForward>Major</RollForward>
   </PropertyGroup>
   <ItemGroup>
     <!-- Built by `temper build -b csharp` at the repo's top. -->
