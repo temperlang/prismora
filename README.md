@@ -12,9 +12,12 @@ In Temper, and the same API in each [supported language](#languages):
 let red = Color.from(Space.srgb, [1.0, 0.0, 0.0]);
 let lch = red.to(Space.oklch); // About 0.628, 0.258, 0.081
 
-// Parse hex or CSS names, and format as hex.
-let purple = parseNamed("rebeccapurple");
+// Parse any CSS color, and format as hex or CSS.
+let purple = Color.parse("rebeccapurple");
 console.log(purple.toHex()[0]); // #663399
+console.log(purple.toCss()[0]); // rgb(102 51 153)
+let teal = Color.parse("oklch(65% 0.1 200 / 80%)");
+console.log(teal.toHex()[0]); // #2ba1a7cc
 
 // Many colors at once, one per row, with alpha after each row's channels.
 let vivid = Color.fromAlpha(Space.oklch, [
@@ -34,8 +37,10 @@ Working now:
   LCH, for single colors or in bulk
 - Optional alpha, given and read inline with the channels in any space, and
   stored apart so conversions skip it
-- Parsing hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`) and CSS named colors
-- Formatting as packed ints and `#rrggbb` or `#rrggbbaa` strings
+- Parsing CSS Color 4 syntax: hex, named colors, and `rgb()`, `hsl()`,
+  `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()` and `color()`, in modern
+  or legacy comma syntax
+- Formatting as CSS, `#rrggbb` or `#rrggbbaa` strings, and packed ints
 - Out-of-range values kept exact through conversions
 - Gamut mapping as in CSS Color 4, reducing chroma in OkLCh to fit sRGB,
   Display P3 or another RGB gamut, used for hex output, plus clamping on
@@ -48,8 +53,9 @@ Working now:
 
 Planned:
 
-- Parsing other CSS formats, such as `rgb()` and `oklch()`, and formatting
-  as CSS
+- A review of the API as generated for each language, then demos
+- Later: NumPy arrays for Python, CSS relative color syntax, and more color
+  difference formulas
 
 Prismora uses material from CSS Color 4 and web-platform-tests. See
 [NOTICE](NOTICE).
