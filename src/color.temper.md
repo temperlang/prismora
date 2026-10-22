@@ -94,13 +94,30 @@ Both of these keep alpha as is, since `transform` applies only to channels.
         }
       }
 
+### Gamut
+
+Converts to `space`, reducing chroma where needed to fit its gamut, while
+keeping lightness and hue. See [gamut](gamut.temper.md).
+
+      public toGamut(space: Space): Color throws Bubble { mapToGamut(this, space) }
+
+Whether each row fits in the gamut of `space`.
+
+      public inGamut(space: Space): List<Boolean> throws Bubble { inGamutRows(this, space) }
+
+The deltaEOK color difference from each row of `other`, where about 0.02 is
+just noticeable. Panics if the lengths differ.
+
+      public deltaEOk(other: Color): List<Float64> throws Bubble { deltaEOkRows(this, other) }
+
 ### Hex
 
-As `#rrggbb` strings, or `#rrggbbaa` with alpha, after converting to sRGB.
-Channels are clamped when packed. See also `parseHex`.
+As `#rrggbb` strings, or `#rrggbbaa` with alpha, after mapping to the sRGB
+gamut, since hex is for display. Alpha is clamped when packed. See also
+`parseHex`.
 
       public toHex(): List<String> throws Bubble {
-        let rgb = to(Space.srgb).rows;
+        let rgb = toGamut(Space.srgb).rows;
         let a = alpha;
         if (a == null) {
           rgbUnitToString(rgb)
