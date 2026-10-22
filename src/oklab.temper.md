@@ -69,6 +69,15 @@ Panics if `lab` isn't N x 3.
       assertColors(test, rgb0, rgb1);
     }
 
+Conversions don't clamp, so colors outside the sRGB gamut also round trip.
+
+    test("out-of-gamut round trip") { test =>
+      let lab0 = Color.from(Space.oklab, [0.5, 0.4, 0.0]);
+      let rgb = lab0.to(Space.srgb);
+      assert(rgb[0, 0] > 1.0 || rgb[0, 1] < 0.0 || rgb[0, 2] < 0.0);
+      assertColors(test, lab0, rgb.to(Space.oklab));
+    }
+
 Color conversion test cases come from [web-platform-tests][CssColorTests].
 
     test("oklab from rgb conversion") { test =>
@@ -98,7 +107,13 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
 Does this work for any Lab to LCH, whether Ok or otherwise?
 
 Meanwhile, these functions consider the first 3 columns of the input and panic
-on fewer than 3 columns.
+on fewer than 3 columns. Hue is in turns, from 0 up to 1, rather than degrees.
+
+Grays have no meaningful hue, and rounding noise in their chroma would
+otherwise give them an arbitrary one. So below this chroma, hue is 0, much like
+CSS Color 4 treats hue as powerless for achromatic colors.
+
+    let achromaticChroma = 0.000004;
 
     export let labToLch(lab: Matrix): Matrix {
       lab.mapRows { row, builder =>
@@ -107,7 +122,11 @@ on fewer than 3 columns.
           let a = row[1];
           let b = row[2];
           let c = (a * a + b * b).sqrt();
-          let h = 0.5 * (1.0 + (-b).atan2(-a) / Float64.pi);
+          let h = if (c < achromaticChroma) {
+            0.0
+          } else {
+            0.5 * (1.0 + (-b).atan2(-a) / Float64.pi)
+          };
           builder.add(l);
           builder.add(c);
           builder.add(h);
@@ -160,12 +179,10 @@ Also test conversion, again from [web-platform-tests][CssColorTests].
         0.5, 0.2, 0.0,
         0.5, 0.2, 0.75,
 
-This case is interesting. We get `c` of about 3.72740e-08 rather than exactly
-zero, which means we also have a semi arbitary angle for `h`. Is there some
-cutoff just for calling `h` zero?
+White has `c` of about 3.7e-8 rather than exactly zero, so this checks that
+near-zero chroma gives hue 0, matching wpt case oklch-003.html.
 
-        // wpt case oklch-003.html: 1.0, 0.0, 0.0
-        1.0, 0.0, 0.24965,
+        1.0, 0.0, 0.0,
       ]);
       assertConvertColors(test, source, expected);
     }
