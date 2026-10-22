@@ -12,8 +12,6 @@ Linear sRGB is the root, rather than CSS's XYZ-D65, so common conversions need
 no extra matrix multiply. Other RGB spaces can still go through XYZ by
 precombining matrices.
 
-TODO How to say that we want to support identity equality on a type?
-
     export class Space(
 
 The name is considered a unique full identifier. If defining new spaces outside
