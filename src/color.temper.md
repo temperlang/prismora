@@ -71,39 +71,7 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
 It would be nice to support expanded value types and also connect with backend
 matrices and so on, but this will have to do for now.
 
-## Color Spaces
-
-TODO How to say that we want to support identity equality on a type?
-
-    export class Space(
-
-This class is a simulated enum, although maybe we do want it open beyond spaces
-defined in this library.
-
-      public name: String,
-      public ncols: Int,
-    ) {
-
-And note that the name for now is considered a unique full identifier. If
-defining new instances outside this library, use some namepace prefix.
-
-      public toString(): String { name }
-
-      @operator("==")
-      public eq(other: Space): Boolean { name == other.name }
-
-Some of the supported spaces here aren't considered by everyone to be true
-separate "spaces". For example, some consider RGB and HSV just to be different
-representations of the same space, but we don't make that distinction here.
-
-      public static hsv = new Space("hsv", 3);
-      public static oklab = new Space("oklab", 3);
-      public static oklch = new Space("oklch", 3);
-      public static srgb = new Space("srgb", 3);
-      public static srgbLinear = new Space("srgbLinear", 3);
-    }
-
-Conversion between spaces is in [convert](convert.temper.md).
+Spaces and conversion between them are in [convert](convert.temper.md).
 
 ## References
 
