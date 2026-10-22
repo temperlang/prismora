@@ -33,6 +33,8 @@ These are safe because we controlled the bounds above.
       ))
     }
 
+Packing clamps each channel to the byte range, so out-of-range colors still pack.
+
     export let unitToInt(rows: Matrix): List<Int> {
       unitToByte(rows).mapRowsToList { (row: Listed<Float64>): Int =>
         let x = clampToIntByte(row[0] orelse panic());
@@ -82,4 +84,22 @@ Presumes that `x` is known to be approximately in the 0 to 255 range already.
 
     export let clampToIntByte(x: Float64): Int {
       clampByte(x.round().toInt32Unsafe())
+    }
+
+## Clamping
+
+Conversions between spaces don't clamp, so out-of-range results, such as Oklab
+colors outside the sRGB gamut, stay exact and round trip. Packing to ints or
+strings clamps, as above. To clamp floats, use this. Better gamut mapping might
+come later as a separate function.
+
+    export let clampToUnit(rows: Matrix): Matrix {
+      rows.map { x => clampUnit(x) }
+    }
+
+    test("clampToUnit") {
+      let rows = clampToUnit(Matrix.rowOf([-0.1, 0.5, 1.2]));
+      assert(rows.at(0) == 0.0);
+      assert(rows.at(1) == 0.5);
+      assert(rows.at(2) == 1.0);
     }

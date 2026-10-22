@@ -69,6 +69,15 @@ Panics if `lab` isn't N x 3.
       assertColors(test, rgb0, rgb1);
     }
 
+Conversions don't clamp, so colors outside the sRGB gamut also round trip.
+
+    test("out-of-gamut round trip") { test =>
+      let lab0 = Color.from(Space.oklab, [0.5, 0.4, 0.0]);
+      let rgb = lab0.to(Space.srgb);
+      assert(rgb[0, 0] > 1.0 || rgb[0, 1] < 0.0 || rgb[0, 2] < 0.0);
+      assertColors(test, lab0, rgb.to(Space.oklab));
+    }
+
 Color conversion test cases come from [web-platform-tests][CssColorTests].
 
     test("oklab from rgb conversion") { test =>
