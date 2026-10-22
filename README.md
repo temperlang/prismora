@@ -9,8 +9,8 @@ In Temper, and the same API in each [supported language](#languages):
 
 ```temper
 // Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
-let red = Color.from(Space.srgb, [1.0, 0.0, 0.0]);
-let lch = red.to(Space.oklch); // About 0.628, 0.258, 0.081
+let red = Color.fromList(Space.srgb, [1.0, 0.0, 0.0]);
+let lch = red.convert(Space.oklch); // About 0.628, 0.258, 0.081
 
 // Parse any CSS color, and format as hex or CSS.
 let purple = Color.parse("rebeccapurple");
@@ -53,7 +53,7 @@ Working now:
 
 Planned:
 
-- A review of the API as generated for each language, then demos
+- Demos in each language, and a demo site
 - Later: NumPy arrays for Python, CSS relative color syntax, and more color
   difference formulas
 

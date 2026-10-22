@@ -10,14 +10,14 @@ means RGB.
 
 TODO Support css rendering of all spaces?
 
-    export let rgbUnitToString(rgb: Matrix): List<String> {
+    let rgbUnitToString(rgb: Matrix): List<String> {
       unitToString(rgb).map { (it): String => "#${it}" }
     }
 
 Or as `#rrggbbaa`, with one alpha value per row. Like the color channels,
 alpha is clamped when packed.
 
-    export let rgbaUnitToString(rgb: Matrix, alpha: List<Float64>): List<String> {
+    let rgbaUnitToString(rgb: Matrix, alpha: List<Float64>): List<String> {
       let hexes = unitToString(rgb);
       if (alpha.length != hexes.length) { panic() }
       let builder = new ListBuilder<String>();
@@ -43,7 +43,7 @@ Parses `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa` into an sRGB color, with alpha
 only if given. The `#` is optional, and digits are case-insensitive. Anything
 else bubbles.
 
-    export let parseHex(text: String): Color throws Bubble {
+    let parseHex(text: String): Color throws Bubble {
       let digits = new ListBuilder<Int>();
       var i = String.begin;
       let end = text.end;
@@ -72,7 +72,7 @@ else bubbles.
       if (nchannels == 4) {
         Color.fromAlpha(Space.srgb, values)
       } else {
-        Color.from(Space.srgb, values)
+        Color.fromList(Space.srgb, values)
       }
     }
 
@@ -117,18 +117,18 @@ Sources:
 
 The Wikipedia example linearizes as part of the transformation to CIE XYZ.
 
-    export let srgbGammaToLinear(rgb: Matrix): Matrix {
+    let srgbGammaToLinear(rgb: Matrix): Matrix {
       rgb.map { x => channelGammaToLinear(x) }
     }
 
-    export let srgbLinearToGamma(rgb: Matrix): Matrix {
+    let srgbLinearToGamma(rgb: Matrix): Matrix {
       rgb.map { x => channelLinearToGamma(x) }
     }
 
 Negative values, which wide-gamut colors can have in sRGB, mirror the curve,
 as in CSS Color 4's sample code.
 
-    export let channelGammaToLinear(x: Float64): Float64 {
+    let channelGammaToLinear(x: Float64): Float64 {
       let magnitude = x.abs();
       if (magnitude > 0.04045) {
         x.sign() * (((magnitude + 0.055) / 1.055) orelse panic()) ** 2.4
@@ -137,7 +137,7 @@ as in CSS Color 4's sample code.
       }
     }
 
-    export let channelLinearToGamma(x: Float64): Float64 {
+    let channelLinearToGamma(x: Float64): Float64 {
       let magnitude = x.abs();
       if (magnitude > 0.0031308) {
         x.sign() * (1.055 * magnitude ** (1.0 / 2.4) - 0.055)

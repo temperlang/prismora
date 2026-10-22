@@ -12,11 +12,11 @@ References:
 Note that we need to linearize before Oklab conversion. Panics if `rgb` isn't N
 x 3.
 
-    export let srgbLinearToOklab(rgb: Matrix): Matrix {
-      rgb
-        .times(srgbLinearToLmsMatrix)
-        .map { x => cbrt(x) }
-        .times(lmsToOklabMatrix) orelse panic()
+    let srgbLinearToOklab(rgb: Matrix): Matrix {
+      do {
+        let lms = times(rgb, srgbLinearToLmsMatrix).map { x => cbrt(x) };
+        times(lms, lmsToOklabMatrix)
+      } orelse panic()
     }
 
 We could map each row one at a time, combining multiple operations, but the
@@ -28,65 +28,65 @@ than Ottosson's original 10-digit coefficients, so that each forward and
 inverse pair round trips to within about 1e-16. The sRGB to LMS matrices
 combine the spec's sRGB to XYZ and XYZ to LMS steps.
 
-    let srgbLinearToLmsMatrix = new Matrix(3, [
+    let srgbLinearToLmsMatrix = transpose(new Matrix(3, [
       0.412221469470763, 0.5363325372617348, 0.051445993267502196,
       0.21190349581782525, 0.6806995506452344, 0.10739695353694055,
       0.08830245919005643, 0.2817188391361215, 0.6299787016738222,
-    ]).transpose();
+    ]));
 
-    let lmsToOklabMatrix = new Matrix(3, [
+    let lmsToOklabMatrix = transpose(new Matrix(3, [
       0.210454268309314, 0.7936177747023054, -0.0040720430116193,
       1.9779985324311684, -2.42859224204858, 0.450593709617411,
       0.0259040424655478, 0.7827717124575296, -0.8086757549230774,
-    ]).transpose();
+    ]));
 
 Panics if `lab` isn't N x 3.
 
     let oklabToSrgbLinear(lab: Matrix): Matrix {
-      lab
-        .times(oklabToLmsMatrix)
-        .map { x => x * x * x }
-        .times(lmsToSrgbLinearMatrix) orelse panic()
+      do {
+        let lms = times(lab, oklabToLmsMatrix).map { x => x * x * x };
+        times(lms, lmsToSrgbLinearMatrix)
+      } orelse panic()
     }
 
-    let oklabToLmsMatrix = new Matrix(3, [
+    let oklabToLmsMatrix = transpose(new Matrix(3, [
       1.0, 0.3963377773761749, 0.2158037573099136,
       1.0, -0.1055613458156586, -0.0638541728258133,
       1.0, -0.0894841775298119, -1.2914855480194092,
-    ]).transpose();
+    ]));
 
-    let lmsToSrgbLinearMatrix = new Matrix(3, [
+    let lmsToSrgbLinearMatrix = transpose(new Matrix(3, [
       4.076741636075958, -3.307711539258062, 0.23096990318210447,
       -1.268437973285032, 2.6097573492876887, -0.34131937600265727,
       -0.004196076138675553, -0.7034186179359363, 1.7076146940746117,
-    ]).transpose();
+    ]));
 
 ### Tests
 
     test("oklab round trip") { test =>
-      let rgb0 = Color.from(Space.srgb, [
+      let rgb0 = Color.fromList(Space.srgb, [
         0.0, 0.0, 0.0,
         0.3, 0.4, 0.5,
         1.0, 1.0, 1.0,
       ]);
-      let oklab = rgb0.to(Space.oklab);
-      let rgb1 = oklab.to(Space.srgb);
+      let oklab = rgb0.convert(Space.oklab);
+      let rgb1 = oklab.convert(Space.srgb);
       assertColors(test, rgb0, rgb1);
     }
 
 Conversions don't clamp, so colors outside the sRGB gamut also round trip.
 
     test("out-of-gamut round trip") { test =>
-      let lab0 = Color.from(Space.oklab, [0.5, 0.4, 0.0]);
-      let rgb = lab0.to(Space.srgb);
+      let lab0 = Color.fromList(Space.oklab, [0.5, 0.4, 0.0]);
+      let rgb = lab0.convert(Space.srgb);
       assert(rgb[0, 0] > 1.0 || rgb[0, 1] < 0.0 || rgb[0, 2] < 0.0);
-      assertColors(test, lab0, rgb.to(Space.oklab));
+      assertColors(test, lab0, rgb.convert(Space.oklab));
     }
 
 Color conversion test cases come from [web-platform-tests][CssColorTests].
 
     test("oklab from rgb conversion") { test =>
-      let source = Color.from(Space.srgb, [
+      let source = Color.fromList(Space.srgb, [
         0.0, 0.5, 0.0,
         0.0, 0.0, 0.0,
         1.0, 1.0, 1.0,
@@ -97,7 +97,7 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
     }
 
     let oklabExpectedResults(): Color {
-      Color.from(Space.oklab, [
+      Color.fromList(Space.oklab, [
         // wpt case oklab-001.html: 0.51975, -0.1403, 0.10768,
         0.51829, -0.13991, 0.10737,
         0.0, 0.0, 0.0,
@@ -122,7 +122,7 @@ Mixing can still spot grays by their chroma.
 
     let achromaticChroma = 0.000004;
 
-    export let labToLch(lab: Matrix): Matrix {
+    let labToLch(lab: Matrix): Matrix {
       labToPolar(lab, achromaticChroma)
     }
 
@@ -130,7 +130,7 @@ The same for any Lab space, given the chroma below which it counts as gray.
 CIE Lab, for example, has a larger scale than Oklab.
 
     let labToPolar(lab: Matrix, achromaticChroma: Float64): Matrix {
-      lab.mapRows { row, builder =>
+      mapRows(lab) { row, builder =>
         do {
           let l = row[0];
           let a = row[1];
@@ -148,8 +148,8 @@ CIE Lab, for example, has a larger scale than Oklab.
       }
     }
 
-    export let lchToLab(lch: Matrix): Matrix {
-      lch.mapRows { row, builder =>
+    let lchToLab(lch: Matrix): Matrix {
+      mapRows(lch) { row, builder =>
         do {
           let l = row[0];
           let c = row[1];
@@ -171,22 +171,22 @@ turnaround Lab for it.
 
     test("lch round trip") { test =>
       let lab0 = oklabExpectedResults();
-      let lch = lab0.to(Space.oklch);
-      let lab1 = lch.to(Space.oklab);
+      let lch = lab0.convert(Space.oklch);
+      let lab1 = lch.convert(Space.oklab);
       assertColors(test, lab0, lab1);
     }
 
 Also test conversion, again from [web-platform-tests][CssColorTests].
 
     test("oklch from rgb conversion") { test =>
-      let source = Color.from(Space.srgb, [
+      let source = Color.fromList(Space.srgb, [
         0.0, 0.5, 0.0,
         0.0, 0.0, 0.0,
         0.70492, 0.02351, 0.37073,
         0.23056, 0.31730, 0.82628,
         1.0, 1.0, 1.0,
       ]);
-      let expected = Color.from(Space.oklch, [
+      let expected = Color.fromList(Space.oklch, [
         // wpt case oklch-001.html: 0.51975, 0.17686, 0.39582 (142.495 / 360),
         0.51829, 0.17636, 0.39582,
         0.0, 0.0, 0.0,

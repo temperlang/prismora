@@ -32,8 +32,8 @@ Wraps any value into the range from 0 up to `modulus`.
 
 ## HSL
 
-    export let srgbToHsl(rgb: Matrix): Matrix {
-      rgb.mapRows { row, builder =>
+    let srgbToHsl(rgb: Matrix): Matrix {
+      mapRows(rgb) { row, builder =>
         do {
           let r = row[0];
           let g = row[1];
@@ -63,8 +63,8 @@ opposite hue instead.
       }
     }
 
-    export let hslToSrgb(hsl: Matrix): Matrix {
-      hsl.mapRows { row, builder =>
+    let hslToSrgb(hsl: Matrix): Matrix {
+      mapRows(hsl) { row, builder =>
         do {
           let twelfths = row[0] * 12.0;
           let s = row[1];
@@ -81,8 +81,8 @@ opposite hue instead.
 
 ## HSV
 
-    export let srgbToHsv(rgb: Matrix): Matrix {
-      rgb.mapRows { row, builder =>
+    let srgbToHsv(rgb: Matrix): Matrix {
+      mapRows(rgb) { row, builder =>
         do {
           let r = row[0];
           let g = row[1];
@@ -98,8 +98,8 @@ opposite hue instead.
       }
     }
 
-    export let hsvToSrgb(hsv: Matrix): Matrix {
-      hsv.mapRows { row, builder =>
+    let hsvToSrgb(hsv: Matrix): Matrix {
+      mapRows(hsv) { row, builder =>
         do {
           let sixths = row[0] * 6.0;
           let s = row[1];
@@ -119,8 +119,8 @@ Whiteness and blackness relate to HSV as `w = (1 - s) * v` and `b = 1 - v`.
 When whiteness and blackness add up to 1 or more, CSS scales them down, which
 gives a gray.
 
-    export let hsvToHwb(hsv: Matrix): Matrix {
-      hsv.mapRows { row, builder =>
+    let hsvToHwb(hsv: Matrix): Matrix {
+      mapRows(hsv) { row, builder =>
         do {
           let s = row[1];
           let v = row[2];
@@ -131,8 +131,8 @@ gives a gray.
       }
     }
 
-    export let hwbToHsv(hwb: Matrix): Matrix {
-      hwb.mapRows { row, builder =>
+    let hwbToHsv(hwb: Matrix): Matrix {
+      mapRows(hwb) { row, builder =>
         do {
           let w = row[1];
           let b = row[2];
@@ -154,14 +154,14 @@ gives a gray.
 Expected values follow the CSS Color 4 examples, with hue in turns.
 
     test("hsl conversions") { test =>
-      let rgb = Color.from(Space.srgb, [
+      let rgb = Color.fromList(Space.srgb, [
         1.0, 0.0, 0.0,
         0.0, 1.0, 0.0,
         0.0, 0.0, 0.5,
         1.0, 0.5, 0.0,
         0.5, 0.5, 0.5,
       ]);
-      let hsl = Color.from(Space.hsl, [
+      let hsl = Color.fromList(Space.hsl, [
         0.0, 1.0, 0.5,
         1.0 / 3.0, 1.0, 0.5,
         2.0 / 3.0, 1.0, 0.25,
@@ -176,20 +176,20 @@ Out-of-range input can give negative saturation, which flips to the opposite
 hue, and still round trips.
 
     test("hsl out of range") { test =>
-      let rgb = Color.from(Space.srgb, [1.5, 1.2, 1.1]);
-      let hsl = Color.from(Space.hsl, [13.0 / 24.0, 2.0 / 3.0, 1.3]);
+      let rgb = Color.fromList(Space.srgb, [1.5, 1.2, 1.1]);
+      let hsl = Color.fromList(Space.hsl, [13.0 / 24.0, 2.0 / 3.0, 1.3]);
       assertConvertColors(test, rgb, hsl);
       assertConvertColors(test, hsl, rgb);
     }
 
     test("hsv conversions") { test =>
-      let rgb = Color.from(Space.srgb, [
+      let rgb = Color.fromList(Space.srgb, [
         1.0, 0.0, 0.0,
         1.0, 0.5, 0.0,
         0.25, 0.5, 0.5,
         0.0, 0.0, 0.0,
       ]);
-      let hsv = Color.from(Space.hsv, [
+      let hsv = Color.fromList(Space.hsv, [
         0.0, 1.0, 1.0,
         1.0 / 12.0, 1.0, 1.0,
         0.5, 0.5, 0.5,
@@ -200,12 +200,12 @@ hue, and still round trips.
     }
 
     test("hwb conversions") { test =>
-      let hwb = Color.from(Space.hwb, [
+      let hwb = Color.fromList(Space.hwb, [
         0.0, 0.0, 0.0,
         1.0 / 3.0, 0.2, 0.2,
         0.0, 0.6, 0.6,
       ]);
-      let rgb = Color.from(Space.srgb, [
+      let rgb = Color.fromList(Space.srgb, [
         1.0, 0.0, 0.0,
         0.2, 0.8, 0.2,
         0.5, 0.5, 0.5,
