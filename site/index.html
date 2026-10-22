@@ -29,6 +29,7 @@
       <nav>
         <a href="#try">Try it</a>
         <a href="#spaces">Color spaces</a>
+        <a href="#play">Play</a>
         <a href="#code">Code</a>
         <a href="#made">How it's made</a>
       </nav>
@@ -93,6 +94,19 @@
         </table>
       </div>
       <p class="note" id="contrast"></p>
+    </section>
+
+    <section id="play">
+      <h2>Play with the API</h2>
+      <p>
+        Edit and run JavaScript using Prismora's <code>Color</code>,
+        <code>Space</code>, <code>HueMethod</code> and <code>Matrix</code>.
+        Hex colors in the output get a swatch. Ctrl+Enter runs it too.
+      </p>
+      <label for="play-code" class="visually-hidden">JavaScript</label>
+      <textarea id="play-code" rows="12" spellcheck="false"></textarea>
+      <p><button type="button" id="play-run" class="primary">Run</button></p>
+      <pre id="play-output" class="output" aria-live="polite"></pre>
     </section>
 
     <section id="code">

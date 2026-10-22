@@ -84,15 +84,83 @@ function showColor(text) {
     `WCAG asks for at least 4.5:1 for body text.`;
 }
 
+// The color lives in the URL too, so any color is a shareable link.
 const input = $("color-input");
-input.addEventListener("input", () => showColor(input.value));
+function update() {
+  showColor(input.value);
+  history.replaceState(null, "", `#color=${encodeURIComponent(input.value)}`);
+}
+input.addEventListener("input", update);
 for (const button of document.querySelectorAll(".examples button")) {
   button.addEventListener("click", () => {
     input.value = button.textContent;
-    showColor(input.value);
+    update();
   });
 }
+const shared = new URLSearchParams(location.hash.slice(1)).get("color");
+if (shared) input.value = shared;
 showColor(input.value);
+
+// Playground: runs the visitor's own code in their browser, as a module
+// that imports Prismora, with console.log sent to the page.
+
+const PLAY_START = `// Parse any CSS color.
+const brand = Color.parse("oklch(60% 0.15 250)");
+console.log("brand", brand.toHex()[0]);
+
+// Five shades, evenly spaced in OkLCh lightness, from dark to light.
+const ends = Color.fromList(Space.oklch, [0.3, 0.12, 0.69, 0.9, 0.05, 0.69]);
+console.log(ends.gradient(5, Space.oklch).toHex().join(" "));
+
+// Is white text readable on it? WCAG wants 4.5 or more.
+console.log("contrast", brand.contrast(Color.parse("white"))[0].toFixed(2));
+`;
+
+const playCode = $("play-code");
+const playOutput = $("play-output");
+playCode.value = PLAY_START;
+
+function showOutput(text, isError = false) {
+  const line = document.createElement("div");
+  if (isError) line.className = "error";
+  // A swatch before each hex color.
+  for (const part of text.split(/(#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?\b)/)) {
+    if (/^#[0-9a-fA-F]{6}/.test(part)) {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.style.background = part;
+      line.append(chip);
+    }
+    line.append(part);
+  }
+  playOutput.append(line);
+}
+
+async function runPlay() {
+  playOutput.replaceChildren();
+  const log = (...args) => showOutput(args.map(String).join(" "));
+  const source =
+    `import { Color, HueMethod, Matrix, Space } from "prismora";\n` +
+    `export default async function (console) {\n${playCode.value}\n}\n`;
+  const url = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+  try {
+    const module = await import(url);
+    await module.default({ log, error: log, warn: log, info: log });
+  } catch (error) {
+    showOutput(String(error), true);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+$("play-run").addEventListener("click", runPlay);
+playCode.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+    event.preventDefault();
+    runPlay();
+  }
+});
+runPlay();
 
 // Code tabs: each language's tour, with a small highlighter.
 
