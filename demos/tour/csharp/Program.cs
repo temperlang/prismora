@@ -1,13 +1,13 @@
-// A tour of Prismora's whole public API, from C#.
+// A tour of Chromarite's whole public API, from C#.
 //
-// The same tour exists for each language Prismora supports, and they all
+// The same tour exists for each language Chromarite supports, and they all
 // print the same text. See ../README.md for how to run them.
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Prismora;
+using Chromarite;
 
 // Numbers print with 4 decimals, the same way in every language.
 static string Num(double x)
@@ -44,7 +44,7 @@ static void Section(string title)
     Console.WriteLine($"## {title}");
 }
 
-Console.WriteLine("# Prismora tour");
+Console.WriteLine("# Chromarite tour");
 
 Section("1. Making colors");
 

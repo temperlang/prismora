@@ -1,32 +1,32 @@
 // @ts-check
 
-// <prismora-picker>: a color picker any page can use.
+// <chromarite-picker>: a color picker any page can use.
 //
-//     <prismora-picker value="oklch(70% 0.2 30)"></prismora-picker>
+//     <chromarite-picker value="oklch(70% 0.2 30)"></chromarite-picker>
 //
 // Its `value` is any CSS color, as an attribute or property; it fires
 // `input` while the color changes and `change` when a change is done, and
-// its `color` property is the Prismora Color. It fits its width, and takes
+// its `color` property is the Chromarite Color. It fits its width, and takes
 // --text, --muted, --border, --surface, --bg and --accent from the page.
 // Parts, for styling or pointing at: plane, swatch, status, snap, readout
 // and text.
 //
 // It shows an OkLCh plane for one hue at a time, lightness up and chroma
 // across, with the edges of the sRGB, Display P3 and Rec. 2020 gamuts drawn
-// on it. Prismora computes everything shown: each pixel, in one bulk
+// on it. Chromarite computes everything shown: each pixel, in one bulk
 // conversion, the gamut edges, with `maxChroma`, and the chosen color's
 // swatches, slider gradients, numbers and status.
 
-import { Color, Space } from "prismora";
+import { Color, Space } from "chromarite";
 
 /**
- * A gamut drawn on the plane: its Prismora space, a key for styles, a label,
+ * A gamut drawn on the plane: its Chromarite space, a key for styles, a label,
  * and the lightness where the label goes.
  * @typedef {{ space: Space, key: string, label: string, at: number }} Gamut
  */
 
 /**
- * A color in OkLCh as the picker holds it: lightness and chroma as Prismora
+ * A color in OkLCh as the picker holds it: lightness and chroma as Chromarite
  * has them, and hue in degrees.
  * @typedef {{ L: number, C: number, H: number }} Lch
  */
@@ -98,7 +98,7 @@ const STATUS = [
 const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
 
 /**
- * The most chroma that fits each gamut, for each row of lightness: Prismora's
+ * The most chroma that fits each gamut, for each row of lightness: Chromarite's
  * maxChroma, capped at the plane's edge.
  *
  * @param {number} hueDegrees
@@ -337,12 +337,12 @@ const TEMPLATE = `
 `;
 
 /**
- * The `<prismora-picker>` element. Set `value` (attribute or property) to any
+ * The `<chromarite-picker>` element. Set `value` (attribute or property) to any
  * CSS color; read `value` and `color`. Fires `input` while the color changes
  * and `change` when a change is done. Takes --text, --muted, --border,
  * --surface, --bg and --accent from the page.
  */
-class PrismoraPicker extends HTMLElement {
+class ChromaritePicker extends HTMLElement {
   static observedAttributes = ["value"];
 
   /** @type {Lch} */
@@ -395,7 +395,7 @@ class PrismoraPicker extends HTMLElement {
   }
 
   /**
-   * The chosen color as a Prismora `Color`, in OkLCh.
+   * The chosen color as a Chromarite `Color`, in OkLCh.
    *
    * @returns {Color | null}
    */
@@ -429,7 +429,7 @@ class PrismoraPicker extends HTMLElement {
 
   /**
    * The plane: each pixel converted from OkLCh to the screen's space in one
-   * bulk Prismora call, on a small grid scaled up smoothly, since the plane
+   * bulk Chromarite call, on a small grid scaled up smoothly, since the plane
    * is all gradients. Then, at full resolution, the gamut edges cut it
    * sharply: colors the screen can't show are faded, and colors past
    * Rec. 2020 are left out.
@@ -469,7 +469,7 @@ class PrismoraPicker extends HTMLElement {
     out.imageSmoothingQuality = "high";
     out.drawImage(off, 0, 0, width, width);
 
-    // The cut, per screen pixel, against Prismora's gamut edges, with a
+    // The cut, per screen pixel, against Chromarite's gamut edges, with a
     // one-pixel ramp for smooth edges.
     const full = out.getImageData(0, 0, width, width, space);
     const screenEdge = this.#wide ? this.#edges.p3 : this.#edges.srgb;
@@ -728,7 +728,7 @@ class PrismoraPicker extends HTMLElement {
     text.addEventListener("change", () => this.#changed());
 
     // Snapping keeps lightness and hue exactly and lowers chroma to the most
-    // that fits: Prismora's fitChroma.
+    // that fits: Chromarite's fitChroma.
     /** @type {[string, Space][]} */
     const snaps = [["snap-srgb", Space.srgb], ["snap-p3", Space.displayP3]];
     for (const [id, space] of snaps) {
@@ -748,4 +748,4 @@ class PrismoraPicker extends HTMLElement {
   }
 }
 
-customElements.define("prismora-picker", PrismoraPicker);
+customElements.define("chromarite-picker", ChromaritePicker);

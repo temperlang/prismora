@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prismora: color math for every language</title>
+  <title>Chromarite: color math for every language</title>
   <meta name="description" content="Convert, parse, gamut-map and mix colors the way CSS Color 4 and 5 do, from C++, C#, Java, JavaScript, Lua, Python or Rust.">
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
     {
       "imports": {
-        "prismora": "./lib/prismora.js"
+        "chromarite": "./lib/chromarite.js"
       }
     }
   </script>
@@ -18,10 +18,10 @@
 <body>
   <header class="hero">
     <div class="wrap">
-      <h1>Prismora</h1>
+      <h1>Chromarite</h1>
       <p class="lead">
         Explore color the way screens and eyes see it. Pick any color, see
-        which screens can show it, and get it in every color space. Prismora
+        which screens can show it, and get it in every color space. Chromarite
         is also a library that does this color math from C++, C#, Java,
         JavaScript, Lua, Python, or Rust.
       </p>
@@ -48,13 +48,13 @@
         </p>
       </div>
       <div id="panel-pick" role="tabpanel" aria-labelledby="tab-pick">
-        <prismora-picker id="picker"></prismora-picker>
+        <chromarite-picker id="picker"></chromarite-picker>
       </div>
       <div id="panel-palette" role="tabpanel" aria-labelledby="tab-palette" hidden>
-        <prismora-palette id="palette">
+        <chromarite-palette id="palette">
           <button type="button" id="theme-page" class="link-button" slot="actions" aria-pressed="false">Theme this page</button>
           <button type="button" id="copy-theme" class="link-button" slot="actions" hidden>Copy theme as CSS</button>
-        </prismora-palette>
+        </chromarite-palette>
       </div>
       <div class="pick-notes">
         <p class="plane-note" id="pick-note">
@@ -79,7 +79,7 @@
       <h2>The same color in every space</h2>
       <p>
         A <dfn>color space</dfn> is a way to describe colors with numbers.
-        Each one suits a different job. Prismora's numbers run from 0 to 1,
+        Each one suits a different job. Chromarite's numbers run from 0 to 1,
         with hue in turns (0 to 1) rather than degrees; the CSS column shows
         each space as CSS writes it.
       </p>
@@ -97,7 +97,7 @@
     <section id="play">
       <h2>Play with the API</h2>
       <p>
-        Edit and run JavaScript using Prismora's <code>Color</code>,
+        Edit and run JavaScript using Chromarite's <code>Color</code>,
         <code>Space</code>, <code>HueMethod</code> and <code>Matrix</code>.
         Hex colors in the output get a swatch. Ctrl+Enter runs it too.
       </p>
@@ -120,7 +120,7 @@
     <section id="code">
       <h2>Same code, seven languages</h2>
       <p>
-        This is the code you'd write to use Prismora from each language: one
+        This is the code you'd write to use Chromarite from each language: one
         tour through the whole API. Every version prints exactly the same
         text, and they all run in CI.
       </p>
@@ -138,7 +138,7 @@
     <section id="made">
       <h2>How it's made</h2>
       <p>
-        Prismora is written once, in
+        Chromarite is written once, in
         <a href="https://temperlang.dev/">Temper</a>, a language built for
         writing libraries that compile to many other languages. Temper turns
         the same source into a natural library for each one: classes and
@@ -155,10 +155,10 @@
 
   <footer class="wrap">
     <p>
-      Prismora is open source:
-      <a href="https://github.com/temperlang/prismora">github.com/temperlang/prismora</a>.
+      Chromarite is open source:
+      <a href="https://github.com/temperlang/chromarite">github.com/temperlang/chromarite</a>.
       It uses material from CSS Color 4 and web-platform-tests; see its
-      <a href="https://github.com/temperlang/prismora/blob/main/NOTICE">NOTICE</a>.
+      <a href="https://github.com/temperlang/chromarite/blob/main/NOTICE">NOTICE</a>.
     </p>
   </footer>
   <button type="button" id="dev-toggle" class="dev-toggle" aria-pressed="false">

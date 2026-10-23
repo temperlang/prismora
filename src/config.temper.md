@@ -1,6 +1,6 @@
-# Prismora
+# Chromarite
 
-Prismora is a colorspace conversion library. It works on arrays of numbers to
+Chromarite is a colorspace conversion library. It works on arrays of numbers to
 represent bulk color lists more efficiently.
 
-    export let name = "prismora";
+    export let name = "chromarite";

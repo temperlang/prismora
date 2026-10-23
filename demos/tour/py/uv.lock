@@ -3,9 +3,9 @@ revision = 3
 requires-python = ">=3.11"
 
 [[package]]
-name = "prismora"
+name = "chromarite"
 version = "0.0.1"
-source = { editable = "../../../temper.out/py/prismora" }
+source = { editable = "../../../temper.out/py/chromarite" }
 dependencies = [
     { name = "temper-core" },
     { name = "temper-std" },
@@ -18,15 +18,15 @@ requires-dist = [
 ]
 
 [[package]]
-name = "prismora-tour"
+name = "chromarite-tour"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "prismora" },
+    { name = "chromarite" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "prismora", editable = "../../../temper.out/py/prismora" }]
+requires-dist = [{ name = "chromarite", editable = "../../../temper.out/py/chromarite" }]
 
 [[package]]
 name = "temper-core"

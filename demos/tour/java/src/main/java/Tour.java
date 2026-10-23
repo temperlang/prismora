@@ -1,16 +1,16 @@
-// A tour of Prismora's whole public API, from Java.
+// A tour of Chromarite's whole public API, from Java.
 //
-// The same tour exists for each language Prismora supports, and they all
+// The same tour exists for each language Chromarite supports, and they all
 // print the same text. See ../README.md for how to run them.
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import prismora.Color;
-import prismora.HueMethod;
-import prismora.Matrix;
-import prismora.Space;
+import chromarite.Color;
+import chromarite.HueMethod;
+import chromarite.Matrix;
+import chromarite.Space;
 
 public class Tour {
     // Numbers print with 4 decimals, the same way in every language.
@@ -48,7 +48,7 @@ public class Tour {
     }
 
     public static void main(String[] args) {
-        System.out.println("# Prismora tour");
+        System.out.println("# Chromarite tour");
 
         section("1. Making colors");
 

@@ -1,5 +1,5 @@
 {
-  "//": "For editors: finds Prismora in temper.out (temper build -b js) for types. Files opt into checking with // @ts-check; not strict, since plain JS and Temper's runtime aren't written for it.",
+  "//": "For editors: finds Chromarite in temper.out (temper build -b js) for types. Files opt into checking with // @ts-check; not strict, since plain JS and Temper's runtime aren't written for it.",
   "compilerOptions": {
     "target": "es2022",
     "module": "es2022",
@@ -10,8 +10,8 @@
       "dom.iterable"
     ],
     "paths": {
-      "prismora": [
-        "../temper.out/js/prismora/index.js"
+      "chromarite": [
+        "../temper.out/js/chromarite/index.js"
       ],
       "@temperlang/core": [
         "../temper.out/js/temper-core/index.js"

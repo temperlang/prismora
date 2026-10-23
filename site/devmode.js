@@ -1,6 +1,6 @@
 // @ts-check
 
-// Dev mode: a switch that shows the Prismora code behind each part of the
+// Dev mode: a switch that shows the Chromarite code behind each part of the
 // page, in any of its languages. Badges sit over the page, and each opens a
 // card with a short snippet. It works from outside the components, finding
 // what to point at through their parts, so they stay plain components.
@@ -13,7 +13,7 @@
  * A part of the page with code behind it.
  * @typedef {{ id: string, title: string, about: string, target: () => Element | null | undefined }} Spot
  *
- * In `about`, names in backticks are Prismora's, as JavaScript spells them;
+ * In `about`, names in backticks are Chromarite's, as JavaScript spells them;
  * the card spells them as the chosen language does.
  */
 
@@ -38,49 +38,49 @@ const SPOTS = [
     id: "edges",
     title: "Where each gamut ends",
     about: "The lines on the square are gamut edges: `maxChroma` gives the most chroma a lightness and hue can have in a gamut.",
-    target: () => part("prismora-picker", "plane"),
+    target: () => part("chromarite-picker", "plane"),
   },
   {
     id: "contrast",
     title: "Readable text",
     about: "`contrast` gives WCAG's contrast ratio between colors. Body text needs 4.5 or more against its background.",
-    target: () => part("prismora-picker", "swatch"),
+    target: () => part("chromarite-picker", "swatch"),
   },
   {
     id: "gamut",
     title: "Which screens can show it",
     about: "`inGamut` says whether colors fit a space's gamut, like sRGB for every screen or Display P3 for newer ones.",
-    target: () => part("prismora-picker", "status"),
+    target: () => part("chromarite-picker", "status"),
   },
   {
     id: "snap",
     title: "Snapping into a gamut",
     about: "`toGamut` brings a color into a gamut the way CSS does. `fitChroma` keeps lightness and hue exactly, lowering only chroma.",
-    target: () => part("prismora-picker", "snap"),
+    target: () => part("chromarite-picker", "snap"),
   },
   {
     id: "format",
     title: "Writing colors out",
     about: "`toCss` writes colors as CSS, each in its own space. `toHex` fits them into sRGB first.",
-    target: () => part("prismora-picker", "readout"),
+    target: () => part("chromarite-picker", "readout"),
   },
   {
     id: "parse",
     title: "Reading any CSS color",
     about: "`Color.parse` reads any CSS color and keeps the space it was written in.",
-    target: () => part("prismora-picker", "text"),
+    target: () => part("chromarite-picker", "text"),
   },
   {
     id: "harmony",
     title: "Turning the hue",
     about: "`rotateHue` turns colors around the OkLCh hue wheel, in turns, so 0.5 is the opposite hue. Harmonies spread hues this way.",
-    target: () => part("prismora-palette", "harmonies"),
+    target: () => part("chromarite-palette", "harmonies"),
   },
   {
     id: "shades",
     title: "Lighter and darker",
     about: "`lighten` moves lightness in OkLCh, where equal steps look equal; a negative amount darkens. Each ramp steps lightness the same way.",
-    target: () => part("prismora-palette", "ramps"),
+    target: () => part("chromarite-palette", "ramps"),
   },
   {
     id: "convert",
@@ -91,7 +91,7 @@ const SPOTS = [
 ];
 
 /**
- * A Prismora name, like `Color.parse` or `toGamut`, as `file`'s language
+ * A Chromarite name, like `Color.parse` or `toGamut`, as `file`'s language
  * spells it: snake_case in Python and Rust, PascalCase in C#, and `::`
  * after a type in C++ and Rust.
  *

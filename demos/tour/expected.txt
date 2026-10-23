@@ -1,4 +1,4 @@
-# Prismora tour
+# Chromarite tour
 
 ## 1. Making colors
 orange (srgb, 1 x 3):

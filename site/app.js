@@ -1,7 +1,7 @@
 // The page's behavior: the color converter, the code tabs, and library
-// sizes. Prismora comes from Temper's JS output through the import map.
+// sizes. Chromarite comes from Temper's JS output through the import map.
 
-import { Color, HueMethod, Matrix, Space } from "prismora";
+import { Color, HueMethod, Matrix, Space } from "chromarite";
 import { initDevMode } from "./devmode.js";
 import "./palette.js";
 import "./picker.js";
@@ -303,7 +303,7 @@ function showOutput(text, isError = false) {
   playOutput.append(line);
 }
 
-// Runs code as the body of an async function, given Prismora's classes and
+// Runs code as the body of an async function, given Chromarite's classes and
 // a console that writes to `log`. Visitors run their own code in their own
 // browser; the page shares nothing with it but these.
 const AsyncFunction = (async () => {}).constructor;
@@ -443,7 +443,7 @@ async function runRustTour() {
 
 async function runJsTour() {
   // The tour's import line names what runCode passes in.
-  const code = sources.get("js").replace(/^import .* from "prismora";$/m, "");
+  const code = sources.get("js").replace(/^import .* from "chromarite";$/m, "");
   const lines = [];
   await runCode(code, (...args) => lines.push(args.map(String).join(" ")));
   return lines.map((line) => line + "\n").join("");

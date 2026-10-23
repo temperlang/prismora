@@ -15,7 +15,7 @@ The public API is on `Color` (`toGamut`, `inGamut` and `deltaEOk`) and
 
 The RGB space whose unit cube bounds a space, or null if the space has no
 gamut limits, as for XYZ, Lab and Oklab. HSL, HSV and HWB share sRGB's gamut.
-Spaces defined outside Prismora count as unbounded.
+Spaces defined outside Chromarite count as unbounded.
 
     let gamutOf(space: Space): Space? {
       when (space) {

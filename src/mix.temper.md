@@ -61,7 +61,7 @@ Which channel holds hue, or -1 for spaces without one.
 
 Whether hue has no effect on a row, because it's gray, and which channel
 measures how colorful it is, or -1 for HWB, where whiteness and blackness
-together decide. Thresholds are CSS's, scaled to Prismora's 0 to 1 channels.
+together decide. Thresholds are CSS's, scaled to Chromarite's 0 to 1 channels.
 HSV isn't in CSS, so it follows HSL.
 
     let hueIsPowerless(space: Space, row: Listed<Float64>): Boolean throws Bubble {
@@ -140,7 +140,7 @@ Builds blended rows one at a time, following CSS's steps:
 
 1. A gray's hue has no effect, so it takes the other color's hue, and its
    tiny colorfulness becomes 0. If both are gray, hue is 0, as elsewhere in
-   Prismora.
+   Chromarite.
 2. Hues are adjusted for the chosen path around the wheel.
 3. Channels other than hue are premultiplied by alpha, so that fading toward
    transparent doesn't drift toward the transparent color's channels.

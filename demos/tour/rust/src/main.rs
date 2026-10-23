@@ -1,9 +1,9 @@
-//! A tour of Prismora's whole public API, from Rust.
+//! A tour of Chromarite's whole public API, from Rust.
 //!
-//! The same tour exists for each language Prismora supports, and they all
+//! The same tour exists for each language Chromarite supports, and they all
 //! print the same text. See ../README.md for how to run them.
 
-use prismora::{Color, HueMethod, Matrix, Space};
+use chromarite::{Color, HueMethod, Matrix, Space};
 use std::sync::Arc;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -49,10 +49,10 @@ fn section(title: &str) {
 }
 
 fn main() -> Result<()> {
-    // Sets up Prismora's constants. Call it once before anything else.
-    prismora::init(None)?;
+    // Sets up Chromarite's constants. Call it once before anything else.
+    chromarite::init(None)?;
 
-    println!("# Prismora tour");
+    println!("# Chromarite tour");
 
     section("1. Making colors");
 

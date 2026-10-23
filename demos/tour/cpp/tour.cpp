@@ -1,6 +1,6 @@
-// A tour of Prismora's whole public API, from C++.
+// A tour of Chromarite's whole public API, from C++.
 //
-// The same tour exists for each language Prismora supports, and they all
+// The same tour exists for each language Chromarite supports, and they all
 // print the same text. See ../README.md for how to run them.
 
 #include <cmath>
@@ -11,14 +11,14 @@
 #include <string>
 #include <vector>
 
-#include "prismora/init.hpp"
+#include "chromarite/init.hpp"
 
-using prismora::Color;
-using prismora::HueMethod;
-using prismora::Matrix;
-using prismora::Space;
+using chromarite::Color;
+using chromarite::HueMethod;
+using chromarite::Matrix;
+using chromarite::Space;
 
-// Prismora takes lists as shared vectors.
+// Chromarite takes lists as shared vectors.
 template <typename T>
 std::shared_ptr<std::vector<T>> list(std::initializer_list<T> values) {
   return std::make_shared<std::vector<T>>(values);
@@ -74,10 +74,10 @@ void show(std::string const &label, std::shared_ptr<Color> const &color) {
 void section(std::string const &title) { std::cout << "\n## " << title << "\n"; }
 
 int main() {
-  // Sets up Prismora's constants. Call it once before anything else.
-  prismora::global_init_init();
+  // Sets up Chromarite's constants. Call it once before anything else.
+  chromarite::global_init_init();
 
-  std::cout << "# Prismora tour\n";
+  std::cout << "# Chromarite tour\n";
 
   section("1. Making colors");
 

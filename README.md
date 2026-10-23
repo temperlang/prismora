@@ -1,4 +1,4 @@
-# Prismora
+# Chromarite
 
 A cross-language color transformation library, working toward the color math of
 [CSS Color 4][CssColor4] and the mixing of [CSS Color 5][CssColor5].
@@ -60,12 +60,12 @@ Planned:
 - Later: NumPy arrays for Python, CSS relative color syntax, and more color
   difference formulas
 
-Prismora uses material from CSS Color 4 and web-platform-tests. See
+Chromarite uses material from CSS Color 4 and web-platform-tests. See
 [NOTICE](NOTICE).
 
 ## Languages
 
-Being made in Temper, Prismora supports these languages automatically, and its
+Being made in Temper, Chromarite supports these languages automatically, and its
 tests run on each:
 
 - C++

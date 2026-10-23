@@ -1,1 +1,1 @@
-rootProject.name = "prismora-tour"
+rootProject.name = "chromarite-tour"

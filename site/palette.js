@@ -1,8 +1,8 @@
 // @ts-check
 
-// <prismora-palette>: palettes from one color, for any page.
+// <chromarite-palette>: palettes from one color, for any page.
 //
-//     <prismora-palette value="oklch(70% 0.2 30)"></prismora-palette>
+//     <chromarite-palette value="oklch(70% 0.2 30)"></chromarite-palette>
 //
 // Its `value` is the base color, any CSS color, as an attribute or property.
 // A harmony adds hues around an OkLCh hue wheel, all at the base's lightness
@@ -18,10 +18,10 @@
 // --text, --muted, --border, --surface, --bg and --accent from the page.
 // Parts, for styling or pointing at: harmonies and ramps.
 
-import { Color, Space } from "prismora";
+import { Color, Space } from "chromarite";
 
 /**
- * A color in OkLCh: lightness and chroma as Prismora has them, and hue in
+ * A color in OkLCh: lightness and chroma as Chromarite has them, and hue in
  * degrees.
  * @typedef {{ L: number, C: number, H: number }} Lch
  */
@@ -243,14 +243,14 @@ const TEMPLATE = `
 `;
 
 /**
- * The `<prismora-palette>` element. Set `value` (attribute or property) to any
+ * The `<chromarite-palette>` element. Set `value` (attribute or property) to any
  * CSS color for the base; read `value`. Fires `input` when the base hue is
  * dragged, and `change` when the harmony or an arm changes. `harmony` is a
  * harmony's name or custom hue offsets. `shades` are the ramps' hex codes,
  * and `shades` fires when they change. Takes --text, --muted, --border,
  * --surface, --bg and --accent from the page.
  */
-class PrismoraPalette extends HTMLElement {
+class ChromaritePalette extends HTMLElement {
   static observedAttributes = ["value"];
 
   /** @type {Lch} */
@@ -604,4 +604,4 @@ class PrismoraPalette extends HTMLElement {
   }
 }
 
-customElements.define("prismora-palette", PrismoraPalette);
+customElements.define("chromarite-palette", ChromaritePalette);
