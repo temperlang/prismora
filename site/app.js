@@ -2,6 +2,7 @@
 // sizes. Prismora comes from Temper's JS output through the import map.
 
 import { Color, HueMethod, Matrix, Space } from "prismora";
+import "./palette.js";
 import "./picker.js";
 
 // Spaces in the table, with channel names and what each is for.
@@ -92,6 +93,31 @@ picker.addEventListener("input", () => {
   startedUp = true;
 });
 picker.value = linkedColor ?? "oklch(70% 0.2 30)";
+
+// The palette starts from the picked color, and turning its base hue turns
+// the picker's. Setting the palette's value doesn't fire input, which ends
+// the loop.
+const palette = $("palette");
+picker.addEventListener("input", () => {
+  if (palette.value !== picker.value) palette.value = picker.value;
+});
+palette.addEventListener("input", () => {
+  if (picker.value !== palette.value) picker.value = palette.value;
+});
+
+// The Pick and Palette tabs; the note about the square is for Pick.
+for (const [tab, panel, other, otherPanel] of [
+  ["tab-pick", "panel-pick", "tab-palette", "panel-palette"],
+  ["tab-palette", "panel-palette", "tab-pick", "panel-pick"],
+]) {
+  $(tab).addEventListener("click", () => {
+    $(tab).setAttribute("aria-selected", "true");
+    $(other).setAttribute("aria-selected", "false");
+    $(panel).hidden = false;
+    $(otherPanel).hidden = true;
+    $("pick-note").hidden = tab !== "tab-pick";
+  });
+}
 
 // A link to the current color, for wherever the site is served.
 const copyLink = $("copy-link");
@@ -238,7 +264,7 @@ function highlight(source, comment) {
   return out + escapeHtml(source.slice(last));
 }
 
-const tabs = document.querySelector(".tabs");
+const tabs = document.querySelector("#code .tabs");
 const sources = new Map();
 
 async function selectTab(index) {

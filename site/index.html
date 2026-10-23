@@ -37,9 +37,18 @@
 
   <section id="pick" class="picker" aria-label="Color picker">
     <div class="wrap">
-      <prismora-picker id="picker"></prismora-picker>
+      <div class="tabs pick-tabs" role="tablist" aria-label="Tool">
+        <button type="button" role="tab" id="tab-pick" aria-controls="panel-pick" aria-selected="true">Pick</button>
+        <button type="button" role="tab" id="tab-palette" aria-controls="panel-palette" aria-selected="false">Palette</button>
+      </div>
+      <div id="panel-pick" role="tabpanel" aria-labelledby="tab-pick">
+        <prismora-picker id="picker"></prismora-picker>
+      </div>
+      <div id="panel-palette" role="tabpanel" aria-labelledby="tab-palette" hidden>
+        <prismora-palette id="palette"></prismora-palette>
+      </div>
       <div class="pick-notes">
-        <p class="plane-note">
+        <p class="plane-note" id="pick-note">
           The square shows every lightness and chroma for one hue: gray at the
           left edge, more vivid to the right. Faded colors exist, but your
           screen can't show them. Drag across it, or along the rainbow to
