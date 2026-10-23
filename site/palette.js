@@ -111,6 +111,12 @@ const TEMPLATE = `
     font-size: 0.66rem; line-height: 1.2; text-align: left;
     overflow: hidden; white-space: nowrap;
   }
+  /* Too narrow for labels, as on phones: plain swatches, which still copy. */
+  .side { container-type: inline-size; }
+  @container (width < 34rem) {
+    .shade { min-height: 2.4rem; }
+    .shade span, .aa-note { display: none; }
+  }
   .shade:focus-visible { outline: 2px solid var(--accent, #5b3fd1); outline-offset: 2px; }
   .steps { display: grid; grid-template-columns: 3rem repeat(${STEPS.length}, minmax(0, 1fr)); gap: 0.3rem; font-size: 0.72rem; color: var(--muted, #5b5b6b); }
   .exports { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 1rem; }
@@ -126,14 +132,15 @@ const TEMPLATE = `
     </div>
     <p class="hint">Drag the big dot to turn the base hue, or the others for your own harmony.</p>
   </div>
-  <div>
+  <div class="side">
     <ul id="harmonies" class="harmonies" aria-label="Harmony"></ul>
     <div class="steps" aria-hidden="true"><span></span>${STEPS.map((s) => `<span>${s}</span>`).join("")}</div>
     <div id="ramps"></div>
     <p class="note">
       Each shade keeps its hue and is as colorful as the base allows, within
-      sRGB so every screen shows it. "Aa" shows readable text on it, with the
-      contrast ratio; WCAG asks for 4.5 for body text.
+      sRGB so every screen shows it. <span class="aa-note">"Aa" shows readable
+      text on it, with the contrast ratio; WCAG asks for 4.5 for body
+      text.</span>
     </p>
     <div class="exports">
       <button type="button" id="copy-css">Copy as CSS variables</button>
