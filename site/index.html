@@ -20,13 +20,13 @@
     <div class="wrap">
       <h1>Prismora</h1>
       <p class="lead">
-        Color math for every language. Convert between color spaces, parse
-        any CSS color, fit colors to a screen's gamut, and mix them the way
-        CSS Color 4 and 5 do, from C++, C#, Java, JavaScript, Lua, Python or
-        Rust.
+        Explore color the way screens and eyes see it. Pick any color, see
+        which screens can show it, and get it in every color space. Prismora
+        is also a library that does this color math from C++, C#, Java,
+        JavaScript, Lua, Python, or Rust.
       </p>
       <nav>
-        <a href="#try">Try it</a>
+        <a href="#pick">Pick</a>
         <a href="#spaces">Color spaces</a>
         <a href="#play">Play</a>
         <a href="#code">Code</a>
@@ -35,47 +35,25 @@
     </div>
   </header>
 
-  <main class="wrap">
-    <section id="try">
-      <h2>Try it</h2>
-      <p>
-        Type any CSS color: a name, hex, <code>rgb()</code>,
-        <code>hsl()</code>, <code>oklch()</code>, <code>color(display-p3 …)</code>
-        and more.
+  <section id="pick" class="picker" aria-label="Color picker">
+    <div class="wrap">
+      <prismora-picker id="picker"></prismora-picker>
+      <p class="plane-note">
+        The square shows every lightness and chroma for one hue: gray at the
+        left edge, more vivid to the right. Faded colors exist, but your
+        screen can't show them. Drag across it, or along the rainbow to
+        change the hue.
       </p>
-      <div class="try">
-        <div class="entry">
-          <label for="color-input">Color</label>
-          <input id="color-input" type="text" value="oklch(70% 0.2 30)"
-                 spellcheck="false" autocomplete="off" aria-describedby="color-status">
-          <div class="examples" aria-label="Examples">
-            <button type="button">rebeccapurple</button>
-            <button type="button">#36c8</button>
-            <button type="button">hsl(200 80% 45%)</button>
-            <button type="button">color(display-p3 1 0 0)</button>
-            <button type="button">lab(60% 70 -20)</button>
-          </div>
-          <p id="color-status" class="status" role="status"></p>
-        </div>
-        <div class="swatches">
-          <figure>
-            <div id="swatch-color" class="swatch"></div>
-            <figcaption>As written</figcaption>
-          </figure>
-          <figure id="mapped-figure" hidden>
-            <div id="swatch-mapped" class="swatch"></div>
-            <figcaption>Closest in sRGB</figcaption>
-          </figure>
-        </div>
+      <div class="examples" aria-label="Examples">
+        <button type="button">rebeccapurple</button>
+        <button type="button">color(display-p3 0 1 0.6)</button>
+        <button type="button">oklch(85% 0.2 140)</button>
+        <button type="button">#e8a</button>
       </div>
-      <p id="gamut-note" class="note" hidden>
-        This color is outside sRGB, the range most screens and the web assume.
-        On a wide-gamut screen, the first swatch shows it as written. The
-        second shows the closest sRGB color, found the way CSS does: keeping
-        lightness and hue, and reducing only chroma (colorfulness).
-      </p>
-    </section>
+    </div>
+  </section>
 
+  <main class="wrap">
     <section id="spaces">
       <h2>The same color in every space</h2>
       <p>

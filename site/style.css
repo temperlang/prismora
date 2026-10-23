@@ -97,34 +97,6 @@ h2 {
   gap: 0.5rem 1.5rem;
 }
 
-.try {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.entry label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.entry input {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  font-size: 1.1rem;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.entry input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
 .examples {
   display: flex;
   flex-wrap: wrap;
@@ -480,13 +452,17 @@ footer {
   font-size: 0.9rem;
 }
 
-@media (max-width: 40rem) {
-  .try {
-    grid-template-columns: 1fr;
-  }
+/* The picker's band, the hero of the page, takes a soft wash of the chosen
+   hue, set from Prismora. The picker styles itself. */
+.picker {
+  --wash: var(--bg);
+  background: var(--wash);
+  border-bottom: 1px solid var(--border);
+  padding: 2rem 0 2.5rem;
+}
 
-  .swatch {
-    width: 6rem;
-    height: 6rem;
-  }
+.plane-note {
+  max-width: 44rem;
+  color: var(--muted);
+  font-size: 0.95rem;
 }

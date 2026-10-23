@@ -2,6 +2,7 @@
 // sizes. Prismora comes from Temper's JS output through the import map.
 
 import { Color, HueMethod, Matrix, Space } from "prismora";
+import "./picker.js";
 
 // Spaces in the table, with channel names and what each is for.
 const SPACES = [
@@ -29,31 +30,8 @@ function fmt(x) {
   return v.toFixed(Math.abs(v) >= 10 ? 2 : 4);
 }
 
-function setSwatch(element, css) {
-  element.style.setProperty("--swatch", css);
-}
-
-function showColor(text) {
-  const status = $("color-status");
-  let color;
-  try {
-    color = Color.parse(text.trim());
-  } catch {
-    status.textContent = "Not a color Prismora can read yet.";
-    status.classList.add("error");
-    return;
-  }
-  status.classList.remove("error");
-  status.textContent = `Hex: ${color.toHex()[0]}`;
-
-  // The browser draws the color as written; if it can't, the hex will do.
-  const asWritten = CSS.supports("color", text) ? text : color.toCss()[0];
-  setSwatch($("swatch-color"), asWritten);
-  const inSrgb = color.inGamut(Space.srgb)[0];
-  $("mapped-figure").hidden = inSrgb;
-  $("gamut-note").hidden = inSrgb;
-  setSwatch($("swatch-mapped"), color.toHex()[0]);
-
+// The table of spaces and the contrast note, for the picked color.
+function showDetails(color) {
   const rows = SPACES.map(([space, channels, about]) => {
     const converted = color.convert(space);
     const values = converted.rows.toList().map(fmt);
@@ -94,22 +72,22 @@ function showColor(text) {
     `WCAG asks for at least 4.5:1 for body text.`;
 }
 
-// The color lives in the URL too, so any color is a shareable link.
-const input = $("color-input");
-function update() {
-  showColor(input.value);
-  history.replaceState(null, "", `#color=${encodeURIComponent(input.value)}`);
-}
-input.addEventListener("input", update);
+// The picker drives the details below it, a wash of its hue behind it, and
+// the URL, so any color is a shareable link.
+const picker = $("picker");
+picker.addEventListener("input", () => {
+  const color = picker.color;
+  showDetails(color);
+  const [L, C, turns] = color.convert(Space.oklch).rows.toList();
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const wash = Color.fromList(Space.oklch, [dark ? 0.2 : 0.965, Math.min(C, dark ? 0.03 : 0.025), turns]);
+  $("pick").style.setProperty("--wash", wash.toHex()[0]);
+  history.replaceState(null, "", `#color=${encodeURIComponent(picker.value)}`);
+});
+picker.value = new URLSearchParams(location.hash.slice(1)).get("color") ?? "oklch(70% 0.2 30)";
 for (const button of document.querySelectorAll(".examples button")) {
-  button.addEventListener("click", () => {
-    input.value = button.textContent;
-    update();
-  });
+  button.addEventListener("click", () => (picker.value = button.textContent));
 }
-const shared = new URLSearchParams(location.hash.slice(1)).get("color");
-if (shared) input.value = shared;
-showColor(input.value);
 
 // Playground: runs the visitor's own code in their browser, with
 // console.log sent to the page.

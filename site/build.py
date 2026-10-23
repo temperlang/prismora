@@ -18,6 +18,7 @@ what the page loads.
 """
 
 import gzip
+import hashlib
 import json
 import shutil
 import subprocess
@@ -56,7 +57,7 @@ def esbuild(*args):
     # Temper's runtime declares Pair's key and value as fields and getters;
     # that's in notes for Temper, and harmless here.
     quiet = "--log-override:duplicate-class-member=silent"
-    subprocess.run([ESBUILD, "--log-level=warning", quiet, "--format=esm", "--target=es2020", "--minify", *args], check=True)
+    subprocess.run([ESBUILD, "--log-level=warning", quiet, "--format=esm", "--target=es2022", "--minify", *args], check=True)
 
 
 def main():
@@ -102,6 +103,15 @@ def main():
         sizes("The Rust tour as wasm, with Prismora compiled in", [wasm]),
     ]
     (OUT / "sizes.json").write_text(json.dumps(measured, indent=2) + "\n")
+
+    # Each reference gets its file's hash, so browsers fetch changed files
+    # instead of reusing cached ones.
+    page = OUT / "index.html"
+    html = page.read_text()
+    for ref in ["style.css", "app.js", "./lib/prismora.js"]:
+        digest = hashlib.sha256((OUT / ref).read_bytes()).hexdigest()[:10]
+        html = html.replace(f'"{ref}"', f'"{ref}?v={digest}"')
+    page.write_text(html)
     for m in measured:
         print(f"{m['name']}: {m['raw']} bytes, {m['gzip']} gzipped")
     print(f"Built {OUT.relative_to(ROOT)}")
