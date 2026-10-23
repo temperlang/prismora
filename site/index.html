@@ -37,9 +37,15 @@
 
   <section id="pick" class="picker" aria-label="Color picker">
     <div class="wrap">
-      <div class="tabs pick-tabs" role="tablist" aria-label="Tool">
-        <button type="button" role="tab" id="tab-pick" aria-controls="panel-pick" aria-selected="true">Pick</button>
-        <button type="button" role="tab" id="tab-palette" aria-controls="panel-palette" aria-selected="false">Palette</button>
+      <div class="pick-bar">
+        <div class="tabs pick-tabs" role="tablist" aria-label="Tool">
+          <button type="button" role="tab" id="tab-pick" aria-controls="panel-pick" aria-selected="true">Pick</button>
+          <button type="button" role="tab" id="tab-palette" aria-controls="panel-palette" aria-selected="false">Palette</button>
+        </div>
+        <p id="palette-note" class="palette-note" hidden>
+          The wheel shows the color on Pick. Turning the wheel here turns Pick's
+          hue too.
+        </p>
       </div>
       <div id="panel-pick" role="tabpanel" aria-labelledby="tab-pick">
         <prismora-picker id="picker"></prismora-picker>
@@ -155,5 +161,8 @@
       <a href="https://github.com/temperlang/prismora/blob/main/NOTICE">NOTICE</a>.
     </p>
   </footer>
+  <button type="button" id="dev-toggle" class="dev-toggle" aria-pressed="false">
+    <span class="dev-icon" aria-hidden="true">&lt;/&gt;</span><span class="dev-label">Show the code</span>
+  </button>
 </body>
 </html>

@@ -8,6 +8,8 @@
 // `input` while the color changes and `change` when a change is done, and
 // its `color` property is the Prismora Color. It fits its width, and takes
 // --text, --muted, --border, --surface, --bg and --accent from the page.
+// Parts, for styling or pointing at: plane, swatch, status, snap, readout
+// and text.
 //
 // It shows an OkLCh plane for one hue at a time, lightness up and chroma
 // across, with the edges of the sRGB, Display P3 and Rec. 2020 gamuts drawn
@@ -276,8 +278,8 @@ const TEMPLATE = `
 <div class="grid">
   <div>
     <div class="frame">
-      <span class="axis axis-y" aria-hidden="true">Lightness ↑</span>
-      <div id="plane" class="plane" tabindex="0" role="slider"
+      <span class="axis axis-y" aria-hidden="true">Lightness →</span>
+      <div id="plane" part="plane" class="plane" tabindex="0" role="slider"
            aria-label="Lightness and chroma. Up and down change lightness; left and right change chroma.">
         <canvas id="plane-canvas"></canvas>
         <svg id="lines" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"></svg>
@@ -300,7 +302,7 @@ const TEMPLATE = `
   <div>
     <div class="swatches">
       <figure class="main">
-        <div id="swatch" class="swatch big"><span id="sample" class="sample"></span></div>
+        <div id="swatch" part="swatch" class="swatch big"><span id="sample" class="sample"></span></div>
         <figcaption id="swatch-caption">On your screen</figcaption>
       </figure>
       <figure id="srgb-figure" hidden>
@@ -309,14 +311,14 @@ const TEMPLATE = `
       </figure>
     </div>
     <div class="gamut">
-      <span id="status" class="pill"></span>
-      <div id="snap" class="snap">
+      <span id="status" part="status" class="pill"></span>
+      <div id="snap" part="snap" class="snap">
         <button type="button" id="snap-srgb">Snap into sRGB</button>
         <button type="button" id="snap-p3">Snap into Display P3</button>
       </div>
     </div>
     <p id="explain" class="explain"></p>
-    <div class="readout">
+    <div class="readout" part="readout">
       <code id="css"></code>
       <button type="button" id="copy">Copy</button>
     </div>
@@ -327,7 +329,7 @@ const TEMPLATE = `
       <label>Hue <input id="slider-h" type="range" min="0" max="359.9" step="0.1"></label>
     </div>
     <label class="type" for="text">Or type any CSS color</label>
-    <input id="text" type="text" spellcheck="false" autocomplete="off"
+    <input id="text" part="text" type="text" spellcheck="false" autocomplete="off"
            placeholder="rebeccapurple, #36c, hsl(200 80% 45%)…" aria-describedby="text-status">
     <p id="text-status" class="status" role="status"></p>
   </div>

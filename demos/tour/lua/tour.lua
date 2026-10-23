@@ -120,16 +120,19 @@ end
 
 -- The same orange in every space.
 for _, space in ipairs(spaces) do
-  print("orange in " .. space.name .. ": " .. nums(orange:convert(space).rows:toList()))
+  local converted = orange:convert(space)  -- snippet: convert
+  print("orange in " .. space.name .. ": " .. nums(converted.rows:toList()))
 end
 
 section("3. Formatting")
 
 -- Hex and ints fit colors into sRGB first; CSS keeps each color's space.
-local mixed = Color.parse("oklch(70% 0.15 200 / 50%)")
+local mixed = Color.parse("oklch(70% 0.15 200 / 50%)")  -- snippet: parse
 for _, color in ipairs({ orange, seeThrough, pair, mixed, Color.parse("color(display-p3 1 0 0)") }) do
-  print("hex " .. table.concat(color:toHex(), ", "))
-  print("css " .. table.concat(color:toCss(), ", "))
+  local hexes = color:toHex()  -- snippet: format
+  local css = color:toCss()  -- snippet: format
+  print("hex " .. table.concat(hexes, ", "))
+  print("css " .. table.concat(css, ", "))
   local ints = map(color:toRgbInts(), function(n) return string.format("%06x", n) end)
   print("ints " .. table.concat(ints, ", "))
 end
@@ -138,18 +141,17 @@ section("4. Gamuts")
 
 -- Display P3's red is redder than any sRGB color: as sRGB, it's out of the
 -- 0-to-1 range.
-local p3Red = Color.fromList(Space.displayP3, { 1.0, 0.0, 0.0 })
-print(string.format(
-  "P3 red in sRGB? %s; in P3? %s",
-  yes(p3Red:inGamut(Space.srgb)[1]), yes(p3Red:inGamut(Space.displayP3)[1])
-))
+local p3Red = Color.fromList(Space.displayP3, { 1.0, 0.0, 0.0 })  -- snippet: gamut
+local inSrgb = p3Red:inGamut(Space.srgb)  -- snippet: gamut
+local inP3 = p3Red:inGamut(Space.displayP3)  -- snippet: gamut
+print(string.format("P3 red in sRGB? %s; in P3? %s", yes(inSrgb[1]), yes(inP3[1])))
 show("P3 red as sRGB", p3Red:convert(Space.srgb))
 
 -- To show a color like this vivid blue on an sRGB screen, either map it into
 -- the gamut as CSS does, keeping lightness and hue and reducing chroma, or
 -- clip each channel, which can change lightness and hue too.
-local vivid = Color.fromList(Space.oklch, { 0.6, 0.35, 0.75 })
-local mapped = vivid:toGamut(Space.srgb)
+local vivid = Color.fromList(Space.oklch, { 0.6, 0.35, 0.75 })  -- snippet: snap, edges
+local mapped = vivid:toGamut(Space.srgb)  -- snippet: snap
 local clipped = vivid:clip(Space.srgb)
 show("vivid blue", vivid)
 show("mapped, in OkLCh", mapped:convert(Space.oklch))
@@ -161,8 +163,10 @@ print("mapped vs clipped: " .. num(mapped:deltaEOk(clipped)[1]))
 
 -- The most chroma vivid blue's lightness and hue can have in sRGB, and the
 -- color lowered to it, keeping lightness and hue exactly.
-print("max chroma in sRGB: " .. num(vivid:maxChroma(Space.srgb)[1]))
-show("fitted, in OkLCh", vivid:fitChroma(Space.srgb))
+local most = vivid:maxChroma(Space.srgb)  -- snippet: edges
+print("max chroma in sRGB: " .. num(most[1]))
+local fitted = vivid:fitChroma(Space.srgb)  -- snippet: snap
+show("fitted, in OkLCh", fitted)
 
 section("5. Mixing and gradients")
 
@@ -188,11 +192,14 @@ print("long way: " .. table.concat(stops:gradientHue(5, Space.oklch, HueMethod.l
 section("6. Adjusting")
 
 -- Adjustments happen in OkLCh, so equal steps look equal.
-local steel = Color.parse("steelblue")
+local steel = Color.parse("steelblue")  -- snippet: harmony, shades
 print("steelblue " .. steel:toHex()[1])
-print("lighter " .. steel:lighten(0.1):toHex()[1] .. ", darker " .. steel:lighten(-0.1):toHex()[1])
+local lighter = steel:lighten(0.1)  -- snippet: shades
+local darker = steel:lighten(-0.1)  -- snippet: shades
+print("lighter " .. lighter:toHex()[1] .. ", darker " .. darker:toHex()[1])
 print("more saturated " .. steel:saturate(1.5):toHex()[1] .. ", less " .. steel:saturate(0.5):toHex()[1])
-print("opposite hue " .. steel:rotateHue(0.5):toHex()[1] .. ", gray " .. steel:grayscale():toHex()[1])
+local opposite = steel:rotateHue(0.5)  -- snippet: harmony
+print("opposite hue " .. opposite:toHex()[1] .. ", gray " .. steel:grayscale():toHex()[1])
 
 -- Or change every channel value directly.
 show("orange halved", orange:map(function(x) return x / 2 end))
@@ -201,10 +208,11 @@ section("7. Contrast")
 
 -- Relative luminance and contrast ratios, as WCAG defines them. Text needs
 -- 4.5 or more against its background for normal sizes.
-local white = Color.parse("white")
-local texts = Color.fromRgbInts({ 0x000000, 0x767676, 0x999999 })
+local white = Color.parse("white")  -- snippet: contrast
+local texts = Color.fromRgbInts({ 0x000000, 0x767676, 0x999999 })  -- snippet: contrast
+local ratios = texts:contrast(white)  -- snippet: contrast
 print("luminance " .. nums(texts:luminance()))
-print("against white " .. nums(texts:contrast(white)))
+print("against white " .. nums(ratios))
 
 section("8. Matrix")
 

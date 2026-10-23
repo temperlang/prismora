@@ -117,16 +117,19 @@ public class Tour {
 
         // The same orange in every space.
         for (Space space : spaces) {
-            System.out.println("orange in " + space.getName() + ": " + nums(orange.convert(space).getRows().toList()));
+            Color converted = orange.convert(space);  // snippet: convert
+            System.out.println("orange in " + space.getName() + ": " + nums(converted.getRows().toList()));
         }
 
         section("3. Formatting");
 
         // Hex and ints fit colors into sRGB first; CSS keeps each color's space.
-        Color mixed = Color.parse("oklch(70% 0.15 200 / 50%)");
+        Color mixed = Color.parse("oklch(70% 0.15 200 / 50%)");  // snippet: parse
         for (Color color : List.of(orange, seeThrough, pair, mixed, Color.parse("color(display-p3 1 0 0)"))) {
-            System.out.println("hex " + String.join(", ", color.toHex()));
-            System.out.println("css " + String.join(", ", color.toCss()));
+            List<String> hexes = color.toHex();  // snippet: format
+            List<String> css = color.toCss();  // snippet: format
+            System.out.println("hex " + String.join(", ", hexes));
+            System.out.println("css " + String.join(", ", css));
             System.out.println("ints " + color.toRgbInts().stream()
                 .map(n -> String.format("%06x", n)).collect(Collectors.joining(", ")));
         }
@@ -135,17 +138,17 @@ public class Tour {
 
         // Display P3's red is redder than any sRGB color: as sRGB, it's out of the
         // 0-to-1 range.
-        Color p3Red = Color.fromList(Space.displayP3, List.of(1.0, 0.0, 0.0));
-        System.out.printf(
-            "P3 red in sRGB? %s; in P3? %s%n",
-            yes(p3Red.inGamut(Space.srgb).get(0)), yes(p3Red.inGamut(Space.displayP3).get(0)));
+        Color p3Red = Color.fromList(Space.displayP3, List.of(1.0, 0.0, 0.0));  // snippet: gamut
+        List<Boolean> inSrgb = p3Red.inGamut(Space.srgb);  // snippet: gamut
+        List<Boolean> inP3 = p3Red.inGamut(Space.displayP3);  // snippet: gamut
+        System.out.printf("P3 red in sRGB? %s; in P3? %s%n", yes(inSrgb.get(0)), yes(inP3.get(0)));
         show("P3 red as sRGB", p3Red.convert(Space.srgb));
 
         // To show a color like this vivid blue on an sRGB screen, either map it into
         // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
         // clip each channel, which can change lightness and hue too.
-        Color vivid = Color.fromList(Space.oklch, List.of(0.6, 0.35, 0.75));
-        Color mapped = vivid.toGamut(Space.srgb);
+        Color vivid = Color.fromList(Space.oklch, List.of(0.6, 0.35, 0.75));  // snippet: snap, edges
+        Color mapped = vivid.toGamut(Space.srgb);  // snippet: snap
         Color clipped = vivid.clip(Space.srgb);
         show("vivid blue", vivid);
         show("mapped, in OkLCh", mapped.convert(Space.oklch));
@@ -157,8 +160,10 @@ public class Tour {
 
         // The most chroma vivid blue's lightness and hue can have in sRGB, and the
         // color lowered to it, keeping lightness and hue exactly.
-        System.out.println("max chroma in sRGB: " + num(vivid.maxChroma(Space.srgb).get(0)));
-        show("fitted, in OkLCh", vivid.fitChroma(Space.srgb));
+        List<Double> most = vivid.maxChroma(Space.srgb);  // snippet: edges
+        System.out.println("max chroma in sRGB: " + num(most.get(0)));
+        Color fitted = vivid.fitChroma(Space.srgb);  // snippet: snap
+        show("fitted, in OkLCh", fitted);
 
         section("5. Mixing and gradients");
 
@@ -185,13 +190,15 @@ public class Tour {
         section("6. Adjusting");
 
         // Adjustments happen in OkLCh, so equal steps look equal.
-        Color steel = Color.parse("steelblue");
+        Color steel = Color.parse("steelblue");  // snippet: harmony, shades
         System.out.println("steelblue " + steel.toHex().get(0));
-        System.out.println("lighter " + steel.lighten(0.1).toHex().get(0) + ", darker " + steel.lighten(-0.1).toHex().get(0));
+        Color lighter = steel.lighten(0.1);  // snippet: shades
+        Color darker = steel.lighten(-0.1);  // snippet: shades
+        System.out.println("lighter " + lighter.toHex().get(0) + ", darker " + darker.toHex().get(0));
         System.out.println(
             "more saturated " + steel.saturate(1.5).toHex().get(0) + ", less " + steel.saturate(0.5).toHex().get(0));
-        System.out.println(
-            "opposite hue " + steel.rotateHue(0.5).toHex().get(0) + ", gray " + steel.grayscale().toHex().get(0));
+        Color opposite = steel.rotateHue(0.5);  // snippet: harmony
+        System.out.println("opposite hue " + opposite.toHex().get(0) + ", gray " + steel.grayscale().toHex().get(0));
 
         // Or change every channel value directly.
         show("orange halved", orange.map(x -> x / 2));
@@ -200,10 +207,11 @@ public class Tour {
 
         // Relative luminance and contrast ratios, as WCAG defines them. Text needs
         // 4.5 or more against its background for normal sizes.
-        Color white = Color.parse("white");
-        Color texts = Color.fromRgbInts(List.of(0x000000, 0x767676, 0x999999));
+        Color white = Color.parse("white");  // snippet: contrast
+        Color texts = Color.fromRgbInts(List.of(0x000000, 0x767676, 0x999999));  // snippet: contrast
+        List<Double> ratios = texts.contrast(white);  // snippet: contrast
         System.out.println("luminance " + nums(texts.luminance()));
-        System.out.println("against white " + nums(texts.contrast(white)));
+        System.out.println("against white " + nums(ratios));
 
         section("8. Matrix");
 

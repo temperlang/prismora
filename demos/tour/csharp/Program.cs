@@ -121,17 +121,20 @@ foreach (var space in spaces)
 // The same orange in every space.
 foreach (var space in spaces)
 {
-    Console.WriteLine($"orange in {space.Name}: {Nums(orange.Convert(space).Rows.ToList())}");
+    var converted = orange.Convert(space);  // snippet: convert
+    Console.WriteLine($"orange in {space.Name}: {Nums(converted.Rows.ToList())}");
 }
 
 Section("3. Formatting");
 
 // Hex and ints fit colors into sRGB first; CSS keeps each color's space.
-var mixed = Color.Parse("oklch(70% 0.15 200 / 50%)");
+var mixed = Color.Parse("oklch(70% 0.15 200 / 50%)");  // snippet: parse
 foreach (var color in new[] { orange, seeThrough, pair, mixed, Color.Parse("color(display-p3 1 0 0)") })
 {
-    Console.WriteLine($"hex {string.Join(", ", color.ToHex())}");
-    Console.WriteLine($"css {string.Join(", ", color.ToCss())}");
+    var hexes = color.ToHex();  // snippet: format
+    var css = color.ToCss();  // snippet: format
+    Console.WriteLine($"hex {string.Join(", ", hexes)}");
+    Console.WriteLine($"css {string.Join(", ", css)}");
     Console.WriteLine($"ints {string.Join(", ", color.ToRgbInts().Select(n => n.ToString("x6")))}");
 }
 
@@ -139,16 +142,17 @@ Section("4. Gamuts");
 
 // Display P3's red is redder than any sRGB color: as sRGB, it's out of the
 // 0-to-1 range.
-var p3Red = Color.FromList(Space.DisplayP3, new[] { 1.0, 0.0, 0.0 });
-Console.WriteLine(
-    $"P3 red in sRGB? {Yes(p3Red.InGamut(Space.Srgb)[0])}; in P3? {Yes(p3Red.InGamut(Space.DisplayP3)[0])}");
+var p3Red = Color.FromList(Space.DisplayP3, new[] { 1.0, 0.0, 0.0 });  // snippet: gamut
+var inSrgb = p3Red.InGamut(Space.Srgb);  // snippet: gamut
+var inP3 = p3Red.InGamut(Space.DisplayP3);  // snippet: gamut
+Console.WriteLine($"P3 red in sRGB? {Yes(inSrgb[0])}; in P3? {Yes(inP3[0])}");
 Show("P3 red as sRGB", p3Red.Convert(Space.Srgb));
 
 // To show a color like this vivid blue on an sRGB screen, either map it into
 // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
 // clip each channel, which can change lightness and hue too.
-var vivid = Color.FromList(Space.Oklch, new[] { 0.6, 0.35, 0.75 });
-var mapped = vivid.ToGamut(Space.Srgb);
+var vivid = Color.FromList(Space.Oklch, new[] { 0.6, 0.35, 0.75 });  // snippet: snap, edges
+var mapped = vivid.ToGamut(Space.Srgb);  // snippet: snap
 var clipped = vivid.Clip(Space.Srgb);
 Show("vivid blue", vivid);
 Show("mapped, in OkLCh", mapped.Convert(Space.Oklch));
@@ -160,8 +164,10 @@ Console.WriteLine($"mapped vs clipped: {Num(mapped.DeltaEOk(clipped)[0])}");
 
 // The most chroma vivid blue's lightness and hue can have in sRGB, and the
 // color lowered to it, keeping lightness and hue exactly.
-Console.WriteLine($"max chroma in sRGB: {Num(vivid.MaxChroma(Space.Srgb)[0])}");
-Show("fitted, in OkLCh", vivid.FitChroma(Space.Srgb));
+var most = vivid.MaxChroma(Space.Srgb);  // snippet: edges
+Console.WriteLine($"max chroma in sRGB: {Num(most[0])}");
+var fitted = vivid.FitChroma(Space.Srgb);  // snippet: snap
+Show("fitted, in OkLCh", fitted);
 
 Section("5. Mixing and gradients");
 
@@ -188,11 +194,14 @@ Console.WriteLine($"long way: {string.Join(" ", stops.GradientHue(5, Space.Oklch
 Section("6. Adjusting");
 
 // Adjustments happen in OkLCh, so equal steps look equal.
-var steel = Color.Parse("steelblue");
+var steel = Color.Parse("steelblue");  // snippet: harmony, shades
 Console.WriteLine($"steelblue {steel.ToHex()[0]}");
-Console.WriteLine($"lighter {steel.Lighten(0.1).ToHex()[0]}, darker {steel.Lighten(-0.1).ToHex()[0]}");
+var lighter = steel.Lighten(0.1);  // snippet: shades
+var darker = steel.Lighten(-0.1);  // snippet: shades
+Console.WriteLine($"lighter {lighter.ToHex()[0]}, darker {darker.ToHex()[0]}");
 Console.WriteLine($"more saturated {steel.Saturate(1.5).ToHex()[0]}, less {steel.Saturate(0.5).ToHex()[0]}");
-Console.WriteLine($"opposite hue {steel.RotateHue(0.5).ToHex()[0]}, gray {steel.Grayscale().ToHex()[0]}");
+var opposite = steel.RotateHue(0.5);  // snippet: harmony
+Console.WriteLine($"opposite hue {opposite.ToHex()[0]}, gray {steel.Grayscale().ToHex()[0]}");
 
 // Or change every channel value directly.
 Show("orange halved", orange.Map(x => x / 2));
@@ -201,10 +210,11 @@ Section("7. Contrast");
 
 // Relative luminance and contrast ratios, as WCAG defines them. Text needs
 // 4.5 or more against its background for normal sizes.
-var white = Color.Parse("white");
-var texts = Color.FromRgbInts(new[] { 0x000000, 0x767676, 0x999999 });
+var white = Color.Parse("white");  // snippet: contrast
+var texts = Color.FromRgbInts(new[] { 0x000000, 0x767676, 0x999999 });  // snippet: contrast
+var ratios = texts.Contrast(white);  // snippet: contrast
 Console.WriteLine($"luminance {Nums(texts.Luminance())}");
-Console.WriteLine($"against white {Nums(texts.Contrast(white))}");
+Console.WriteLine($"against white {Nums(ratios)}");
 
 Section("8. Matrix");
 

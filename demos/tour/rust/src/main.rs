@@ -124,17 +124,20 @@ fn main() -> Result<()> {
 
     // The same orange in every space.
     for space in &spaces {
-        println!("orange in {}: {}", space.name(), nums(&orange.convert(space.clone()).rows().to_list()));
+        let converted = orange.convert(space.clone());  // snippet: convert
+        println!("orange in {}: {}", space.name(), nums(&converted.rows().to_list()));
     }
 
     section("3. Formatting");
 
     // Hex and ints fit colors into sRGB first; CSS keeps each color's space.
-    let mixed = Color::parse("oklch(70% 0.15 200 / 50%)")?;
+    let mixed = Color::parse("oklch(70% 0.15 200 / 50%)")?;  // snippet: parse
     let p3 = Color::parse("color(display-p3 1 0 0)")?;
     for color in [&orange, &see_through, &pair, &mixed, &p3] {
-        println!("hex {}", join(&color.to_hex(), ", "));
-        println!("css {}", join(&color.to_css(), ", "));
+        let hexes = color.to_hex();  // snippet: format
+        let css = color.to_css();  // snippet: format
+        println!("hex {}", join(&hexes, ", "));
+        println!("css {}", join(&css, ", "));
         let ints: Vec<String> = color.to_rgb_ints().iter().map(|n| format!("{n:06x}")).collect();
         println!("ints {}", ints.join(", "));
     }
@@ -143,19 +146,17 @@ fn main() -> Result<()> {
 
     // Display P3's red is redder than any sRGB color: as sRGB, it's out of the
     // 0-to-1 range.
-    let p3_red = Color::from_list(Space::display_p3(), [1.0, 0.0, 0.0]);
-    println!(
-        "P3 red in sRGB? {}; in P3? {}",
-        yes(p3_red.in_gamut(Space::srgb())[0]),
-        yes(p3_red.in_gamut(Space::display_p3())[0]),
-    );
+    let p3_red = Color::from_list(Space::display_p3(), [1.0, 0.0, 0.0]);  // snippet: gamut
+    let in_srgb = p3_red.in_gamut(Space::srgb());  // snippet: gamut
+    let in_p3 = p3_red.in_gamut(Space::display_p3());  // snippet: gamut
+    println!("P3 red in sRGB? {}; in P3? {}", yes(in_srgb[0]), yes(in_p3[0]));
     show("P3 red as sRGB", &p3_red.convert(Space::srgb()))?;
 
     // To show a color like this vivid blue on an sRGB screen, either map it into
     // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
     // clip each channel, which can change lightness and hue too.
-    let vivid = Color::from_list(Space::oklch(), [0.6, 0.35, 0.75]);
-    let mapped = vivid.to_gamut(Space::srgb());
+    let vivid = Color::from_list(Space::oklch(), [0.6, 0.35, 0.75]);  // snippet: snap, edges
+    let mapped = vivid.to_gamut(Space::srgb());  // snippet: snap
     let clipped = vivid.clip(Space::srgb());
     show("vivid blue", &vivid)?;
     show("mapped, in OkLCh", &mapped.convert(Space::oklch()))?;
@@ -167,8 +168,10 @@ fn main() -> Result<()> {
 
     // The most chroma vivid blue's lightness and hue can have in sRGB, and the
     // color lowered to it, keeping lightness and hue exactly.
-    println!("max chroma in sRGB: {}", num(vivid.max_chroma(Space::srgb())[0]));
-    show("fitted, in OkLCh", &vivid.fit_chroma(Space::srgb()))?;
+    let most = vivid.max_chroma(Space::srgb());  // snippet: edges
+    println!("max chroma in sRGB: {}", num(most[0]));
+    let fitted = vivid.fit_chroma(Space::srgb());  // snippet: snap
+    show("fitted, in OkLCh", &fitted)?;
 
     section("5. Mixing and gradients");
 
@@ -195,11 +198,14 @@ fn main() -> Result<()> {
     section("6. Adjusting");
 
     // Adjustments happen in OkLCh, so equal steps look equal.
-    let steel = Color::parse("steelblue")?;
+    let steel = Color::parse("steelblue")?;  // snippet: harmony, shades
     println!("steelblue {}", steel.to_hex()[0]);
-    println!("lighter {}, darker {}", steel.lighten(0.1).to_hex()[0], steel.lighten(-0.1).to_hex()[0]);
+    let lighter = steel.lighten(0.1);  // snippet: shades
+    let darker = steel.lighten(-0.1);  // snippet: shades
+    println!("lighter {}, darker {}", lighter.to_hex()[0], darker.to_hex()[0]);
     println!("more saturated {}, less {}", steel.saturate(1.5).to_hex()[0], steel.saturate(0.5).to_hex()[0]);
-    println!("opposite hue {}, gray {}", steel.rotate_hue(0.5).to_hex()[0], steel.grayscale().to_hex()[0]);
+    let opposite = steel.rotate_hue(0.5);  // snippet: harmony
+    println!("opposite hue {}, gray {}", opposite.to_hex()[0], steel.grayscale().to_hex()[0]);
 
     // Or change every channel value directly.
     show("orange halved", &orange.map(Arc::new(|x| x / 2.0)))?;
@@ -208,10 +214,11 @@ fn main() -> Result<()> {
 
     // Relative luminance and contrast ratios, as WCAG defines them. Text needs
     // 4.5 or more against its background for normal sizes.
-    let white = Color::parse("white")?;
-    let texts = Color::from_rgb_ints([0x000000, 0x767676, 0x999999]);
+    let white = Color::parse("white")?;  // snippet: contrast
+    let texts = Color::from_rgb_ints([0x000000, 0x767676, 0x999999]);  // snippet: contrast
+    let ratios = texts.contrast(white);  // snippet: contrast
     println!("luminance {}", nums(&texts.luminance()));
-    println!("against white {}", nums(&texts.contrast(white)));
+    println!("against white {}", nums(&ratios));
 
     section("8. Matrix");
 

@@ -2,6 +2,7 @@ bin/
 build/
 node_modules/
 obj/
+__pycache__/
 target/
 temper.keep/
 temper.out/

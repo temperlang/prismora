@@ -2,6 +2,7 @@
 // sizes. Prismora comes from Temper's JS output through the import map.
 
 import { Color, HueMethod, Matrix, Space } from "prismora";
+import { initDevMode } from "./devmode.js";
 import "./palette.js";
 import "./picker.js";
 
@@ -223,6 +224,7 @@ for (const [tab, panel, other, otherPanel] of [
     $(otherPanel).hidden = true;
     const pick = tab === "tab-pick";
     $("pick-note").hidden = !pick;
+    $("palette-note").hidden = pick;
     /** @type {HTMLElement} */ (document.querySelector(".examples")).hidden = !pick;
     copyLink.slot = pick ? "" : "actions";
     (pick ? pickNotes : palette).append(copyLink);
@@ -387,6 +389,8 @@ function highlight(source, comment) {
 
 const tabs = document.querySelector("#code .tabs");
 const sources = new Map();
+// Dev mode follows the chosen language; set up below.
+let devMode = null;
 
 async function selectTab(index) {
   const [, file, run, comment] = LANGUAGES[index];
@@ -402,6 +406,7 @@ async function selectTab(index) {
   }
   $("source").innerHTML = highlight(sources.get(file), comment);
   selectedTour = file;
+  devMode?.setLanguage(file);
   $("tour-run").disabled = !(file in TOUR_RUNNERS);
   $("tour-output").hidden = true;
   $("tour-run-note").textContent = RUN_NOTES[file] ?? "Only JavaScript and Rust run in this page; run this one locally with the command above.";
@@ -496,6 +501,19 @@ fetch("sizes.json", { cache: "no-cache" })
     $("sizes").innerHTML = items.join("");
   })
   .catch(() => {});
+
+// Dev mode shows the code behind each part of the page, in the code tabs'
+// language, and can open the full tour.
+devMode = initDevMode({
+  toggle: $("dev-toggle"),
+  languages: LANGUAGES.map(([name, file, , comment]) => ({ name, file, comment })),
+  language: DEFAULT_LANGUAGE,
+  highlight,
+  showTour: (file) => {
+    selectTab(LANGUAGES.findIndex(([, f]) => f === file));
+    $("code").scrollIntoView({ behavior: "smooth" });
+  },
+});
 
 // Start up, once everything above is defined.
 selectTab(LANGUAGES.findIndex(([, file]) => file === DEFAULT_LANGUAGE));

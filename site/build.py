@@ -16,11 +16,18 @@ import it too. Compiles the Rust tour to
 wasm, so the page can run it, and builds the tours' expected output into the
 page's script. Copies the page and each language's tour source, and measures
 what the page loads.
+
+Lines in the tours ending in a comment like `# snippet: snap, edges` are
+snippets for the page's dev mode: each snippet's lines, in order, for each
+language, go into `snippets.json`, and the comments come off the tours the
+page shows. Since CI runs every tour, the snippets are known to work; every
+snippet must be in every language.
 """
 
 import gzip
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -42,6 +49,31 @@ TOURS = {
     "py": "py/tour.py",
     "rs": "rust/src/main.rs",
 }
+
+
+# A snippet line's marker: its comment and the snippets it's in.
+MARKER = re.compile(r"\s+(?:#|//|--) snippet: ([\w, -]+)$")
+
+
+def snippets(tours):
+    """Each snippet's code by language, and each tour without markers."""
+    found = {}
+    stripped = {}
+    for ext, text in tours.items():
+        lines = []
+        for line in text.splitlines():
+            m = MARKER.search(line)
+            if m:
+                line = line[: m.start()]
+                for name in m[1].split(","):
+                    found.setdefault(name.strip(), {}).setdefault(ext, []).append(line.strip())
+            lines.append(line)
+        stripped[ext] = "\n".join(lines) + "\n"
+    for name, by_ext in found.items():
+        missing = set(tours) - set(by_ext)
+        if missing:
+            raise SystemExit(f"Snippet {name!r} is missing from the {', '.join(sorted(missing))} tours.")
+    return {name: {ext: "\n".join(code) for ext, code in sorted(by_ext.items())} for name, by_ext in found.items()}, stripped
 
 
 def copy(source, dest):
@@ -93,8 +125,11 @@ def main():
         f"--define:TOUR_EXPECTED={expected}",
         f"--outfile={OUT / 'app.js'}",
     )
-    for ext, path in TOURS.items():
-        copy(TOUR / path, OUT / "tour" / f"tour.{ext}")
+    found, stripped = snippets({ext: (TOUR / path).read_text() for ext, path in TOURS.items()})
+    (OUT / "tour").mkdir(parents=True, exist_ok=True)
+    for ext, text in stripped.items():
+        (OUT / "tour" / f"tour.{ext}").write_text(text)
+    (OUT / "snippets.json").write_text(json.dumps(found, indent=2) + "\n")
 
     wasm_dir = SITE / "wasm"
     subprocess.run(["cargo", "build", "-q", "--release", "--target", "wasm32-unknown-unknown"], cwd=wasm_dir, check=True)
