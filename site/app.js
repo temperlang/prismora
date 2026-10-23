@@ -130,9 +130,10 @@ palette.addEventListener("change", dropLink);
 // "Theme this page" restyles the whole site from the palette, and follows
 // it as the color or harmony changes. Background, surfaces, text and borders
 // are neutrals tinted with the base hue, as most good themes do, since full
-// color there gets loud; the accent is the next hue's 600 shade, or 300 in
-// dark mode, so the contrasts the ramps promise hold either way. "Copy
-// theme as CSS" copies both.
+// color there gets loud. Color comes from the ramps' 600 shades, or 300 in
+// dark mode, so the contrasts the ramps promise hold either way: the accent
+// in the second hue, headings in the third, and code in each hue in turn.
+// "Copy theme as CSS" copies both.
 const themeButton = $("theme-page");
 const copyTheme = $("copy-theme");
 const darkMode = matchMedia("(prefers-color-scheme: dark)");
@@ -144,8 +145,14 @@ const NEUTRALS = {
   "--text": [[0.25, 0.04], [0.95, 0.015]],
   "--muted": [[0.48, 0.04], [0.76, 0.03]],
   "--border": [[0.9, 0.02], [0.36, 0.03]],
+  "--code-bg": [[0.955, 0.015], [0.26, 0.03]],
+  "--comment": [[0.5, 0.03], [0.72, 0.03]],
 };
-const THEMED = [...Object.keys(NEUTRALS), "--accent"];
+// Colors from the ramps: which hue of the harmony each takes. With fewer
+// hues, they cycle, each time a shade further from the background (700 or
+// 200), so even then code's kinds of tokens look different.
+const SHADED = { "--heading": 2, "--accent": 1, "--keyword": 0, "--string": 1, "--number": 2, "--type": 3 };
+const THEMED = [...Object.keys(NEUTRALS), ...Object.keys(SHADED)];
 
 /**
  * The theme's colors as hex, in the order of THEMED.
@@ -160,8 +167,12 @@ function themeColors(dark) {
     Space.oklch,
     Object.values(NEUTRALS).flatMap((both) => [both[d][0], Math.min(C, both[d][1]), turns]),
   ).toHex();
-  const [base, next = base] = palette.shades;
-  return [...neutrals, next[dark ? 2 : 5]];
+  const ramps = palette.shades;
+  const shade = (/** @type {number} */ k) => {
+    const lap = Math.min(Math.floor(k / ramps.length), 2);
+    return dark ? 2 - lap : 5 + lap;
+  };
+  return [...neutrals, ...Object.values(SHADED).map((k) => ramps[k % ramps.length][shade(k)])];
 }
 
 function applyTheme() {
@@ -348,7 +359,7 @@ function escapeHtml(s) {
 function highlight(source, comment) {
   const commentPattern = comment === "#" ? "#[^\\n]*" : comment === "--" ? "--[^\\n]*" : "//[^\\n]*|/\\*[\\s\\S]*?\\*/";
   const token = new RegExp(
-    `(${commentPattern})|("(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*'|\`[^\`]*\`)|` +
+    `(${commentPattern})|("""[\\s\\S]*?"""|'''[\\s\\S]*?'''|"(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*'|\`[^\`]*\`)|` +
       `\\b(0x[0-9a-fA-F]+|\\d+(?:\\.\\d+)?)\\b|([A-Za-z_]\\w*)`,
     "g",
   );
@@ -357,7 +368,17 @@ function highlight(source, comment) {
   for (const m of source.matchAll(token)) {
     out += escapeHtml(source.slice(last, m.index));
     const [text, isComment, isString, isNumber, word] = m;
-    const cls = isComment ? "comment" : isString ? "string" : isNumber ? "number" : KEYWORDS.has(word) ? "keyword" : null;
+    const cls = isComment
+      ? "comment"
+      : isString
+        ? "string"
+        : isNumber
+          ? "number"
+          : KEYWORDS.has(word)
+            ? "keyword"
+            : /^[A-Z][a-z]/.test(word)
+              ? "type"
+              : null;
     out += cls ? `<span class="tok-${cls}">${escapeHtml(text)}</span>` : escapeHtml(text);
     last = m.index + text.length;
   }
