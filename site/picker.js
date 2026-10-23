@@ -10,17 +10,16 @@
 // It shows an OkLCh plane for one hue at a time, lightness up and chroma
 // across, with the edges of the sRGB, Display P3 and Rec. 2020 gamuts drawn
 // on it. Prismora computes everything shown: each pixel, in one bulk
-// conversion, the gamut edges, by bisection with `inGamut`, and the chosen
-// color's swatches, slider gradients, numbers and status.
+// conversion, the gamut edges, with `maxChroma`, and the chosen color's
+// swatches, slider gradients, numbers and status.
 
 import { Color, Space } from "prismora";
 
 // OkLCh chroma at the plane's right edge. CSS takes 0.4 as 100%.
 const MAX_CHROMA = 0.4;
 
-// Rows of lightness for the gamut edges, and bisection steps per edge.
+// Rows of lightness for the gamut edges.
 const EDGE_ROWS = 96;
-const EDGE_STEPS = 14;
 
 // Plane resolution while dragging, and at rest.
 const FAST_SIZE = 64;
@@ -55,28 +54,16 @@ const STATUS = [
 
 const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
 
-// The most chroma that fits each gamut, for each row of lightness, found by
-// bisecting all rows at once with Prismora's inGamut.
+// The most chroma that fits each gamut, for each row of lightness: Prismora's
+// maxChroma, capped at the plane's edge.
 function gamutEdges(hueDegrees) {
   const turns = hueDegrees / 360;
-  const ls = Array.from({ length: EDGE_ROWS + 1 }, (_, i) => i / EDGE_ROWS);
+  const column = [];
+  for (let i = 0; i <= EDGE_ROWS; i++) column.push(i / EDGE_ROWS, MAX_CHROMA, turns);
+  const colors = Color.fromList(Space.oklch, column);
   const edges = {};
   for (const { space, key } of GAMUTS) {
-    const lo = ls.map(() => 0);
-    const hi = ls.map(() => MAX_CHROMA);
-    for (let step = 0; step < EDGE_STEPS; step++) {
-      const values = [];
-      for (let i = 0; i < ls.length; i++) values.push(ls[i], (lo[i] + hi[i]) / 2, turns);
-      const fits = Color.fromList(Space.oklch, values).inGamut(space);
-      for (let i = 0; i < ls.length; i++) {
-        const mid = (lo[i] + hi[i]) / 2;
-        if (fits[i]) lo[i] = mid;
-        else hi[i] = mid;
-      }
-    }
-    // The top of the bisection fits only if the whole row does.
-    const top = Color.fromList(Space.oklch, ls.flatMap((L) => [L, MAX_CHROMA, turns])).inGamut(space);
-    edges[key] = lo.map((c, i) => (top[i] ? MAX_CHROMA : c));
+    edges[key] = colors.maxChroma(space).map((c) => Math.min(c, MAX_CHROMA));
   }
   return edges;
 }
@@ -623,18 +610,12 @@ class PrismoraPicker extends HTMLElement {
     });
     text.addEventListener("change", () => this.#changed());
 
-    // Snapping keeps lightness and hue and reduces chroma to the most that
-    // fits, by bisection with Prismora's inGamut, so the result is inside.
+    // Snapping keeps lightness and hue exactly and lowers chroma to the most
+    // that fits: Prismora's fitChroma.
     for (const [id, space] of [["snap-srgb", Space.srgb], ["snap-p3", Space.displayP3]]) {
       this.#el(id).addEventListener("click", () => {
-        const { L, C, H } = this.#state;
-        let [lo, hi] = [0, C];
-        for (let step = 0; step < 24; step++) {
-          const mid = (lo + hi) / 2;
-          if (Color.fromList(Space.oklch, [L, mid, H / 360]).inGamut(space)[0]) lo = mid;
-          else hi = mid;
-        }
-        this.#set({ C: lo });
+        const [, C] = this.#color.fitChroma(space).rows.toList();
+        this.#set({ C });
         this.#changed();
       });
     }

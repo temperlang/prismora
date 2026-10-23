@@ -182,7 +182,7 @@ const LANGUAGES = [
   ["C++", "cpp", "cmake -B build && cmake --build build && ./build/tour", "//"],
   ["C#", "cs", "dotnet run", "//"],
   ["Java", "java", "./gradlew run", "//"],
-  ["JavaScript", "js", "npm install && npm start", "//"],
+  ["JavaScript", "js", "npm ci && npm start", "//"],
   ["Lua", "lua", "lua -l paths tour.lua", "--"],
   ["Python", "py", "uv run tour.py", "#"],
   ["Rust", "rs", "cargo run", "//"],
@@ -233,7 +233,7 @@ async function selectTab(index) {
   $("run-command").textContent = run;
   $("source-label").textContent = `Read-only example: ${LANGUAGES[index][0]}`;
   if (!sources.has(file)) {
-    const response = await fetch(`tour/tour.${file}`);
+    const response = await fetch(`tour/tour.${file}`, { cache: "no-cache" });
     sources.set(file, response.ok ? await response.text() : "// Couldn't load this tour.");
   }
   $("source").innerHTML = highlight(sources.get(file), comment);
@@ -254,9 +254,9 @@ let selectedTour = null;
 let rustModule = null;
 
 async function runRustTour() {
-  rustModule ??= WebAssembly.compileStreaming(fetch("tour/tour.wasm"))
+  rustModule ??= WebAssembly.compileStreaming(fetch("tour/tour.wasm", { cache: "no-cache" }))
     // Some servers don't label wasm as such, which streaming needs.
-    .catch(() => fetch("tour/tour.wasm").then((r) => r.arrayBuffer()).then((b) => WebAssembly.compile(b)))
+    .catch(() => fetch("tour/tour.wasm", { cache: "no-cache" }).then((r) => r.arrayBuffer()).then((b) => WebAssembly.compile(b)))
     .catch((error) => {
       rustModule = null; // Try again next time.
       throw error;
@@ -322,7 +322,7 @@ for (const [i, [name]] of LANGUAGES.entries()) {
 
 // Library sizes, measured when the site was built.
 
-fetch("sizes.json")
+fetch("sizes.json", { cache: "no-cache" })
   .then((response) => response.json())
   .then((sizes) => {
     const kb = (n) => `${(n / 1024).toFixed(1)} KB`;

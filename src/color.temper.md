@@ -132,8 +132,10 @@ Conversion never fails, since every space converts to every other.
 
 ### Gamut
 
-Converts to `space`, reducing chroma where needed to fit its gamut, while
-keeping lightness and hue. See [gamut](gamut.temper.md).
+Converts to `space`, reducing chroma where needed to fit its gamut, as CSS
+does: lightness and hue stay within a just noticeable difference, but a final
+clamp can shift them slightly. See [gamut](gamut.temper.md), and `fitChroma`
+to keep them exact.
 
       public toGamut(space: Space): Color {
         new Color(space, mapToGamut(this, space) orelse panic(), alpha)
@@ -149,6 +151,21 @@ Converts to `space` and clamps each channel to its gamut, as CSS's simple
 Whether each row fits in the gamut of `space`.
 
       public inGamut(space: Space): List<Boolean> { inGamutRows(this, space) orelse panic() }
+
+For each row, the most chroma it could have in the gamut of `space` with the
+same OkLCh lightness and hue. Spaces without a gamut give infinity, since
+nothing limits them.
+
+      public maxChroma(space: Space): List<Float64> { maxChromaRows(this, space) orelse panic() }
+
+Lowers chroma where needed so each row fits in the gamut of `space`, keeping
+OkLCh lightness and hue exactly and staying in this color's space. Rows that
+already fit are unchanged. Unlike `toGamut`, which follows CSS, nothing else
+shifts.
+
+      public fitChroma(space: Space): Color {
+        new Color(this.space, fitChromaRows(this, space) orelse panic(), alpha)
+      }
 
 The deltaEOK color difference from each row of `other`, where about 0.02 is
 just noticeable. Panics if the lengths differ.
