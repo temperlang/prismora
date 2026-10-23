@@ -1,0 +1,30 @@
+{
+  "//": "For editors: finds Prismora in temper.out (temper build -b js) for types. Files opt into checking with // @ts-check; not strict, since plain JS and Temper's runtime aren't written for it.",
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "lib": [
+      "es2022",
+      "dom",
+      "dom.iterable"
+    ],
+    "paths": {
+      "prismora": [
+        "../temper.out/js/prismora/index.js"
+      ],
+      "@temperlang/core": [
+        "../temper.out/js/temper-core/index.js"
+      ]
+    },
+    "strict": false
+  },
+  "include": [
+    "*.js"
+  ],
+  "exclude": [
+    "build",
+    "node_modules",
+    "wasm"
+  ]
+}

@@ -1,3 +1,5 @@
+// @ts-check
+
 // <prismora-picker>: a color picker any page can use.
 //
 //     <prismora-picker value="oklch(70% 0.2 30)"></prismora-picker>
@@ -15,6 +17,23 @@
 
 import { Color, Space } from "prismora";
 
+/**
+ * A gamut drawn on the plane: its Prismora space, a key for styles, a label,
+ * and the lightness where the label goes.
+ * @typedef {{ space: Space, key: string, label: string, at: number }} Gamut
+ */
+
+/**
+ * A color in OkLCh as the picker holds it: lightness and chroma as Prismora
+ * has them, and hue in degrees.
+ * @typedef {{ L: number, C: number, H: number }} Lch
+ */
+
+/**
+ * The most chroma each gamut allows, by row of lightness, keyed like `Gamut`.
+ * @typedef {Record<string, number[]>} Edges
+ */
+
 // OkLCh chroma at the plane's right edge. CSS takes 0.4 as 100%.
 const MAX_CHROMA = 0.4;
 
@@ -25,20 +44,34 @@ const EDGE_ROWS = 96;
 const FAST_SIZE = 64;
 const FULL_SIZE = 192;
 
-// Whether this screen and browser can show Display P3, which is wider than
-// sRGB; most recent phones and Macs can.
+/**
+ * Whether this screen and browser can show Display P3, which is wider than
+ * sRGB; most recent phones and Macs can.
+ *
+ * @returns {boolean}
+ */
 function wideGamut() {
   if (!matchMedia("(color-gamut: p3)").matches) return false;
   const ctx = document.createElement("canvas").getContext("2d", { colorSpace: "display-p3" });
   return ctx?.getContextAttributes?.().colorSpace === "display-p3";
 }
 
+/**
+ * The gamuts drawn on the plane, from narrowest to widest.
+ *
+ * @type {Gamut[]}
+ */
 const GAMUTS = [
   { space: Space.srgb, key: "srgb", label: "sRGB", at: 0.3 },
   { space: Space.displayP3, key: "p3", label: "Display P3", at: 0.5 },
   { space: Space.rec2020, key: "rec2020", label: "Rec. 2020", at: 0.7 },
 ];
 
+/**
+ * Status pill text and its explanation, by how wide a gamut the color needs.
+ *
+ * @type {[string, string][]}
+ */
 const STATUS = [
   ["Fits every screen", "Inside sRGB, the range every screen and the web can show."],
   [
@@ -52,15 +85,29 @@ const STATUS = [
   ["Beyond every gamut here", "Past even Rec. 2020. Screens show the closest color they can."],
 ];
 
+/**
+ * Keeps `x` between `lo` and `hi`.
+ *
+ * @param {number} x
+ * @param {number} lo
+ * @param {number} hi
+ * @returns {number}
+ */
 const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
 
-// The most chroma that fits each gamut, for each row of lightness: Prismora's
-// maxChroma, capped at the plane's edge.
+/**
+ * The most chroma that fits each gamut, for each row of lightness: Prismora's
+ * maxChroma, capped at the plane's edge.
+ *
+ * @param {number} hueDegrees
+ * @returns {Edges}
+ */
 function gamutEdges(hueDegrees) {
   const turns = hueDegrees / 360;
   const column = [];
   for (let i = 0; i <= EDGE_ROWS; i++) column.push(i / EDGE_ROWS, MAX_CHROMA, turns);
   const colors = Color.fromList(Space.oklch, column);
+  /** @type {Edges} */
   const edges = {};
   for (const { space, key } of GAMUTS) {
     edges[key] = colors.maxChroma(space).map((c) => Math.min(c, MAX_CHROMA));
@@ -68,7 +115,13 @@ function gamutEdges(hueDegrees) {
   return edges;
 }
 
-// The edge's chroma at any lightness, between rows.
+/**
+ * The edge's chroma at any lightness, between rows.
+ *
+ * @param {number[]} edge
+ * @param {number} L
+ * @returns {number}
+ */
 function edgeAt(edge, L) {
   const x = clamp(L, 0, 1) * EDGE_ROWS;
   const i = Math.min(Math.floor(x), EDGE_ROWS - 1);
@@ -281,18 +334,29 @@ const TEMPLATE = `
 </div>
 `;
 
+/**
+ * The `<prismora-picker>` element. Set `value` (attribute or property) to any
+ * CSS color; read `value` and `color`. Fires `input` while the color changes
+ * and `change` when a change is done. Takes --text, --muted, --border,
+ * --surface, --bg and --accent from the page.
+ */
 class PrismoraPicker extends HTMLElement {
   static observedAttributes = ["value"];
 
+  /** @type {Lch} */
   #state = { L: 0.7, C: 0.2, H: 30 };
+  /** @type {Edges | null} */
   #edges = null;
+  /** The hue the plane was last drawn for. @type {number | null} */
   #drawnHue = null;
   #sharpTimer = 0;
   #frame = 0;
+  /** @type {Color | null} */
   #color = null;
   #css = "";
   #wide = wideGamut();
   #screen = this.#wide ? Space.displayP3 : Space.srgb;
+  /** @type {PredefinedColorSpace} */
   #colorSpace = this.#wide ? "display-p3" : "srgb";
 
   constructor() {
@@ -300,22 +364,50 @@ class PrismoraPicker extends HTMLElement {
     this.attachShadow({ mode: "open" }).innerHTML = TEMPLATE;
   }
 
+  /**
+   * An element in the picker's shadow DOM.
+   *
+   * @param {string} id
+   * @returns {any}
+   */
   #el(id) {
     return this.shadowRoot.getElementById(id);
   }
 
+  /**
+   * The chosen color, as CSS: `oklch(L% C H)`.
+   *
+   * @returns {string}
+   */
   get value() {
     return this.#css;
   }
 
+  /**
+   * Sets the color from any CSS color.
+   *
+   * @param {string} text
+   */
   set value(text) {
     this.#setFromText(text);
   }
 
+  /**
+   * The chosen color as a Prismora `Color`, in OkLCh.
+   *
+   * @returns {Color | null}
+   */
   get color() {
     return this.#color;
   }
 
+  /**
+   * Follows the `value` attribute.
+   *
+   * @param {string} name
+   * @param {string | null} old
+   * @param {string | null} text
+   */
   attributeChangedCallback(name, old, text) {
     if (text !== null && text !== this.#css) this.#setFromText(text);
   }
@@ -333,11 +425,15 @@ class PrismoraPicker extends HTMLElement {
     }).observe(this.#el("plane"));
   }
 
-  // The plane: each pixel converted from OkLCh to the screen's space in one
-  // bulk Prismora call, on a small grid scaled up smoothly, since the plane
-  // is all gradients. Then, at full resolution, the gamut edges cut it
-  // sharply: colors the screen can't show are faded, and colors past
-  // Rec. 2020 are left out.
+  /**
+   * The plane: each pixel converted from OkLCh to the screen's space in one
+   * bulk Prismora call, on a small grid scaled up smoothly, since the plane
+   * is all gradients. Then, at full resolution, the gamut edges cut it
+   * sharply: colors the screen can't show are faded, and colors past
+   * Rec. 2020 are left out.
+   *
+   * @param {number} size
+   */
   #drawPlane(size) {
     const canvas = this.#el("plane-canvas");
     const turns = this.#state.H / 360;
@@ -355,7 +451,7 @@ class PrismoraPicker extends HTMLElement {
     const space = { colorSpace: this.#colorSpace };
     const off = document.createElement("canvas");
     off.width = off.height = size;
-    const ctx = off.getContext("2d", space);
+    const ctx = /** @type {CanvasRenderingContext2D} */ (off.getContext("2d", space));
     const image = ctx.createImageData(size, size, space);
     // Opaque here, so scaling up doesn't blend in empty pixels.
     for (let p = 0, v = 0; v < shown.length; p += 4, v += 3) {
@@ -413,7 +509,12 @@ class PrismoraPicker extends HTMLElement {
     }
   }
 
-  // Colors as CSS for the screen, fitted to what it can show.
+  /**
+   * Colors as CSS for the screen, fitted to what it can show.
+   *
+   * @param {Color} color
+   * @returns {string[]}
+   */
   #onScreen(color) {
     return color.toGamut(this.#screen).convert(this.#screen).toCss();
   }
@@ -437,6 +538,11 @@ class PrismoraPicker extends HTMLElement {
     ctx.putImageData(image, 0, 0);
   }
 
+  /**
+   * Redraws the plane, coarse while dragging or sharp at rest, with new gamut edges for a new hue.
+   *
+   * @param {boolean} sharp
+   */
   #redrawPlane(sharp) {
     if (this.#drawnHue !== this.#state.H) {
       this.#edges = gamutEdges(this.#state.H);
@@ -514,8 +620,12 @@ class PrismoraPicker extends HTMLElement {
     this.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
   }
 
-  // Changes redraw once per frame; a new hue redraws the plane coarsely now,
-  // and sharply once things settle.
+  /**
+   * Changes redraw once per frame; a new hue redraws the plane coarsely now,
+   * and sharply once things settle.
+   *
+   * @param {Partial<Lch>} changes
+   */
   #set(changes) {
     const state = this.#state;
     const hueChanged = changes.H !== undefined && changes.H !== state.H;
@@ -531,6 +641,11 @@ class PrismoraPicker extends HTMLElement {
     if (!this.#frame) this.#frame = requestAnimationFrame(() => this.#show());
   }
 
+  /**
+   * Sets the color from any CSS color, keeping the hue for grays.
+   *
+   * @param {string} text
+   */
   #setFromText(text) {
     const [L, C, turns] = Color.parse(text.trim()).convert(Space.oklch).rows.toList();
     this.#set({ L, C, H: Number.isFinite(turns) && C > 0.0001 ? turns * 360 : this.#state.H });
@@ -612,7 +727,9 @@ class PrismoraPicker extends HTMLElement {
 
     // Snapping keeps lightness and hue exactly and lowers chroma to the most
     // that fits: Prismora's fitChroma.
-    for (const [id, space] of [["snap-srgb", Space.srgb], ["snap-p3", Space.displayP3]]) {
+    /** @type {[string, Space][]} */
+    const snaps = [["snap-srgb", Space.srgb], ["snap-p3", Space.displayP3]];
+    for (const [id, space] of snaps) {
       this.#el(id).addEventListener("click", () => {
         const [, C] = this.#color.fitChroma(space).rows.toList();
         this.#set({ C });
