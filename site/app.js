@@ -74,11 +74,18 @@ function showDetails(color) {
 }
 
 // The picker drives the details below it and a wash of its hue behind it.
-// A link can carry a color (#color=…); once the color changes after that,
-// the address drops it, so it never shows a color that isn't there.
+// A link can carry a color (#color=…), and a palette (&palette=…); once the
+// color or palette changes after that, the address drops them, so it never
+// shows something that isn't there.
 const picker = $("picker");
-const linkedColor = new URLSearchParams(location.hash.slice(1)).get("color");
+const linked = new URLSearchParams(location.hash.slice(1));
 let startedUp = false;
+function dropLink() {
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (startedUp && (hash.has("color") || hash.has("palette"))) {
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+}
 picker.addEventListener("input", () => {
   const color = picker.color;
   showDetails(color);
@@ -87,12 +94,23 @@ picker.addEventListener("input", () => {
   const wash = Color.fromList(Space.oklch, [dark ? 0.2 : 0.965, Math.min(C, dark ? 0.03 : 0.025), turns]);
   $("pick").style.setProperty("--wash", wash.toHex()[0]);
   // The first change is the starting color itself.
-  if (startedUp && new URLSearchParams(location.hash.slice(1)).has("color")) {
-    history.replaceState(null, "", location.pathname + location.search);
-  }
+  dropLink();
   startedUp = true;
 });
-picker.value = linkedColor ?? "oklch(70% 0.2 30)";
+picker.value = linked.get("color") ?? "oklch(70% 0.2 30)";
+
+// A link to the current color, or palette on the Palette tab, for wherever
+// the site is served.
+const copyLink = $("copy-link");
+const linkLabel = () => (onPalette() ? "Copy link to this palette" : "Copy link to this color");
+copyLink.addEventListener("click", async () => {
+  const url = new URL(location.href);
+  url.hash = `color=${encodeURIComponent(picker.value)}`;
+  if (onPalette()) url.hash += `&palette=${encodeURIComponent(palette.harmony)}`;
+  await navigator.clipboard?.writeText(url.href);
+  copyLink.textContent = "Copied!";
+  setTimeout(() => (copyLink.textContent = linkLabel()), 1500);
+});
 
 // The palette starts from the picked color, and turning its base hue turns
 // the picker's. Setting the palette's value doesn't fire input, which ends
@@ -104,8 +122,11 @@ picker.addEventListener("input", () => {
 palette.addEventListener("input", () => {
   if (picker.value !== palette.value) picker.value = palette.value;
 });
+palette.addEventListener("change", dropLink);
 
-// The Pick and Palette tabs; the note about the square is for Pick.
+// The Pick and Palette tabs. The note about the square and the examples
+// are for Pick; on Palette, the link button joins the palette's copy buttons.
+const pickNotes = $("pick-note").parentElement;
 for (const [tab, panel, other, otherPanel] of [
   ["tab-pick", "panel-pick", "tab-palette", "panel-palette"],
   ["tab-palette", "panel-palette", "tab-pick", "panel-pick"],
@@ -115,19 +136,22 @@ for (const [tab, panel, other, otherPanel] of [
     $(other).setAttribute("aria-selected", "false");
     $(panel).hidden = false;
     $(otherPanel).hidden = true;
-    $("pick-note").hidden = tab !== "tab-pick";
+    const pick = tab === "tab-pick";
+    $("pick-note").hidden = !pick;
+    /** @type {HTMLElement} */ (document.querySelector(".examples")).hidden = !pick;
+    copyLink.slot = pick ? "" : "actions";
+    (pick ? pickNotes : palette).append(copyLink);
+    copyLink.textContent = linkLabel();
   });
 }
+const onPalette = () => $("tab-palette").getAttribute("aria-selected") === "true";
 
-// A link to the current color, for wherever the site is served.
-const copyLink = $("copy-link");
-copyLink.addEventListener("click", async () => {
-  const url = new URL(location.href);
-  url.hash = `color=${encodeURIComponent(picker.value)}`;
-  await navigator.clipboard?.writeText(url.href);
-  copyLink.textContent = "Copied!";
-  setTimeout(() => (copyLink.textContent = "Copy link to this color"), 1500);
-});
+// A palette link opens the Palette tab with its harmony.
+if (linked.has("palette")) {
+  palette.harmony = linked.get("palette") ?? "";
+  $("tab-palette").click();
+}
+
 for (const button of document.querySelectorAll(".examples button")) {
   button.addEventListener("click", () => (picker.value = button.textContent));
 }

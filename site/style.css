@@ -13,6 +13,11 @@
   color-scheme: light dark;
 }
 
+/* Layout rules like `display: flex` would otherwise show hidden elements. */
+[hidden] {
+  display: none !important;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #131318;

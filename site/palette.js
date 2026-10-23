@@ -10,7 +10,10 @@
 // ramp of shades evenly spaced in lightness, each as colorful as the base but
 // no more than sRGB allows, labeled with its contrast against white or black
 // text. Dragging the base arm changes the base hue and fires `input`; other
-// arms make a custom harmony. Clicking a shade copies its hex. It takes
+// arms make a custom harmony. Its `harmony` is a harmony's name, or a custom
+// one's hue offsets, like "0,95,210"; changing it from inside fires
+// `change`. Clicking a shade copies its hex. Children with
+// slot="actions" join the copy buttons. It takes
 // --text, --muted, --border, --surface, --bg and --accent from the page.
 
 import { Color, Space } from "prismora";
@@ -135,6 +138,7 @@ const TEMPLATE = `
     <div class="exports">
       <button type="button" id="copy-css">Copy as CSS variables</button>
       <button type="button" id="copy-hex">Copy hex codes</button>
+      <slot name="actions"></slot>
       <span id="status" class="status" role="status"></span>
     </div>
   </div>
@@ -144,8 +148,9 @@ const TEMPLATE = `
 /**
  * The `<prismora-palette>` element. Set `value` (attribute or property) to any
  * CSS color for the base; read `value`. Fires `input` when the base hue is
- * dragged. Takes --text, --muted, --border, --surface, --bg and --accent from
- * the page.
+ * dragged, and `change` when the harmony or an arm changes. `harmony` is a
+ * harmony's name or custom hue offsets. Takes --text, --muted, --border,
+ * --surface, --bg and --accent from the page.
  */
 class PrismoraPalette extends HTMLElement {
   static observedAttributes = ["value"];
@@ -195,6 +200,36 @@ class PrismoraPalette extends HTMLElement {
     const [L, C, turns] = Color.parse(text.trim()).convert(Space.oklch).rows.toList();
     const H = Number.isFinite(turns) && C > 0.0001 ? turns * 360 : this.#base.H;
     this.#base = { L, C, H };
+    this.#schedule();
+  }
+
+  /**
+   * The harmony: a name like "triad", or a custom harmony's hue offsets in
+   * degrees, like "0,95,210".
+   *
+   * @returns {string}
+   */
+  get harmony() {
+    return this.#harmony === "custom" ? this.#offsets.map((d) => Math.round(d)).join(",") : this.#harmony;
+  }
+
+  /**
+   * Sets the harmony by name or offsets, without firing `change`. Anything
+   * else is ignored.
+   *
+   * @param {string} text
+   */
+  set harmony(text) {
+    if (text in HARMONIES) {
+      this.#harmony = text;
+      this.#offsets = HARMONIES[text].offsets.slice();
+    } else {
+      const offsets = text.split(",").map(Number);
+      if (offsets.length < 1 || offsets.length > 6 || offsets.some((d) => !Number.isFinite(d))) return;
+      this.#harmony = "custom";
+      this.#offsets = offsets.map(wrap);
+      this.#offsets[0] = 0;
+    }
     this.#schedule();
   }
 
@@ -376,6 +411,7 @@ class PrismoraPalette extends HTMLElement {
         this.#harmony = key;
         this.#offsets = HARMONIES[key].offsets.slice();
         this.#schedule();
+        this.#changed();
       });
       item.append(button);
       list.append(item);
@@ -435,6 +471,10 @@ class PrismoraPalette extends HTMLElement {
     });
   }
 
+  #changed() {
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+  }
+
   /**
    * Moves an arm to a hue: the base arm turns the base hue and fires
    * `input`; another arm makes the harmony custom.
@@ -449,6 +489,7 @@ class PrismoraPalette extends HTMLElement {
     } else {
       this.#offsets[arm] = wrap(hue - this.#base.H);
       this.#harmony = "custom";
+      this.#changed();
     }
     this.#schedule();
   }
