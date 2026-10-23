@@ -21,7 +21,7 @@ one from its directory:
 | C++ | `cpp` | `cmake -B build && cmake --build build && ./build/tour` |
 | C# | `csharp` | `dotnet run` |
 | Java | `java` | `./gradlew run` |
-| JS | `js` | `npm install && npm start` |
+| JS | `js` | `npm ci && npm start` |
 | Lua | `lua` | `lua -l paths tour.lua` |
 | Python | `py` | `uv run tour.py` |
 | Rust | `rust` | `cargo run` |

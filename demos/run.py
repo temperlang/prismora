@@ -32,7 +32,8 @@ COMMANDS = {
     # Building first keeps compiler warnings out of the tour's output.
     "csharp": [["dotnet", "build", "-v", "q", "--nologo"], ["dotnet", "run", "--no-build"]],
     "java": [["./gradlew", "-q", "--no-daemon", "run"]],
-    "js": [["npm", "install", "--silent", "--no-audit", "--no-fund"], ["npm", "start", "--silent"]],
+    # ci, not install: it re-copies the generated library after a rebuild.
+    "js": [["npm", "ci", "--silent", "--no-audit", "--no-fund"], ["npm", "start", "--silent"]],
     "lua": [["lua", "-l", "paths", "tour.lua"]],
     "py": [["uv", "run", "-q", "tour.py"]],
     "rust": [["cargo", "run", "-q", "--release"]],

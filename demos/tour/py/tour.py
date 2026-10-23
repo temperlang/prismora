@@ -136,6 +136,11 @@ show("clipped, in OkLCh", clipped.convert(Space.oklch))
 # to see.
 print(f"mapped vs clipped: {num(mapped.delta_e_ok(clipped)[0])}")
 
+# The most chroma vivid blue's lightness and hue can have in sRGB, and the
+# color lowered to it, keeping lightness and hue exactly.
+print(f"max chroma in sRGB: {num(vivid.max_chroma(Space.srgb)[0])}")
+show("fitted, in OkLCh", vivid.fit_chroma(Space.srgb))
+
 section("5. Mixing and gradients")
 
 red = Color.parse("red")

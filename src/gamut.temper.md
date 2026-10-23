@@ -182,6 +182,87 @@ Distance from a clamped row in `gamut` to the OkLCh color it came from.
       x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0 && z >= 0.0 && z <= 1.0
     }
 
+## Chroma Limits
+
+The most chroma each row can have in the gamut of `space`, keeping its OkLCh
+lightness and hue, found by bisecting all rows at once, up to `chromaCeiling`,
+far past any real gamut (ProPhoto RGB's corners reach about 1.4). Spaces
+without a gamut don't limit chroma, so they give infinity, which `1E999`
+overflows to on every backend.
+
+    let chromaCeiling = 4.0;
+    let chromaSteps = 32;
+    let unlimitedChroma = 1E999;
+
+    let maxChromaRows(color: Color, space: Space): List<Float64> throws Bubble {
+      let gamut = gamutOf(space);
+      let lch = color.convert(Space.oklch).rows;
+      let n = color.length;
+      var lo = new ListBuilder<Float64>();
+      var hi = new ListBuilder<Float64>();
+      for (var i = 0; i < n; i += 1) {
+        lo.add(0.0);
+        hi.add(chromaCeiling);
+      }
+      if (gamut == null) {
+        let unlimited = new ListBuilder<Float64>();
+        for (var i = 0; i < n; i += 1) { unlimited.add(unlimitedChroma) }
+        unlimited.toList()
+      } else {
+        for (var step = 0; step < chromaSteps; step += 1) {
+          let trial = new ListBuilder<Float64>();
+          for (var i = 0; i < n; i += 1) {
+            trial.add(lch[i, 0]);
+            trial.add((lo[i] + hi[i]) * 0.5);
+            trial.add(lch[i, 2]);
+          }
+          let rows = convertRows(new Matrix(3, trial.toList()), Space.oklch, gamut);
+          let nextLo = new ListBuilder<Float64>();
+          let nextHi = new ListBuilder<Float64>();
+          for (var i = 0; i < n; i += 1) {
+            let mid = (lo[i] + hi[i]) * 0.5;
+            if (inUnitCube(rows[i, 0], rows[i, 1], rows[i, 2])) {
+              nextLo.add(mid);
+              nextHi.add(hi[i]);
+            } else {
+              nextLo.add(lo[i]);
+              nextHi.add(mid);
+            }
+          }
+          lo = nextLo;
+          hi = nextHi;
+        }
+        lo.toList()
+      }
+    }
+
+Rows in their own space, with chroma lowered to the most that fits the gamut of
+`space` where they don't already fit, keeping OkLCh lightness and hue exactly.
+Unlike `mapToGamut`, there's no final clamp, so nothing else shifts. Rows that
+fit are kept as they are.
+
+    let fitChromaRows(color: Color, space: Space): Matrix throws Bubble {
+      let fits = inGamutRows(color, space);
+      let lch = color.convert(Space.oklch).rows;
+      let limits = maxChromaRows(color, space);
+      let lowered = new ListBuilder<Float64>();
+      for (var i = 0; i < color.length; i += 1) {
+        lowered.add(lch[i, 0]);
+        lowered.add(lch[i, 1].min(limits[i]));
+        lowered.add(lch[i, 2]);
+      }
+      let converted = convertRows(new Matrix(3, lowered.toList()), Space.oklch, color.space);
+      let ncols = color.space.ncols;
+      let result = new ListBuilder<Float64>();
+      for (var i = 0; i < color.length; i += 1) {
+        let source = if (fits[i]) { color.rows } else { converted };
+        for (var j = 0; j < ncols; j += 1) {
+          result.add(source[i, j]);
+        }
+      }
+      new Matrix(ncols, result.toList())
+    }
+
 ## Tests
 
 Expected values come from running the CSS pseudocode, written in JavaScript
@@ -259,6 +340,24 @@ mapping keeps its lightness and hue.
       assert(!vivid.inGamut(Space.srgb)[0]);
       assert(vivid.inGamut(Space.displayP3)[0]);
       assert(vivid.inGamut(Space.oklab)[0]);
+    }
+
+    test("max chroma and fit chroma") { test =>
+      // A vivid blue past sRGB, and a gray that fits anything.
+      let colors = Color.fromList(Space.oklch, [0.6, 0.35, 0.75, 0.5, 0.0, 0.0]);
+      let limits = colors.maxChroma(Space.srgb);
+      assert(limits[0] > 0.2 && limits[0] < 0.35);
+      assert(limits[1] > 0.1);
+      // Wider gamuts allow more chroma.
+      assert(colors.maxChroma(Space.displayP3)[0] > limits[0]);
+      assert(colors.maxChroma(Space.oklab)[0] > 1000.0);
+      let fitted = colors.fitChroma(Space.srgb);
+      assert(fitted.inGamut(Space.srgb)[0]);
+      // Lightness and hue stay exactly; chroma drops to the limit.
+      assertColors(test, fitted, Color.fromList(Space.oklch, [0.6, limits[0], 0.75, 0.5, 0.0, 0.0]));
+      // Colors that fit don't change.
+      let gray = Color.fromList(Space.srgb, [0.5, 0.5, 0.5]);
+      assertColors(test, gray.fitChroma(Space.srgb), gray);
     }
 
     test("delta e ok") { test =>

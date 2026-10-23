@@ -158,6 +158,11 @@ Show("clipped, in OkLCh", clipped.Convert(Space.Oklch));
 // to see.
 Console.WriteLine($"mapped vs clipped: {Num(mapped.DeltaEOk(clipped)[0])}");
 
+// The most chroma vivid blue's lightness and hue can have in sRGB, and the
+// color lowered to it, keeping lightness and hue exactly.
+Console.WriteLine($"max chroma in sRGB: {Num(vivid.MaxChroma(Space.Srgb)[0])}");
+Show("fitted, in OkLCh", vivid.FitChroma(Space.Srgb));
+
 Section("5. Mixing and gradients");
 
 var red = Color.Parse("red");

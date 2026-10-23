@@ -3,6 +3,8 @@
 A cross-language color transformation library, working toward the color math of
 [CSS Color 4][CssColor4] and the mixing of [CSS Color 5][CssColor5].
 
+Developed primarily with AI coding as of October 2026.
+
 ## Examples
 
 In Temper, and the same API in each [supported language](#languages):

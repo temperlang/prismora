@@ -103,6 +103,9 @@ mapped, in OkLCh (oklch, 1 x 3):
 clipped, in OkLCh (oklch, 1 x 3):
   [0.5195, 0.2696, 0.7591]
 mapped vs clipped: 0.0847
+max chroma in sRGB: 0.2167
+fitted, in OkLCh (oklch, 1 x 3):
+  [0.6000, 0.2167, 0.7500]
 
 ## 5. Mixing and gradients
 halfway in oklab: #8c53a2

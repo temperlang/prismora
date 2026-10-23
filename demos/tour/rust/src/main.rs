@@ -165,6 +165,11 @@ fn main() -> Result<()> {
     // to see.
     println!("mapped vs clipped: {}", num(mapped.delta_e_ok(clipped.clone())[0]));
 
+    // The most chroma vivid blue's lightness and hue can have in sRGB, and the
+    // color lowered to it, keeping lightness and hue exactly.
+    println!("max chroma in sRGB: {}", num(vivid.max_chroma(Space::srgb())[0]));
+    show("fitted, in OkLCh", &vivid.fit_chroma(Space::srgb()))?;
+
     section("5. Mixing and gradients");
 
     let red = Color::parse("red")?;
