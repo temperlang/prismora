@@ -74,15 +74,16 @@ function showDetails(color) {
 }
 
 // The picker drives the details below it and a wash of its hue behind it.
-// A link can carry a color (#color=…), and a palette (&palette=…); once the
-// color or palette changes after that, the address drops them, so it never
-// shows something that isn't there.
+// A link can carry a color (#color=…), a palette (&palette=…) and whether
+// the page is themed from it (&theme=1); once any of them changes after
+// that, the address drops them, so it never shows something that isn't
+// there.
 const picker = $("picker");
 const linked = new URLSearchParams(location.hash.slice(1));
 let startedUp = false;
 function dropLink() {
   const hash = new URLSearchParams(location.hash.slice(1));
-  if (startedUp && (hash.has("color") || hash.has("palette"))) {
+  if (startedUp && (hash.has("color") || hash.has("palette") || hash.has("theme"))) {
     history.replaceState(null, "", location.pathname + location.search);
   }
 }
@@ -99,14 +100,16 @@ picker.addEventListener("input", () => {
 });
 picker.value = linked.get("color") ?? "oklch(70% 0.2 30)";
 
-// A link to the current color, or palette on the Palette tab, for wherever
-// the site is served.
+// A link to the current color, or palette on the Palette tab, or the theme
+// when the page is themed, for wherever the site is served.
 const copyLink = $("copy-link");
-const linkLabel = () => (onPalette() ? "Copy link to this palette" : "Copy link to this color");
+const linkLabel = () =>
+  themed() ? "Copy link to this theme" : onPalette() ? "Copy link to this palette" : "Copy link to this color";
 copyLink.addEventListener("click", async () => {
   const url = new URL(location.href);
   url.hash = `color=${encodeURIComponent(picker.value)}`;
-  if (onPalette()) url.hash += `&palette=${encodeURIComponent(palette.harmony)}`;
+  if (onPalette() || themed()) url.hash += `&palette=${encodeURIComponent(palette.harmony)}`;
+  if (themed()) url.hash += "&theme=1";
   await navigator.clipboard?.writeText(url.href);
   copyLink.textContent = "Copied!";
   setTimeout(() => (copyLink.textContent = linkLabel()), 1500);
@@ -123,6 +126,88 @@ palette.addEventListener("input", () => {
   if (picker.value !== palette.value) picker.value = palette.value;
 });
 palette.addEventListener("change", dropLink);
+
+// "Theme this page" restyles the whole site from the palette, and follows
+// it as the color or harmony changes. Background, surfaces, text and borders
+// are neutrals tinted with the base hue, as most good themes do, since full
+// color there gets loud. Color comes from the ramps' 600 shades, or 300 in
+// dark mode, so the contrasts the ramps promise hold either way: the accent
+// in the second hue, headings in the third, and code in each hue in turn.
+// "Copy theme as CSS" copies both.
+const themeButton = $("theme-page");
+const copyTheme = $("copy-theme");
+const darkMode = matchMedia("(prefers-color-scheme: dark)");
+const themed = () => themeButton.getAttribute("aria-pressed") === "true";
+// Each neutral's OkLCh lightness and most chroma, light then dark.
+const NEUTRALS = {
+  "--bg": [[0.985, 0.012], [0.2, 0.025]],
+  "--surface": [[0.998, 0.006], [0.24, 0.03]],
+  "--text": [[0.25, 0.04], [0.95, 0.015]],
+  "--muted": [[0.48, 0.04], [0.76, 0.03]],
+  "--border": [[0.9, 0.02], [0.36, 0.03]],
+  "--code-bg": [[0.955, 0.015], [0.26, 0.03]],
+  "--comment": [[0.5, 0.03], [0.72, 0.03]],
+};
+// Colors from the ramps: which hue of the harmony each takes. With fewer
+// hues, they cycle, each time a shade further from the background (700 or
+// 200), so even then code's kinds of tokens look different.
+const SHADED = { "--heading": 2, "--accent": 1, "--keyword": 0, "--string": 1, "--number": 2, "--type": 3 };
+const THEMED = [...Object.keys(NEUTRALS), ...Object.keys(SHADED)];
+
+/**
+ * The theme's colors as hex, in the order of THEMED.
+ *
+ * @param {boolean} dark
+ * @returns {string[]}
+ */
+function themeColors(dark) {
+  const d = dark ? 1 : 0;
+  const [, C, turns] = Color.parse(palette.value).convert(Space.oklch).rows.toList();
+  const neutrals = Color.fromList(
+    Space.oklch,
+    Object.values(NEUTRALS).flatMap((both) => [both[d][0], Math.min(C, both[d][1]), turns]),
+  ).toHex();
+  const ramps = palette.shades;
+  const shade = (/** @type {number} */ k) => {
+    const lap = Math.min(Math.floor(k / ramps.length), 2);
+    return dark ? 2 - lap : 5 + lap;
+  };
+  return [...neutrals, ...Object.values(SHADED).map((k) => ramps[k % ramps.length][shade(k)])];
+}
+
+function applyTheme() {
+  const root = document.documentElement.style;
+  if (!themed()) {
+    for (const name of THEMED) root.removeProperty(name);
+    return;
+  }
+  // Until the palette first draws; its shades event comes then.
+  if (!palette.shades.length) return;
+  themeColors(darkMode.matches).forEach((hex, i) => root.setProperty(THEMED[i], hex));
+}
+
+/** @param {boolean} on */
+function setThemed(on) {
+  themeButton.setAttribute("aria-pressed", String(on));
+  themeButton.textContent = on ? "Stop theming the page" : "Theme this page";
+  copyTheme.hidden = !on;
+  copyLink.textContent = linkLabel();
+  applyTheme();
+}
+themeButton.addEventListener("click", () => {
+  setThemed(!themed());
+  dropLink();
+});
+copyTheme.addEventListener("click", async () => {
+  const lines = (/** @type {boolean} */ dark, /** @type {string} */ indent) =>
+    themeColors(dark).map((hex, i) => `${indent}${THEMED[i]}: ${hex};`).join("\n");
+  const css = `:root {\n${lines(false, "  ")}\n}\n\n@media (prefers-color-scheme: dark) {\n  :root {\n${lines(true, "    ")}\n  }\n}\n`;
+  await navigator.clipboard?.writeText(css);
+  copyTheme.textContent = "Copied!";
+  setTimeout(() => (copyTheme.textContent = "Copy theme as CSS"), 1500);
+});
+palette.addEventListener("shades", applyTheme);
+darkMode.addEventListener("change", applyTheme);
 
 // The Pick and Palette tabs. The note about the square and the examples
 // are for Pick; on Palette, the link button joins the palette's copy buttons.
@@ -146,11 +231,13 @@ for (const [tab, panel, other, otherPanel] of [
 }
 const onPalette = () => $("tab-palette").getAttribute("aria-selected") === "true";
 
-// A palette link opens the Palette tab with its harmony.
+// A palette link opens the Palette tab with its harmony, and a theme link
+// themes the page too.
 if (linked.has("palette")) {
   palette.harmony = linked.get("palette") ?? "";
   $("tab-palette").click();
 }
+if (linked.get("theme") === "1") setThemed(true);
 
 for (const button of document.querySelectorAll(".examples button")) {
   button.addEventListener("click", () => (picker.value = button.textContent));
@@ -272,7 +359,7 @@ function escapeHtml(s) {
 function highlight(source, comment) {
   const commentPattern = comment === "#" ? "#[^\\n]*" : comment === "--" ? "--[^\\n]*" : "//[^\\n]*|/\\*[\\s\\S]*?\\*/";
   const token = new RegExp(
-    `(${commentPattern})|("(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*'|\`[^\`]*\`)|` +
+    `(${commentPattern})|("""[\\s\\S]*?"""|'''[\\s\\S]*?'''|"(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*'|\`[^\`]*\`)|` +
       `\\b(0x[0-9a-fA-F]+|\\d+(?:\\.\\d+)?)\\b|([A-Za-z_]\\w*)`,
     "g",
   );
@@ -281,7 +368,17 @@ function highlight(source, comment) {
   for (const m of source.matchAll(token)) {
     out += escapeHtml(source.slice(last, m.index));
     const [text, isComment, isString, isNumber, word] = m;
-    const cls = isComment ? "comment" : isString ? "string" : isNumber ? "number" : KEYWORDS.has(word) ? "keyword" : null;
+    const cls = isComment
+      ? "comment"
+      : isString
+        ? "string"
+        : isNumber
+          ? "number"
+          : KEYWORDS.has(word)
+            ? "keyword"
+            : /^[A-Z][a-z]/.test(word)
+              ? "type"
+              : null;
     out += cls ? `<span class="tok-${cls}">${escapeHtml(text)}</span>` : escapeHtml(text);
     last = m.index + text.length;
   }

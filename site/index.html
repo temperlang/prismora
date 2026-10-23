@@ -45,7 +45,10 @@
         <prismora-picker id="picker"></prismora-picker>
       </div>
       <div id="panel-palette" role="tabpanel" aria-labelledby="tab-palette" hidden>
-        <prismora-palette id="palette"></prismora-palette>
+        <prismora-palette id="palette">
+          <button type="button" id="theme-page" class="link-button" slot="actions" aria-pressed="false">Theme this page</button>
+          <button type="button" id="copy-theme" class="link-button" slot="actions" hidden>Copy theme as CSS</button>
+        </prismora-palette>
       </div>
       <div class="pick-notes">
         <p class="plane-note" id="pick-note">

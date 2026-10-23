@@ -10,6 +10,8 @@
   --string: #0f7a4a;
   --number: #b0461a;
   --comment: #707084;
+  --type: #1d5fa8;
+  --heading: var(--text);
   color-scheme: light dark;
 }
 
@@ -31,6 +33,7 @@
     --string: #7fd4a4;
     --number: #f0a274;
     --comment: #8d8ca2;
+    --type: #8cc4ff;
   }
 }
 
@@ -68,6 +71,7 @@ code {
 h1,
 h2 {
   line-height: 1.2;
+  color: var(--heading);
 }
 
 h2 {
@@ -276,6 +280,10 @@ pre.source {
 
 .tok-number {
   color: var(--number);
+}
+
+.tok-type {
+  color: var(--type);
 }
 
 .tok-comment {
@@ -494,6 +502,12 @@ footer {
 }
 
 .link-button:hover {
+  border-color: var(--accent);
+}
+
+.link-button[aria-pressed="true"] {
+  color: var(--bg);
+  background: var(--accent);
   border-color: var(--accent);
 }
 
