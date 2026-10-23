@@ -66,6 +66,10 @@ def main():
         raise SystemExit("Build the JS library first: temper build -b js")
     if not ESBUILD.exists():
         raise SystemExit("Install the site's tools first: npm ci --prefix site")
+    # TypeScript, for the check below, needs Node 20 or newer.
+    node = subprocess.run(["node", "--version"], capture_output=True, text=True).stdout.strip()
+    if int(node.lstrip("v").split(".")[0] or 0) < 20:
+        raise SystemExit(f"The site build needs Node 20 or newer; this is {node}.")
     # Type-check the page's JS (files with // @ts-check) before building.
     subprocess.run(["npm", "run", "-s", "check"], cwd=SITE, check=True)
     shutil.rmtree(OUT, ignore_errors=True)

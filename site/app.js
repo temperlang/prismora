@@ -72,9 +72,12 @@ function showDetails(color) {
     `WCAG asks for at least 4.5:1 for body text.`;
 }
 
-// The picker drives the details below it, a wash of its hue behind it, and
-// the URL, so any color is a shareable link.
+// The picker drives the details below it and a wash of its hue behind it.
+// A link can carry a color (#color=…); once the color changes after that,
+// the address drops it, so it never shows a color that isn't there.
 const picker = $("picker");
+const linkedColor = new URLSearchParams(location.hash.slice(1)).get("color");
+let startedUp = false;
 picker.addEventListener("input", () => {
   const color = picker.color;
   showDetails(color);
@@ -82,9 +85,23 @@ picker.addEventListener("input", () => {
   const dark = matchMedia("(prefers-color-scheme: dark)").matches;
   const wash = Color.fromList(Space.oklch, [dark ? 0.2 : 0.965, Math.min(C, dark ? 0.03 : 0.025), turns]);
   $("pick").style.setProperty("--wash", wash.toHex()[0]);
-  history.replaceState(null, "", `#color=${encodeURIComponent(picker.value)}`);
+  // The first change is the starting color itself.
+  if (startedUp && new URLSearchParams(location.hash.slice(1)).has("color")) {
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+  startedUp = true;
 });
-picker.value = new URLSearchParams(location.hash.slice(1)).get("color") ?? "oklch(70% 0.2 30)";
+picker.value = linkedColor ?? "oklch(70% 0.2 30)";
+
+// A link to the current color, for wherever the site is served.
+const copyLink = $("copy-link");
+copyLink.addEventListener("click", async () => {
+  const url = new URL(location.href);
+  url.hash = `color=${encodeURIComponent(picker.value)}`;
+  await navigator.clipboard?.writeText(url.href);
+  copyLink.textContent = "Copied!";
+  setTimeout(() => (copyLink.textContent = "Copy link to this color"), 1500);
+});
 for (const button of document.querySelectorAll(".examples button")) {
   button.addEventListener("click", () => (picker.value = button.textContent));
 }
