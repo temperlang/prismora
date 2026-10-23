@@ -124,6 +124,46 @@ palette.addEventListener("input", () => {
 });
 palette.addEventListener("change", dropLink);
 
+// "Theme this page" restyles the whole site from the palette, and follows
+// it as the color or harmony changes. Background, surfaces, text and borders
+// are neutrals tinted with the base hue, as most good themes do, since full
+// color there gets loud; the accent is the next hue's 600 shade, or 300 in
+// dark mode, so the contrasts the ramps promise hold either way.
+const themeButton = $("theme-page");
+const darkMode = matchMedia("(prefers-color-scheme: dark)");
+// Each neutral's OkLCh lightness and most chroma, light then dark.
+const NEUTRALS = {
+  "--bg": [[0.985, 0.012], [0.2, 0.025]],
+  "--surface": [[0.998, 0.006], [0.24, 0.03]],
+  "--text": [[0.25, 0.04], [0.95, 0.015]],
+  "--muted": [[0.48, 0.04], [0.76, 0.03]],
+  "--border": [[0.9, 0.02], [0.36, 0.03]],
+};
+function applyTheme() {
+  const root = document.documentElement.style;
+  const names = [...Object.keys(NEUTRALS), "--accent"];
+  if (themeButton.getAttribute("aria-pressed") !== "true") {
+    for (const name of names) root.removeProperty(name);
+    return;
+  }
+  const dark = darkMode.matches ? 1 : 0;
+  const [, C, turns] = Color.parse(palette.value).convert(Space.oklch).rows.toList();
+  const neutrals = Color.fromList(
+    Space.oklch,
+    Object.values(NEUTRALS).flatMap((both) => [both[dark][0], Math.min(C, both[dark][1]), turns]),
+  ).toHex();
+  const [base, next = base] = palette.shades;
+  [...neutrals, next[dark ? 2 : 5]].forEach((hex, i) => root.setProperty(names[i], hex));
+}
+themeButton.addEventListener("click", () => {
+  const on = themeButton.getAttribute("aria-pressed") !== "true";
+  themeButton.setAttribute("aria-pressed", String(on));
+  themeButton.textContent = on ? "Stop theming the page" : "Theme this page";
+  applyTheme();
+});
+palette.addEventListener("shades", applyTheme);
+darkMode.addEventListener("change", applyTheme);
+
 // The Pick and Palette tabs. The note about the square and the examples
 // are for Pick; on Palette, the link button joins the palette's copy buttons.
 const pickNotes = $("pick-note").parentElement;

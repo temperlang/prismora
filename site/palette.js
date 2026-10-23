@@ -7,12 +7,13 @@
 // Its `value` is the base color, any CSS color, as an attribute or property.
 // A harmony adds hues around an OkLCh hue wheel, all at the base's lightness
 // and chroma, so they look balanced, unlike on HSL wheels. Each hue gets a
-// ramp of shades evenly spaced in lightness, each as colorful as the base but
-// no more than sRGB allows, labeled with its contrast against white or black
-// text. Dragging the base arm changes the base hue and fires `input`; other
+// ramp of shades, each as colorful as the base but no more than sRGB allows,
+// placed so 400, 500 and 600 have 3:1, 4.5:1 and 7:1 contrast with white
+// text in every hue, and labeled with their contrast. Dragging the base arm changes the base hue and fires `input`; other
 // arms make a custom harmony. Its `harmony` is a harmony's name, or a custom
 // one's hue offsets, like "0,95,210"; changing it from inside fires
-// `change`. Clicking a shade copies its hex. Children with
+// `change`. Its `shades` are each ramp's hex codes, and a `shades` event
+// says when they change. Clicking a shade copies its hex. Children with
 // slot="actions" join the copy buttons. It takes
 // --text, --muted, --border, --surface, --bg and --accent from the page.
 
@@ -39,8 +40,15 @@ const HARMONIES = {
 
 // Shades, named as design systems often do, from light to dark.
 const STEPS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
-const LIGHTEST = 0.95;
-const DARKEST = 0.3;
+const LIGHTEST = 0.97;
+const DARKEST = 0.27;
+// Shades placed by their contrast with white text, the same for every hue:
+// WCAG asks 3:1 for large text, 4.5:1 for body text (AA) and 7:1 for AAA.
+// The other shades fall evenly in lightness between these and the ends.
+const PINNED = new Map([[400, 3], [500, 4.5], [600, 7]]);
+// The first step to carry white text; lighter ones carry black.
+const FIRST_WHITE = 500;
+const WHITE = Color.parse("white");
 
 /**
  * Keeps `x` between `lo` and `hi`.
@@ -59,6 +67,86 @@ const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
  * @returns {number}
  */
 const wrap = (h) => ((h % 360) + 360) % 360;
+
+/**
+ * Shades in OkLCh at these lightnesses and hues (degrees), each with chroma
+ * `C` or as much as sRGB allows: one bulk maxChroma call for them all.
+ *
+ * @param {number[]} lightness
+ * @param {number[]} hues
+ * @param {number} C
+ * @returns {Color}
+ */
+function fitted(lightness, hues, C) {
+  const wanted = lightness.flatMap((l, i) => [l, C, hues[i] / 360]);
+  const limits = Color.fromList(Space.oklch, wanted).maxChroma(Space.srgb);
+  return Color.fromList(
+    Space.oklch,
+    wanted.map((v, i) => (i % 3 === 1 ? Math.min(v, limits[(i - 1) / 3]) : v)),
+  );
+}
+
+/**
+ * For each hue, the lightness of each pinned shade: the lightest whose hex
+ * code has at least its contrast with white, all hues at once. Contrast
+ * falls as lightness rises, even as the chroma limit moves, so bisection
+ * finds it, starting near where a gray would have it. Rounding to hex can
+ * lose a little contrast, so then each steps darker until its hex passes.
+ *
+ * @param {number[]} hues
+ * @param {number} C
+ * @returns {number[]} for each hue, one lightness per pinned shade
+ */
+function pinnedLightness(hues, C) {
+  const ratios = [...PINNED.values()];
+  const at = hues.flatMap((h) => ratios.map(() => h));
+  // A hair over, so other contrast checkers, rounding differently, agree.
+  const want = at.map((_, i) => ratios[i % ratios.length] * 1.001);
+  // A gray's OkLab lightness is the cube root of its luminance, and
+  // contrast with white is 1.05 / (luminance + 0.05).
+  const gray = want.map((r) => Math.cbrt(1.05 / r - 0.05));
+  const lo = gray.map((l) => Math.max(l - 0.15, 0));
+  const hi = gray.map((l) => Math.min(l + 0.15, 1));
+  for (let round = 0; round < 11; round++) {
+    const mid = lo.map((l, i) => (l + hi[i]) / 2);
+    const contrast = fitted(mid, at, C).contrast(WHITE);
+    mid.forEach((l, i) => {
+      if (contrast[i] >= want[i]) lo[i] = l;
+      else hi[i] = l;
+    });
+  }
+  for (let round = 0; round < 8; round++) {
+    const rgb = fitted(lo, at, C)
+      .toHex()
+      .flatMap((hex) => [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16) / 255));
+    const contrast = Color.fromList(Space.srgb, rgb).contrast(WHITE);
+    const short = contrast.map((c, i) => c < want[i]);
+    if (!short.includes(true)) break;
+    short.forEach((s, i) => s && (lo[i] -= 0.002));
+  }
+  return lo;
+}
+
+/**
+ * One ramp's lightness for every step: the pinned ones, and the rest evenly
+ * between them and the ends.
+ *
+ * @param {number[]} pinned lightness of each pinned step, in step order
+ * @returns {number[]}
+ */
+function spread(pinned) {
+  /** @type {[number, number][]} */
+  const anchors = [[0, LIGHTEST]];
+  [...PINNED.keys()].forEach((step, i) => anchors.push([STEPS.indexOf(step), pinned[i]]));
+  anchors.push([STEPS.length - 1, DARKEST]);
+  return STEPS.map((_, i) => {
+    const b = anchors.findIndex(([j]) => j >= i);
+    const [j1, l1] = anchors[b];
+    if (j1 === i) return l1;
+    const [j0, l0] = anchors[b - 1];
+    return l0 + ((l1 - l0) * (i - j0)) / (j1 - j0);
+  });
+}
 
 // Whether this screen and browser can show Display P3, which is wider than
 // sRGB.
@@ -138,9 +226,10 @@ const TEMPLATE = `
     <div id="ramps"></div>
     <p class="note">
       Each shade keeps its hue and is as colorful as the base allows, within
-      sRGB so every screen shows it. <span class="aa-note">"Aa" shows readable
-      text on it, with the contrast ratio; WCAG asks for 4.5 for body
-      text.</span>
+      sRGB so every screen shows it. Shades line up by contrast in every hue:
+      white text on 500 or darker meets WCAG's 4.5:1 for body text, on 400
+      its 3:1 for large text, and on 600 the stricter 7:1. Lighter shades
+      take black text.<span class="aa-note"> "Aa" shows each ratio.</span>
     </p>
     <div class="exports">
       <button type="button" id="copy-css">Copy as CSS variables</button>
@@ -156,7 +245,8 @@ const TEMPLATE = `
  * The `<prismora-palette>` element. Set `value` (attribute or property) to any
  * CSS color for the base; read `value`. Fires `input` when the base hue is
  * dragged, and `change` when the harmony or an arm changes. `harmony` is a
- * harmony's name or custom hue offsets. Takes --text, --muted, --border,
+ * harmony's name or custom hue offsets. `shades` are the ramps' hex codes,
+ * and `shades` fires when they change. Takes --text, --muted, --border,
  * --surface, --bg and --accent from the page.
  */
 class PrismoraPalette extends HTMLElement {
@@ -208,6 +298,15 @@ class PrismoraPalette extends HTMLElement {
     const H = Number.isFinite(turns) && C > 0.0001 ? turns * 360 : this.#base.H;
     this.#base = { L, C, H };
     this.#schedule();
+  }
+
+  /**
+   * Each ramp's hex codes, base hue first, from 100 to 900.
+   *
+   * @returns {string[][]}
+   */
+  get shades() {
+    return this.#hexes.map((ramp) => ramp.slice());
   }
 
   /**
@@ -348,23 +447,25 @@ class PrismoraPalette extends HTMLElement {
     });
   }
 
-  // Ramps: for each hue, shades evenly spaced in lightness, each with the
-  // base's chroma or less, to fit sRGB: one bulk maxChroma call for them all.
+  // Ramps: for each hue, shades from light to dark, each with the base's
+  // chroma or less, to fit sRGB, and the pinned ones at their contrasts.
   #drawRamps() {
     const { C, H } = this.#base;
-    const lightness = STEPS.map((_, i) => LIGHTEST - (i * (LIGHTEST - DARKEST)) / (STEPS.length - 1));
     const hues = this.#offsets.map((d) => wrap(H + d));
-    const wanted = hues.flatMap((h) => lightness.flatMap((l) => [l, C, h / 360]));
-    const limits = Color.fromList(Space.oklch, wanted).maxChroma(Space.srgb);
-    const shades = Color.fromList(
-      Space.oklch,
-      wanted.map((v, i) => (i % 3 === 1 ? Math.min(v, limits[(i - 1) / 3]) : v)),
+    const pinned = pinnedLightness(hues, C);
+    const lightness = hues.flatMap((_, k) => spread(pinned.slice(k * PINNED.size, (k + 1) * PINNED.size)));
+    const shades = fitted(
+      lightness,
+      hues.flatMap((h) => STEPS.map(() => h)),
+      C,
     );
     const hex = shades.toHex();
-    const onWhite = shades.contrast(Color.parse("white"));
+    const onWhite = shades.contrast(WHITE);
     const onBlack = shades.contrast(Color.parse("black"));
 
+    const before = this.#hexes.join();
     this.#hexes = hues.map((_, k) => hex.slice(k * STEPS.length, (k + 1) * STEPS.length));
+    if (this.#hexes.join() !== before) this.dispatchEvent(new Event("shades"));
     const rows = hues.map((h, k) => {
       const row = document.createElement("div");
       row.className = "ramp";
@@ -374,8 +475,8 @@ class PrismoraPalette extends HTMLElement {
       row.append(name);
       STEPS.forEach((step, i) => {
         const j = k * STEPS.length + i;
-        const white = onWhite[j] >= onBlack[j];
-        const ratio = Math.max(onWhite[j], onBlack[j]);
+        const white = step >= FIRST_WHITE;
+        const ratio = white ? onWhite[j] : onBlack[j];
         const shade = document.createElement("button");
         shade.type = "button";
         shade.className = "shade";

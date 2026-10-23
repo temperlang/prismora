@@ -497,6 +497,12 @@ footer {
   border-color: var(--accent);
 }
 
+.link-button[aria-pressed="true"] {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 .plane-note {
   flex: 1 1 28rem;
   max-width: 44rem;
