@@ -9,9 +9,10 @@
     uv run site/build.py
     python3 -m http.server -d site/build
 
-Bundles Temper's JS output for Prismora, with the parts of Temper's runtime
-it uses, into one minified module, which the page's import map names
-"prismora" so the playground can import it too. Compiles the Rust tour to
+Type-checks the page's JS with TypeScript, then bundles Temper's JS output
+for Prismora, with the parts of Temper's runtime it uses, into one minified
+module, which the page's import map names "prismora" so the playground can
+import it too. Compiles the Rust tour to
 wasm, so the page can run it, and builds the tours' expected output into the
 page's script. Copies the page and each language's tour source, and measures
 what the page loads.
@@ -64,7 +65,9 @@ def main():
     if not (JS / "prismora" / "prismora.internal.js").exists():
         raise SystemExit("Build the JS library first: temper build -b js")
     if not ESBUILD.exists():
-        raise SystemExit("Install esbuild first: (cd site && npm ci)")
+        raise SystemExit("Install the site's tools first: npm ci --prefix site")
+    # Type-check the page's JS (files with // @ts-check) before building.
+    subprocess.run(["npm", "run", "-s", "check"], cwd=SITE, check=True)
     shutil.rmtree(OUT, ignore_errors=True)
     for name in ["index.html", "style.css"]:
         copy(SITE / name, OUT / name)
