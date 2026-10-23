@@ -2,6 +2,7 @@
 // sizes. Prismora comes from Temper's JS output through the import map.
 
 import { Color, HueMethod, Matrix, Space } from "prismora";
+import "./palette.js";
 import "./picker.js";
 
 // Spaces in the table, with channel names and what each is for.
@@ -72,9 +73,19 @@ function showDetails(color) {
     `WCAG asks for at least 4.5:1 for body text.`;
 }
 
-// The picker drives the details below it, a wash of its hue behind it, and
-// the URL, so any color is a shareable link.
+// The picker drives the details below it and a wash of its hue behind it.
+// A link can carry a color (#color=…), and a palette (&palette=…); once the
+// color or palette changes after that, the address drops them, so it never
+// shows something that isn't there.
 const picker = $("picker");
+const linked = new URLSearchParams(location.hash.slice(1));
+let startedUp = false;
+function dropLink() {
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (startedUp && (hash.has("color") || hash.has("palette"))) {
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+}
 picker.addEventListener("input", () => {
   const color = picker.color;
   showDetails(color);
@@ -82,9 +93,65 @@ picker.addEventListener("input", () => {
   const dark = matchMedia("(prefers-color-scheme: dark)").matches;
   const wash = Color.fromList(Space.oklch, [dark ? 0.2 : 0.965, Math.min(C, dark ? 0.03 : 0.025), turns]);
   $("pick").style.setProperty("--wash", wash.toHex()[0]);
-  history.replaceState(null, "", `#color=${encodeURIComponent(picker.value)}`);
+  // The first change is the starting color itself.
+  dropLink();
+  startedUp = true;
 });
-picker.value = new URLSearchParams(location.hash.slice(1)).get("color") ?? "oklch(70% 0.2 30)";
+picker.value = linked.get("color") ?? "oklch(70% 0.2 30)";
+
+// A link to the current color, or palette on the Palette tab, for wherever
+// the site is served.
+const copyLink = $("copy-link");
+const linkLabel = () => (onPalette() ? "Copy link to this palette" : "Copy link to this color");
+copyLink.addEventListener("click", async () => {
+  const url = new URL(location.href);
+  url.hash = `color=${encodeURIComponent(picker.value)}`;
+  if (onPalette()) url.hash += `&palette=${encodeURIComponent(palette.harmony)}`;
+  await navigator.clipboard?.writeText(url.href);
+  copyLink.textContent = "Copied!";
+  setTimeout(() => (copyLink.textContent = linkLabel()), 1500);
+});
+
+// The palette starts from the picked color, and turning its base hue turns
+// the picker's. Setting the palette's value doesn't fire input, which ends
+// the loop.
+const palette = $("palette");
+picker.addEventListener("input", () => {
+  if (palette.value !== picker.value) palette.value = picker.value;
+});
+palette.addEventListener("input", () => {
+  if (picker.value !== palette.value) picker.value = palette.value;
+});
+palette.addEventListener("change", dropLink);
+
+// The Pick and Palette tabs. The note about the square and the examples
+// are for Pick; on Palette, the link button joins the palette's copy buttons.
+const pickNotes = $("pick-note").parentElement;
+for (const [tab, panel, other, otherPanel] of [
+  ["tab-pick", "panel-pick", "tab-palette", "panel-palette"],
+  ["tab-palette", "panel-palette", "tab-pick", "panel-pick"],
+]) {
+  $(tab).addEventListener("click", () => {
+    $(tab).setAttribute("aria-selected", "true");
+    $(other).setAttribute("aria-selected", "false");
+    $(panel).hidden = false;
+    $(otherPanel).hidden = true;
+    const pick = tab === "tab-pick";
+    $("pick-note").hidden = !pick;
+    /** @type {HTMLElement} */ (document.querySelector(".examples")).hidden = !pick;
+    copyLink.slot = pick ? "" : "actions";
+    (pick ? pickNotes : palette).append(copyLink);
+    copyLink.textContent = linkLabel();
+  });
+}
+const onPalette = () => $("tab-palette").getAttribute("aria-selected") === "true";
+
+// A palette link opens the Palette tab with its harmony.
+if (linked.has("palette")) {
+  palette.harmony = linked.get("palette") ?? "";
+  $("tab-palette").click();
+}
+
 for (const button of document.querySelectorAll(".examples button")) {
   button.addEventListener("click", () => (picker.value = button.textContent));
 }
@@ -221,7 +288,7 @@ function highlight(source, comment) {
   return out + escapeHtml(source.slice(last));
 }
 
-const tabs = document.querySelector(".tabs");
+const tabs = document.querySelector("#code .tabs");
 const sources = new Map();
 
 async function selectTab(index) {
