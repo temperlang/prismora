@@ -278,7 +278,7 @@ const TEMPLATE = `
 <div class="grid">
   <div>
     <div class="frame">
-      <span class="axis axis-y" aria-hidden="true">Lightness ↑</span>
+      <span class="axis axis-y" aria-hidden="true">Lightness →</span>
       <div id="plane" part="plane" class="plane" tabindex="0" role="slider"
            aria-label="Lightness and chroma. Up and down change lightness; left and right change chroma.">
         <canvas id="plane-canvas"></canvas>

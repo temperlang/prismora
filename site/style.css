@@ -474,8 +474,24 @@ footer {
   padding: 2rem 0 2.5rem;
 }
 
-.pick-tabs {
+.pick-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
   margin-bottom: 1.5rem;
+}
+
+.pick-tabs {
+  margin: 0;
+}
+
+.palette-note {
+  flex: 1 1 18rem;
+  max-width: 34rem;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .pick-tabs button {

@@ -56,7 +56,7 @@ identical output, and a [site](site/) to try colors in the browser.
 
 Planned:
 
-- More demos, and a richer site
+- Running more languages directly on the demo site
 - Later: NumPy arrays for Python, CSS relative color syntax, and more color
   difference formulas
 

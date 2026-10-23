@@ -224,6 +224,7 @@ for (const [tab, panel, other, otherPanel] of [
     $(otherPanel).hidden = true;
     const pick = tab === "tab-pick";
     $("pick-note").hidden = !pick;
+    $("palette-note").hidden = pick;
     /** @type {HTMLElement} */ (document.querySelector(".examples")).hidden = !pick;
     copyLink.slot = pick ? "" : "actions";
     (pick ? pickNotes : palette).append(copyLink);
