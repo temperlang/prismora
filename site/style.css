@@ -466,7 +466,7 @@ footer {
 }
 
 /* The picker's band, the hero of the page, takes a soft wash of the chosen
-   hue, set from Prismora. The picker styles itself. */
+   hue, set from Chromarite. The picker styles itself. */
 .picker {
   --wash: var(--bg);
   background: var(--wash);

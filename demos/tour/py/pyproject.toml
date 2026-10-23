@@ -1,14 +1,14 @@
 [project]
-name = "prismora-tour"
+name = "chromarite-tour"
 version = "0.0.0"
 requires-python = ">=3.11"
-dependencies = ["prismora"]
+dependencies = ["chromarite"]
 
 [tool.uv]
 package = false
 
 # The libraries `temper build` generates at the repo's top.
 [tool.uv.sources]
-prismora = { path = "../../../temper.out/py/prismora", editable = true }
+chromarite = { path = "../../../temper.out/py/chromarite", editable = true }
 temper-core = { path = "../../../temper.out/py/temper-core", editable = true }
 temper-std = { path = "../../../temper.out/py/std", editable = true }

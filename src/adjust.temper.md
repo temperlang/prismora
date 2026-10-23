@@ -11,7 +11,7 @@ outside a display's gamut; use `toGamut` before showing it.
 The methods are on `Color`: `lighten`, `saturate`, `rotateHue` and
 `grayscale`. They all come down to this, which adds `lightness` to OkLCh
 lightness, multiplies chroma by `chromaFactor`, and adds `turns` to hue.
-Grays keep hue 0, as elsewhere in Prismora.
+Grays keep hue 0, as elsewhere in Chromarite.
 
     let adjustLch(
       color: Color, lightness: Float64, chromaFactor: Float64, turns: Float64,

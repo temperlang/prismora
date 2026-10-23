@@ -1,5 +1,5 @@
 {
-  "name": "prismora-tour",
+  "name": "chromarite-tour",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,6 @@
   "dependencies": {
     "@temperlang/core": "file:../../../temper.out/js/temper-core",
     "@temperlang/std": "file:../../../temper.out/js/std",
-    "prismora": "file:../../../temper.out/js/prismora"
+    "chromarite": "file:../../../temper.out/js/chromarite"
   }
 }

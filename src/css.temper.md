@@ -9,17 +9,17 @@ Accepts hex (`#rgb` through `#rrggbbaa`), named colors, and the functions
 `rgb()`, `rgba()`, `hsl()`, `hsla()`, `hwb()`, `lab()`, `lch()`, `oklab()`,
 `oklch()` and `color()`, case-insensitively, in modern syntax
 (`rgb(255 128 0 / 50%)`) or legacy comma syntax for `rgb()` and `hsl()`
-(`rgba(255, 128, 0, 0.5)`). The result is in the matching Prismora space,
+(`rgba(255, 128, 0, 0.5)`). The result is in the matching Chromarite space,
 such as `Space.oklch` for `oklch()`, with alpha only if given. Anything else
 bubbles, including `currentcolor`, system colors, and relative colors like
 `oklch(from red l c h)`.
 
-Units follow Prismora rather than CSS: channels are 0 to 1 where CSS uses
+Units follow Chromarite rather than CSS: channels are 0 to 1 where CSS uses
 0 to 255 or percentages, and hue is in turns, so `hsl(120deg 50% 50%)` gives
 `[1/3, 0.5, 0.5]`. Lab and LCH keep CSS's 0 to 100 lightness. As in CSS,
 `rgb()` channels and alpha are clamped to their ranges, as are lightness and
 negative chroma or saturation; `color()` channels aren't. A missing channel,
-`none`, becomes 0, as for an achromatic hue elsewhere in Prismora.
+`none`, becomes 0, as for an achromatic hue elsewhere in Chromarite.
 
     let parseCssColor(text: String): Color throws Bubble {
       let lower = asciiLower(trimCss(text));
@@ -447,7 +447,7 @@ Each row as CSS in this color's own space, such as `oklch(0.7 0.1 180)`,
 with ` / alpha` if alpha is given, rounded enough to round trip closely.
 sRGB within range uses `rgb()`, out of range `color(srgb ...)`, since
 `rgb()` clamps. HSV, which CSS lacks, is written as sRGB. Spaces defined
-outside Prismora bubble.
+outside Chromarite bubble.
 
     let cssStrings(color: Color): List<String> throws Bubble {
       let source = if (color.space == Space.hsv) { color.convert(Space.srgb) } else { color };

@@ -6,4 +6,4 @@ publish = false
 
 [dependencies]
 # Built by `temper build` at the repo's top.
-prismora = { path = "../../../temper.out/rust/prismora" }
+chromarite = { path = "../../../temper.out/rust/chromarite" }

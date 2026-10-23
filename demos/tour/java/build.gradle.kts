@@ -10,7 +10,7 @@ val temperOut = file("../../../temper.out/java")
 sourceSets {
     main {
         java {
-            for (library in listOf("temper-core", "std", "prismora")) {
+            for (library in listOf("temper-core", "std", "chromarite")) {
                 srcDir(temperOut.resolve("$library/src/main/java"))
             }
         }

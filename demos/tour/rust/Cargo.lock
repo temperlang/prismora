@@ -3,6 +3,14 @@
 version = 4
 
 [[package]]
+name = "chromarite"
+version = "0.0.1"
+dependencies = [
+ "temper-core",
+ "temper-std",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -25,14 +33,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "prismora"
-version = "0.0.1"
-dependencies = [
- "temper-core",
- "temper-std",
-]
-
-[[package]]
 name = "temper-core"
 version = "0.6.0"
 dependencies = [
@@ -50,5 +50,5 @@ dependencies = [
 name = "tour"
 version = "0.0.0"
 dependencies = [
- "prismora",
+ "chromarite",
 ]

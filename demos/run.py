@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.11"
 # ///
-"""Runs Prismora's tour in each language and checks the output matches.
+"""Runs Chromarite's tour in each language and checks the output matches.
 
 Usage, from anywhere in the repo, after building the libraries:
 

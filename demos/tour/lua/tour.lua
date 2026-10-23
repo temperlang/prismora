@@ -1,13 +1,13 @@
--- A tour of Prismora's whole public API, from Lua.
+-- A tour of Chromarite's whole public API, from Lua.
 --
--- The same tour exists for each language Prismora supports, and they all
+-- The same tour exists for each language Chromarite supports, and they all
 -- print the same text. See ../README.md for how to run them.
 
-local prismora = require("prismora")
--- Prismora's null is temper-core's `null`, not Lua's `nil`.
+local chromarite = require("chromarite")
+-- Chromarite's null is temper-core's `null`, not Lua's `nil`.
 local is_null = require("temper-core").is_null
 local Color, HueMethod, Matrix, Space =
-  prismora.Color, prismora.HueMethod, prismora.Matrix, prismora.Space
+  chromarite.Color, chromarite.HueMethod, chromarite.Matrix, chromarite.Space
 
 -- Numbers print with 4 decimals, the same way in every language.
 local function num(x)
@@ -50,7 +50,7 @@ local function section(title)
   print("## " .. title)
 end
 
-print("# Prismora tour")
+print("# Chromarite tour")
 
 section("1. Making colors")
 

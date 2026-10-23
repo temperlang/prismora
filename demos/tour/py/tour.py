@@ -1,10 +1,10 @@
-"""A tour of Prismora's whole public API, from Python.
+"""A tour of Chromarite's whole public API, from Python.
 
-The same tour exists for each language Prismora supports, and they all print
+The same tour exists for each language Chromarite supports, and they all print
 the same text. See ../README.md for how to run them.
 """
 
-from prismora import Color, HueMethod, Matrix, Space
+from chromarite import Color, HueMethod, Matrix, Space
 
 
 # Numbers print with 4 decimals, the same way in every language.
@@ -35,7 +35,7 @@ def section(title):
     print(f"## {title}")
 
 
-print("# Prismora tour")
+print("# Chromarite tour")
 
 section("1. Making colors")
 

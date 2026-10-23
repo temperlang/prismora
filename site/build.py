@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.11"
 # ///
-"""Builds Prismora's site into `site/build/`.
+"""Builds Chromarite's site into `site/build/`.
 
     temper build -b js -b rust
     rustup target add wasm32-unknown-unknown
@@ -10,8 +10,8 @@
     python3 -m http.server -d site/build
 
 Type-checks the page's JS with TypeScript, then bundles Temper's JS output
-for Prismora, with the parts of Temper's runtime it uses, into one minified
-module, which the page's import map names "prismora" so the playground can
+for Chromarite, with the parts of Temper's runtime it uses, into one minified
+module, which the page's import map names "chromarite" so the playground can
 import it too. Compiles the Rust tour to
 wasm, so the page can run it, and builds the tours' expected output into the
 page's script. Copies the page and each language's tour source, and measures
@@ -94,7 +94,7 @@ def esbuild(*args):
 
 
 def main():
-    if not (JS / "prismora" / "prismora.internal.js").exists():
+    if not (JS / "chromarite" / "chromarite.internal.js").exists():
         raise SystemExit("Build the JS library first: temper build -b js")
     if not ESBUILD.exists():
         raise SystemExit("Install the site's tools first: npm ci --prefix site")
@@ -110,9 +110,9 @@ def main():
     # GitHub Pages serves files as they are, without Jekyll.
     (OUT / ".nojekyll").touch()
 
-    bundle = OUT / "lib" / "prismora.js"
+    bundle = OUT / "lib" / "chromarite.js"
     esbuild(
-        JS / "prismora" / "index.js",
+        JS / "chromarite" / "index.js",
         "--bundle",
         f"--alias:@temperlang/core={JS / 'temper-core' / 'index.js'}",
         f"--outfile={bundle}",
@@ -121,7 +121,7 @@ def main():
     esbuild(
         SITE / "app.js",
         "--bundle",
-        "--external:prismora",
+        "--external:chromarite",
         f"--define:TOUR_EXPECTED={expected}",
         f"--outfile={OUT / 'app.js'}",
     )
@@ -134,15 +134,15 @@ def main():
     wasm_dir = SITE / "wasm"
     subprocess.run(["cargo", "build", "-q", "--release", "--target", "wasm32-unknown-unknown"], cwd=wasm_dir, check=True)
     wasm = OUT / "tour" / "tour.wasm"
-    copy(wasm_dir / "target" / "wasm32-unknown-unknown" / "release" / "prismora_tour_wasm.wasm", wasm)
+    copy(wasm_dir / "target" / "wasm32-unknown-unknown" / "release" / "chromarite_tour_wasm.wasm", wasm)
 
     # Unbundled, for comparison: what the page would load without esbuild.
-    prismora = [JS / "prismora" / f for f in ["index.js", "prismora.js", "prismora.internal.js"]]
+    chromarite = [JS / "chromarite" / f for f in ["index.js", "chromarite.js", "chromarite.internal.js"]]
     core = sorted((JS / "temper-core").glob("*.js"))
     measured = [
-        sizes("Prismora with the runtime it uses, bundled and minified", [bundle]),
-        sizes("Unbundled, for comparison: Prismora and all of Temper's JS runtime", prismora + core),
-        sizes("The Rust tour as wasm, with Prismora compiled in", [wasm]),
+        sizes("Chromarite with the runtime it uses, bundled and minified", [bundle]),
+        sizes("Unbundled, for comparison: Chromarite and all of Temper's JS runtime", chromarite + core),
+        sizes("The Rust tour as wasm, with Chromarite compiled in", [wasm]),
     ]
     (OUT / "sizes.json").write_text(json.dumps(measured, indent=2) + "\n")
 
@@ -150,7 +150,7 @@ def main():
     # instead of reusing cached ones.
     page = OUT / "index.html"
     html = page.read_text()
-    for ref in ["style.css", "app.js", "./lib/prismora.js"]:
+    for ref in ["style.css", "app.js", "./lib/chromarite.js"]:
         digest = hashlib.sha256((OUT / ref).read_bytes()).hexdigest()[:10]
         html = html.replace(f'"{ref}"', f'"{ref}?v={digest}"')
     page.write_text(html)

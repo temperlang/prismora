@@ -8,6 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Built by `temper build -b csharp` at the repo's top. -->
-    <ProjectReference Include="../../../temper.out/csharp/prismora/src/Prismora.csproj" />
+    <ProjectReference Include="../../../temper.out/csharp/chromarite/src/Chromarite.csproj" />
   </ItemGroup>
 </Project>

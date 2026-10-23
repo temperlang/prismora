@@ -1,9 +1,9 @@
-// A tour of Prismora's whole public API, from JavaScript.
+// A tour of Chromarite's whole public API, from JavaScript.
 //
-// The same tour exists for each language Prismora supports, and they all
+// The same tour exists for each language Chromarite supports, and they all
 // print the same text. See ../README.md for how to run them.
 
-import { Color, HueMethod, Matrix, Space } from "prismora";
+import { Color, HueMethod, Matrix, Space } from "chromarite";
 
 // Numbers print with 4 decimals, the same way in every language.
 function num(x) {
@@ -38,7 +38,7 @@ function section(title) {
   console.log(`## ${title}`);
 }
 
-console.log("# Prismora tour");
+console.log("# Chromarite tour");
 
 section("1. Making colors");
 
