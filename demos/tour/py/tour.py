@@ -103,30 +103,35 @@ for space in spaces:
 
 # The same orange in every space.
 for space in spaces:
-    print(f"orange in {space.name}: {nums(orange.convert(space).rows.to_list())}")
+    converted = orange.convert(space)  # snippet: convert
+    print(f"orange in {space.name}: {nums(converted.rows.to_list())}")
 
 section("3. Formatting")
 
 # Hex and ints fit colors into sRGB first; CSS keeps each color's space.
-mixed = Color.parse("oklch(70% 0.15 200 / 50%)")
+mixed = Color.parse("oklch(70% 0.15 200 / 50%)")  # snippet: parse
 for color in [orange, see_through, pair, mixed, Color.parse("color(display-p3 1 0 0)")]:
-    print(f"hex {', '.join(color.to_hex())}")
-    print(f"css {', '.join(color.to_css())}")
+    hexes = color.to_hex()  # snippet: format
+    css = color.to_css()  # snippet: format
+    print(f"hex {', '.join(hexes)}")
+    print(f"css {', '.join(css)}")
     print(f"ints {', '.join(f'{n:06x}' for n in color.to_rgb_ints())}")
 
 section("4. Gamuts")
 
 # Display P3's red is redder than any sRGB color: as sRGB, it's out of the
 # 0-to-1 range.
-p3_red = Color.from_list(Space.display_p3, [1.0, 0.0, 0.0])
-print(f"P3 red in sRGB? {yes(p3_red.in_gamut(Space.srgb)[0])}; in P3? {yes(p3_red.in_gamut(Space.display_p3)[0])}")
+p3_red = Color.from_list(Space.display_p3, [1.0, 0.0, 0.0])  # snippet: gamut
+in_srgb = p3_red.in_gamut(Space.srgb)  # snippet: gamut
+in_p3 = p3_red.in_gamut(Space.display_p3)  # snippet: gamut
+print(f"P3 red in sRGB? {yes(in_srgb[0])}; in P3? {yes(in_p3[0])}")
 show("P3 red as sRGB", p3_red.convert(Space.srgb))
 
 # To show a color like this vivid blue on an sRGB screen, either map it into
 # the gamut as CSS does, keeping lightness and hue and reducing chroma, or
 # clip each channel, which can change lightness and hue too.
-vivid = Color.from_list(Space.oklch, [0.6, 0.35, 0.75])
-mapped = vivid.to_gamut(Space.srgb)
+vivid = Color.from_list(Space.oklch, [0.6, 0.35, 0.75])  # snippet: snap, edges
+mapped = vivid.to_gamut(Space.srgb)  # snippet: snap
 clipped = vivid.clip(Space.srgb)
 show("vivid blue", vivid)
 show("mapped, in OkLCh", mapped.convert(Space.oklch))
@@ -138,8 +143,10 @@ print(f"mapped vs clipped: {num(mapped.delta_e_ok(clipped)[0])}")
 
 # The most chroma vivid blue's lightness and hue can have in sRGB, and the
 # color lowered to it, keeping lightness and hue exactly.
-print(f"max chroma in sRGB: {num(vivid.max_chroma(Space.srgb)[0])}")
-show("fitted, in OkLCh", vivid.fit_chroma(Space.srgb))
+most = vivid.max_chroma(Space.srgb)  # snippet: edges
+print(f"max chroma in sRGB: {num(most[0])}")
+fitted = vivid.fit_chroma(Space.srgb)  # snippet: snap
+show("fitted, in OkLCh", fitted)
 
 section("5. Mixing and gradients")
 
@@ -164,11 +171,14 @@ print(f"long way: {' '.join(stops.gradient_hue(5, Space.oklch, HueMethod.longer)
 section("6. Adjusting")
 
 # Adjustments happen in OkLCh, so equal steps look equal.
-steel = Color.parse("steelblue")
+steel = Color.parse("steelblue")  # snippet: harmony, shades
 print(f"steelblue {steel.to_hex()[0]}")
-print(f"lighter {steel.lighten(0.1).to_hex()[0]}, darker {steel.lighten(-0.1).to_hex()[0]}")
+lighter = steel.lighten(0.1)  # snippet: shades
+darker = steel.lighten(-0.1)  # snippet: shades
+print(f"lighter {lighter.to_hex()[0]}, darker {darker.to_hex()[0]}")
 print(f"more saturated {steel.saturate(1.5).to_hex()[0]}, less {steel.saturate(0.5).to_hex()[0]}")
-print(f"opposite hue {steel.rotate_hue(0.5).to_hex()[0]}, gray {steel.grayscale().to_hex()[0]}")
+opposite = steel.rotate_hue(0.5)  # snippet: harmony
+print(f"opposite hue {opposite.to_hex()[0]}, gray {steel.grayscale().to_hex()[0]}")
 
 # Or change every channel value directly.
 show("orange halved", orange.map(lambda x: x / 2))
@@ -177,10 +187,11 @@ section("7. Contrast")
 
 # Relative luminance and contrast ratios, as WCAG defines them. Text needs
 # 4.5 or more against its background for normal sizes.
-white = Color.parse("white")
-texts = Color.from_rgb_ints([0x000000, 0x767676, 0x999999])
+white = Color.parse("white")  # snippet: contrast
+texts = Color.from_rgb_ints([0x000000, 0x767676, 0x999999])  # snippet: contrast
+ratios = texts.contrast(white)  # snippet: contrast
 print(f"luminance {nums(texts.luminance())}")
-print(f"against white {nums(texts.contrast(white))}")
+print(f"against white {nums(ratios)}")
 
 section("8. Matrix")
 

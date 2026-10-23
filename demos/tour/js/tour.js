@@ -109,16 +109,19 @@ for (const space of spaces) {
 
 // The same orange in every space.
 for (const space of spaces) {
-  console.log(`orange in ${space.name}: ${nums(orange.convert(space).rows.toList())}`);
+  const converted = orange.convert(space);  // snippet: convert
+  console.log(`orange in ${space.name}: ${nums(converted.rows.toList())}`);
 }
 
 section("3. Formatting");
 
 // Hex and ints fit colors into sRGB first; CSS keeps each color's space.
-const mixed = Color.parse("oklch(70% 0.15 200 / 50%)");
+const mixed = Color.parse("oklch(70% 0.15 200 / 50%)");  // snippet: parse
 for (const color of [orange, seeThrough, pair, mixed, Color.parse("color(display-p3 1 0 0)")]) {
-  console.log(`hex ${color.toHex().join(", ")}`);
-  console.log(`css ${color.toCss().join(", ")}`);
+  const hexes = color.toHex();  // snippet: format
+  const css = color.toCss();  // snippet: format
+  console.log(`hex ${hexes.join(", ")}`);
+  console.log(`css ${css.join(", ")}`);
   console.log(`ints ${color.toRgbInts().map((n) => n.toString(16).padStart(6, "0")).join(", ")}`);
 }
 
@@ -126,18 +129,17 @@ section("4. Gamuts");
 
 // Display P3's red is redder than any sRGB color: as sRGB, it's out of the
 // 0-to-1 range.
-const p3Red = Color.fromList(Space.displayP3, [1.0, 0.0, 0.0]);
-console.log(
-  `P3 red in sRGB? ${yes(p3Red.inGamut(Space.srgb)[0])}; ` +
-    `in P3? ${yes(p3Red.inGamut(Space.displayP3)[0])}`,
-);
+const p3Red = Color.fromList(Space.displayP3, [1.0, 0.0, 0.0]);  // snippet: gamut
+const inSrgb = p3Red.inGamut(Space.srgb);  // snippet: gamut
+const inP3 = p3Red.inGamut(Space.displayP3);  // snippet: gamut
+console.log(`P3 red in sRGB? ${yes(inSrgb[0])}; in P3? ${yes(inP3[0])}`);
 show("P3 red as sRGB", p3Red.convert(Space.srgb));
 
 // To show a color like this vivid blue on an sRGB screen, either map it into
 // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
 // clip each channel, which can change lightness and hue too.
-const vivid = Color.fromList(Space.oklch, [0.6, 0.35, 0.75]);
-const mapped = vivid.toGamut(Space.srgb);
+const vivid = Color.fromList(Space.oklch, [0.6, 0.35, 0.75]);  // snippet: snap, edges
+const mapped = vivid.toGamut(Space.srgb);  // snippet: snap
 const clipped = vivid.clip(Space.srgb);
 show("vivid blue", vivid);
 show("mapped, in OkLCh", mapped.convert(Space.oklch));
@@ -149,8 +151,10 @@ console.log(`mapped vs clipped: ${num(mapped.deltaEOk(clipped)[0])}`);
 
 // The most chroma vivid blue's lightness and hue can have in sRGB, and the
 // color lowered to it, keeping lightness and hue exactly.
-console.log(`max chroma in sRGB: ${num(vivid.maxChroma(Space.srgb)[0])}`);
-show("fitted, in OkLCh", vivid.fitChroma(Space.srgb));
+const most = vivid.maxChroma(Space.srgb);  // snippet: edges
+console.log(`max chroma in sRGB: ${num(most[0])}`);
+const fitted = vivid.fitChroma(Space.srgb);  // snippet: snap
+show("fitted, in OkLCh", fitted);
 
 section("5. Mixing and gradients");
 
@@ -176,11 +180,14 @@ console.log(`long way: ${stops.gradientHue(5, Space.oklch, HueMethod.longer).toH
 section("6. Adjusting");
 
 // Adjustments happen in OkLCh, so equal steps look equal.
-const steel = Color.parse("steelblue");
+const steel = Color.parse("steelblue");  // snippet: harmony, shades
 console.log(`steelblue ${steel.toHex()[0]}`);
-console.log(`lighter ${steel.lighten(0.1).toHex()[0]}, darker ${steel.lighten(-0.1).toHex()[0]}`);
+const lighter = steel.lighten(0.1);  // snippet: shades
+const darker = steel.lighten(-0.1);  // snippet: shades
+console.log(`lighter ${lighter.toHex()[0]}, darker ${darker.toHex()[0]}`);
 console.log(`more saturated ${steel.saturate(1.5).toHex()[0]}, less ${steel.saturate(0.5).toHex()[0]}`);
-console.log(`opposite hue ${steel.rotateHue(0.5).toHex()[0]}, gray ${steel.grayscale().toHex()[0]}`);
+const opposite = steel.rotateHue(0.5);  // snippet: harmony
+console.log(`opposite hue ${opposite.toHex()[0]}, gray ${steel.grayscale().toHex()[0]}`);
 
 // Or change every channel value directly.
 show("orange halved", orange.map((x) => x / 2));
@@ -189,10 +196,11 @@ section("7. Contrast");
 
 // Relative luminance and contrast ratios, as WCAG defines them. Text needs
 // 4.5 or more against its background for normal sizes.
-const white = Color.parse("white");
-const texts = Color.fromRgbInts([0x000000, 0x767676, 0x999999]);
+const white = Color.parse("white");  // snippet: contrast
+const texts = Color.fromRgbInts([0x000000, 0x767676, 0x999999]);  // snippet: contrast
+const ratios = texts.contrast(white);  // snippet: contrast
 console.log(`luminance ${nums(texts.luminance())}`);
-console.log(`against white ${nums(texts.contrast(white))}`);
+console.log(`against white ${nums(ratios)}`);
 
 section("8. Matrix");
 

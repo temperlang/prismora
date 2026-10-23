@@ -146,17 +146,19 @@ int main() {
 
   // The same orange in every space.
   for (auto const &space : spaces) {
-    std::cout << "orange in " << space->get_name() << ": " << nums(*orange->convert(space)->get_rows()->toList())
-              << "\n";
+    auto converted = orange->convert(space);  // snippet: convert
+    std::cout << "orange in " << space->get_name() << ": " << nums(*converted->get_rows()->toList()) << "\n";
   }
 
   section("3. Formatting");
 
   // Hex and ints fit colors into sRGB first; CSS keeps each color's space.
-  auto mixed = Color::parse("oklch(70% 0.15 200 / 50%)");
+  auto mixed = Color::parse("oklch(70% 0.15 200 / 50%)");  // snippet: parse
   for (auto const &color : {orange, seeThrough, pair, mixed, Color::parse("color(display-p3 1 0 0)")}) {
-    std::cout << "hex " << join(*color->toHex(), ", ") << "\n";
-    std::cout << "css " << join(*color->toCss(), ", ") << "\n";
+    auto hexes = color->toHex();  // snippet: format
+    auto css = color->toCss();  // snippet: format
+    std::cout << "hex " << join(*hexes, ", ") << "\n";
+    std::cout << "css " << join(*css, ", ") << "\n";
     // Keep the returned list alive while looping over it.
     auto rgbInts = color->toRgbInts();
     std::vector<std::string> ints;
@@ -170,16 +172,17 @@ int main() {
 
   // Display P3's red is redder than any sRGB color: as sRGB, it's out of the
   // 0-to-1 range.
-  auto p3Red = Color::fromList(Space::displayP3, list({1.0, 0.0, 0.0}));
-  std::cout << "P3 red in sRGB? " << yes((*p3Red->inGamut(Space::srgb))[0]) << "; in P3? "
-            << yes((*p3Red->inGamut(Space::displayP3))[0]) << "\n";
+  auto p3Red = Color::fromList(Space::displayP3, list({1.0, 0.0, 0.0}));  // snippet: gamut
+  auto inSrgb = p3Red->inGamut(Space::srgb);  // snippet: gamut
+  auto inP3 = p3Red->inGamut(Space::displayP3);  // snippet: gamut
+  std::cout << "P3 red in sRGB? " << yes((*inSrgb)[0]) << "; in P3? " << yes((*inP3)[0]) << "\n";
   show("P3 red as sRGB", p3Red->convert(Space::srgb));
 
   // To show a color like this vivid blue on an sRGB screen, either map it into
   // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
   // clip each channel, which can change lightness and hue too.
-  auto vivid = Color::fromList(Space::oklch, list({0.6, 0.35, 0.75}));
-  auto mapped = vivid->toGamut(Space::srgb);
+  auto vivid = Color::fromList(Space::oklch, list({0.6, 0.35, 0.75}));  // snippet: snap, edges
+  auto mapped = vivid->toGamut(Space::srgb);  // snippet: snap
   auto clipped = vivid->clip(Space::srgb);
   show("vivid blue", vivid);
   show("mapped, in OkLCh", mapped->convert(Space::oklch));
@@ -191,8 +194,10 @@ int main() {
 
   // The most chroma vivid blue's lightness and hue can have in sRGB, and the
   // color lowered to it, keeping lightness and hue exactly.
-  std::cout << "max chroma in sRGB: " << num((*vivid->maxChroma(Space::srgb))[0]) << "\n";
-  show("fitted, in OkLCh", vivid->fitChroma(Space::srgb));
+  auto most = vivid->maxChroma(Space::srgb);  // snippet: edges
+  std::cout << "max chroma in sRGB: " << num((*most)[0]) << "\n";
+  auto fitted = vivid->fitChroma(Space::srgb);  // snippet: snap
+  show("fitted, in OkLCh", fitted);
 
   section("5. Mixing and gradients");
 
@@ -219,14 +224,15 @@ int main() {
   section("6. Adjusting");
 
   // Adjustments happen in OkLCh, so equal steps look equal.
-  auto steel = Color::parse("steelblue");
+  auto steel = Color::parse("steelblue");  // snippet: harmony, shades
   std::cout << "steelblue " << (*steel->toHex())[0] << "\n";
-  std::cout << "lighter " << (*steel->lighten(0.1)->toHex())[0] << ", darker " << (*steel->lighten(-0.1)->toHex())[0]
-            << "\n";
+  auto lighter = steel->lighten(0.1);  // snippet: shades
+  auto darker = steel->lighten(-0.1);  // snippet: shades
+  std::cout << "lighter " << (*lighter->toHex())[0] << ", darker " << (*darker->toHex())[0] << "\n";
   std::cout << "more saturated " << (*steel->saturate(1.5)->toHex())[0] << ", less "
             << (*steel->saturate(0.5)->toHex())[0] << "\n";
-  std::cout << "opposite hue " << (*steel->rotateHue(0.5)->toHex())[0] << ", gray "
-            << (*steel->grayscale()->toHex())[0] << "\n";
+  auto opposite = steel->rotateHue(0.5);  // snippet: harmony
+  std::cout << "opposite hue " << (*opposite->toHex())[0] << ", gray " << (*steel->grayscale()->toHex())[0] << "\n";
 
   // Or change every channel value directly.
   show("orange halved", orange->map([](double x) { return x / 2; }));
@@ -235,10 +241,11 @@ int main() {
 
   // Relative luminance and contrast ratios, as WCAG defines them. Text needs
   // 4.5 or more against its background for normal sizes.
-  auto white = Color::parse("white");
-  auto texts = Color::fromRgbInts(list<int32_t>({0x000000, 0x767676, 0x999999}));
+  auto white = Color::parse("white");  // snippet: contrast
+  auto texts = Color::fromRgbInts(list<int32_t>({0x000000, 0x767676, 0x999999}));  // snippet: contrast
+  auto ratios = texts->contrast(white);  // snippet: contrast
   std::cout << "luminance " << nums(*texts->luminance()) << "\n";
-  std::cout << "against white " << nums(*texts->contrast(white)) << "\n";
+  std::cout << "against white " << nums(*ratios) << "\n";
 
   section("8. Matrix");
 

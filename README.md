@@ -3,8 +3,6 @@
 A cross-language color transformation library, working toward the color math of
 [CSS Color 4][CssColor4] and the mixing of [CSS Color 5][CssColor5].
 
-Developed primarily with AI coding as of October 2026.
-
 ## Examples
 
 In Temper, and the same API in each [supported language](#languages):
@@ -84,6 +82,9 @@ out of the box for Python. This library might help figure out what Temper still
 needs for things like that.
 
 ## Development
+
+Developed primarily with AI coding (specifically Claude Code on Opus 5.5) as of
+October 2026.
 
 Run tests with [Temper][Temper], on one backend while working:
 

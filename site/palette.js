@@ -16,6 +16,7 @@
 // says when they change. Clicking a shade copies its hex. Children with
 // slot="actions" join the copy buttons. It takes
 // --text, --muted, --border, --surface, --bg and --accent from the page.
+// Parts, for styling or pointing at: harmonies and ramps.
 
 import { Color, Space } from "prismora";
 
@@ -221,9 +222,9 @@ const TEMPLATE = `
     <p class="hint">Drag the big dot to turn the base hue, or the others for your own harmony.</p>
   </div>
   <div class="side">
-    <ul id="harmonies" class="harmonies" aria-label="Harmony"></ul>
+    <ul id="harmonies" part="harmonies" class="harmonies" aria-label="Harmony"></ul>
     <div class="steps" aria-hidden="true"><span></span>${STEPS.map((s) => `<span>${s}</span>`).join("")}</div>
-    <div id="ramps"></div>
+    <div id="ramps" part="ramps"></div>
     <p class="note">
       Each shade keeps its hue and is as colorful as the base allows, within
       sRGB so every screen shows it. Shades line up by contrast in every hue:
