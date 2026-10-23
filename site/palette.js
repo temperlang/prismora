@@ -232,7 +232,7 @@ const TEMPLATE = `
       take black text.<span class="aa-note"> "Aa" shows each ratio.</span>
     </p>
     <div class="exports">
-      <button type="button" id="copy-css">Copy as CSS variables</button>
+      <button type="button" id="copy-css">Copy shades as CSS</button>
       <button type="button" id="copy-hex">Copy hex codes</button>
       <slot name="actions"></slot>
       <span id="status" class="status" role="status"></span>
