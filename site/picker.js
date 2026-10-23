@@ -190,7 +190,7 @@ const TEMPLATE = `
   .sample { position: absolute; left: 1rem; bottom: 0.8rem; font-size: 1.4rem; font-weight: 600; }
   .pill {
     display: inline-block; padding: 0.2rem 0.8rem; border-radius: 999px;
-    font-size: 0.9rem; font-weight: 600; color: #fff; background: var(--accent, #5b3fd1);
+    font-size: 0.9rem; font-weight: 600; color: var(--bg, #fff); background: var(--accent, #5b3fd1);
   }
   .pill[data-level="0"] { background: #1f7f47; }
   .pill[data-level="2"], .pill[data-level="3"] { background: #a8431a; }
@@ -623,12 +623,18 @@ class PrismoraPicker extends HTMLElement {
     });
     text.addEventListener("change", () => this.#changed());
 
-    // Snapping fits the color into a gamut as CSS does: same lightness and
-    // hue, less chroma.
+    // Snapping keeps lightness and hue and reduces chroma to the most that
+    // fits, by bisection with Prismora's inGamut, so the result is inside.
     for (const [id, space] of [["snap-srgb", Space.srgb], ["snap-p3", Space.displayP3]]) {
       this.#el(id).addEventListener("click", () => {
-        const [L, C, turns] = this.#color.toGamut(space).convert(Space.oklch).rows.toList();
-        this.#set({ L, C, H: C > 0.0001 ? turns * 360 : this.#state.H });
+        const { L, C, H } = this.#state;
+        let [lo, hi] = [0, C];
+        for (let step = 0; step < 24; step++) {
+          const mid = (lo + hi) / 2;
+          if (Color.fromList(Space.oklch, [L, mid, H / 360]).inGamut(space)[0]) lo = mid;
+          else hi = mid;
+        }
+        this.#set({ C: lo });
         this.#changed();
       });
     }
