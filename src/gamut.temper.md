@@ -271,7 +271,7 @@ examples: `oklch(76% 0.27 60)` maps to about `color(display-p3 1 0.546 0)`,
 and `color(display-p3 1.1 0.4 0.2)` to about `color(display-p3 1 0.473 0.314)`.
 
     let gamutSources(): Color {
-      Color.fromAlpha(Space.oklch, [
+      Color.fromListWithAlpha(Space.oklch, [
         0.7, 0.1, 36.0, 1.0,
         0.76, 0.27, 60.0, 0.5,
         0.6, 0.4, 270.0, 1.0,

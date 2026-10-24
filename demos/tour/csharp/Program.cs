@@ -57,7 +57,7 @@ var pair = Color.FromList(Space.Oklch, new[] { 0.7, 0.1, 144.0, 0.5, 0.2, 288.0 
 Show("two OkLCh colors", pair);
 
 // Alpha (opacity, 0 to 1) goes after each row's channels.
-var seeThrough = Color.FromAlpha(Space.Srgb, new[] { 1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25 });
+var seeThrough = Color.FromListWithAlpha(Space.Srgb, new[] { 1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25 });
 Show("red and blue, see-through", seeThrough);
 Show("orange at 80%", orange.WithAlpha(new[] { 0.8 }));
 
@@ -225,7 +225,7 @@ Console.WriteLine($"row 1, column 2: {Num(rows.Get(1, 2))}; flat 4: {Num(rows.At
 Console.WriteLine($"values {Nums(rows.ToList())}");
 Console.WriteLine($"doubled {Nums(rows.Map(x => x * 2).ToList())}");
 Console.WriteLine($"one row {Nums(Matrix.RowOf(new[] { 0.1, 0.2, 0.3 }).ToList())}");
-Console.WriteLine($"with alpha {Nums(seeThrough.RowsWithAlpha().ToList())}");
+Console.WriteLine($"with alpha {Nums(seeThrough.ToListWithAlpha())}");
 
 // Reading past the end fails.
 try

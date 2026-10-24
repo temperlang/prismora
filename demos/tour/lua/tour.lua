@@ -63,7 +63,7 @@ local pair = Color.fromList(Space.oklch, { 0.7, 0.1, 144.0, 0.5, 0.2, 288.0 })
 show("two OkLCh colors", pair)
 
 -- Alpha (opacity, 0 to 1) goes after each row's channels.
-local seeThrough = Color.fromAlpha(Space.srgb, { 1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25 })
+local seeThrough = Color.fromListWithAlpha(Space.srgb, { 1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25 })
 show("red and blue, see-through", seeThrough)
 show("orange at 80%", orange:withAlpha({ 0.8 }))
 
@@ -223,7 +223,7 @@ print("row 1, column 2: " .. num(rows:get(1, 2)) .. "; flat 4: " .. num(rows:at(
 print("values " .. nums(rows:toList()))
 print("doubled " .. nums(rows:map(function(x) return x * 2 end):toList()))
 print("one row " .. nums(Matrix.rowOf({ 0.1, 0.2, 0.3 }):toList()))
-print("with alpha " .. nums(seeThrough:rowsWithAlpha():toList()))
+print("with alpha " .. nums(seeThrough:toListWithAlpha()))
 
 -- Reading past the end fails.
 if pcall(pair.get, pair, 0, 5) then

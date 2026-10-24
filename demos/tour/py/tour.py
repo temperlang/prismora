@@ -48,7 +48,7 @@ pair = Color.from_list(Space.oklch, [0.7, 0.1, 144.0, 0.5, 0.2, 288.0])
 show("two OkLCh colors", pair)
 
 # Alpha (opacity, 0 to 1) goes after each row's channels.
-see_through = Color.from_alpha(Space.srgb, [1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25])
+see_through = Color.from_list_with_alpha(Space.srgb, [1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25])
 show("red and blue, see-through", see_through)
 show("orange at 80%", orange.with_alpha([0.8]))
 
@@ -202,7 +202,7 @@ print(f"row 1, column 2: {num(rows.get(1, 2))}; flat 4: {num(rows.at(4))}")
 print(f"values {nums(rows.to_list())}")
 print(f"doubled {nums(rows.map(lambda x: x * 2).to_list())}")
 print(f"one row {nums(Matrix.row_of([0.1, 0.2, 0.3]).to_list())}")
-print(f"with alpha {nums(see_through.rows_with_alpha().to_list())}")
+print(f"with alpha {nums(see_through.to_list_with_alpha())}")
 
 # Reading past the end fails.
 try:

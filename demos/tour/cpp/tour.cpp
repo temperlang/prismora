@@ -90,7 +90,7 @@ int main() {
   show("two OkLCh colors", pair);
 
   // Alpha (opacity, 0 to 1) goes after each row's channels.
-  auto seeThrough = Color::fromAlpha(Space::srgb, list({1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25}));
+  auto seeThrough = Color::fromListWithAlpha(Space::srgb, list({1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25}));
   show("red and blue, see-through", seeThrough);
   show("orange at 80%", orange->withAlpha(list({0.8})));
 
@@ -256,7 +256,7 @@ int main() {
   std::cout << "values " << nums(*rows->toList()) << "\n";
   std::cout << "doubled " << nums(*rows->map([](double x) { return x * 2; })->toList()) << "\n";
   std::cout << "one row " << nums(*Matrix::rowOf(list({0.1, 0.2, 0.3}))->toList()) << "\n";
-  std::cout << "with alpha " << nums(*seeThrough->rowsWithAlpha()->toList()) << "\n";
+  std::cout << "with alpha " << nums(*seeThrough->toListWithAlpha()) << "\n";
 
   // Reading past the end fails.
   try {

@@ -65,7 +65,7 @@ fn main() -> Result<()> {
     show("two OkLCh colors", &pair)?;
 
     // Alpha (opacity, 0 to 1) goes after each row's channels.
-    let see_through = Color::from_alpha(Space::srgb(), [1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25]);
+    let see_through = Color::from_list_with_alpha(Space::srgb(), [1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25]);
     show("red and blue, see-through", &see_through)?;
     show("orange at 80%", &orange.with_alpha([0.8]))?;
 
@@ -229,7 +229,7 @@ fn main() -> Result<()> {
     println!("values {}", nums(&rows.to_list()));
     println!("doubled {}", nums(&rows.map(Arc::new(|x| x * 2.0)).to_list()));
     println!("one row {}", nums(&Matrix::row_of([0.1, 0.2, 0.3]).to_list()));
-    println!("with alpha {}", nums(&see_through.rows_with_alpha().to_list()));
+    println!("with alpha {}", nums(&see_through.to_list_with_alpha()));
 
     // Reading past the end fails.
     match pair.get(0, 5) {

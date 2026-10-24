@@ -346,7 +346,7 @@ Hue in degrees, from a number or an angle with a unit, wrapped to 0 up to
       if (alpha == null) {
         Color.fromList(space, channels)
       } else {
-        Color.fromAlpha(space, [channels[0], channels[1], channels[2], alphaValue(alpha)])
+        Color.fromListWithAlpha(space, [channels[0], channels[1], channels[2], alphaValue(alpha)])
       }
     }
 
@@ -581,14 +581,14 @@ backend, unlike float `toString`.
       assert(Color.fromList(Space.srgb, [1.1, 0.0, 0.0]).toCss()[0] == "color(srgb 1.1 0 0)");
       assert(Color.fromList(Space.oklch, [0.7, 0.1, 180.0]).toCss()[0] == "oklch(0.7 0.1 180)");
       assert(Color.fromList(Space.hsl, [90.0, 0.5, 0.125]).toCss()[0] == "hsl(90 50% 12.5%)");
-      assert(Color.fromAlpha(Space.displayP3, [1.0, 0.0, 0.25, 0.5]).toCss()[0] == "color(display-p3 1 0 0.25 / 0.5)");
+      assert(Color.fromListWithAlpha(Space.displayP3, [1.0, 0.0, 0.25, 0.5]).toCss()[0] == "color(display-p3 1 0 0.25 / 0.5)");
       assert(Color.fromList(Space.lab, [50.0, -20.0, 0.00001]).toCss()[0] == "lab(50 -20 0)");
     }
 
 Formatting then parsing gives back about the same color in every space.
 
     test("css round trip") { test =>
-      let srgb = Color.fromAlpha(Space.srgb, [0.2, 0.4, 0.6, 0.8]);
+      let srgb = Color.fromListWithAlpha(Space.srgb, [0.2, 0.4, 0.6, 0.8]);
       for (let space of [
         Space.srgb, Space.srgbLinear, Space.hsl, Space.hwb, Space.lab, Space.lch,
         Space.oklab, Space.oklch, Space.displayP3, Space.a98Rgb, Space.prophotoRgb,

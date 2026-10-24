@@ -31,7 +31,7 @@ Grays keep hue 0, as elsewhere in Chromarite.
 ### Tests
 
     test("lighten") { test =>
-      let color = Color.fromAlpha(Space.srgb, [0.2, 0.4, 0.6, 0.5]);
+      let color = Color.fromListWithAlpha(Space.srgb, [0.2, 0.4, 0.6, 0.5]);
       let lighter = color.lighten(0.1);
       assert(lighter.space == Space.srgb);
       assert(lighter.alphaAt(0) == 0.5);

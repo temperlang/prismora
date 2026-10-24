@@ -298,11 +298,11 @@ Fading to transparent keeps the color, thanks to premultiplying, and one row
 mixes with every row of the other.
 
     test("mix with alpha and one row") { test =>
-      let colors = Color.fromAlpha(Space.srgb, [
+      let colors = Color.fromListWithAlpha(Space.srgb, [
         1.0, 0.0, 0.0, 1.0,
         0.0, 1.0, 0.0, 1.0,
       ]);
-      let clear = Color.fromAlpha(Space.srgb, [0.0, 0.0, 1.0, 0.0]);
+      let clear = Color.fromListWithAlpha(Space.srgb, [0.0, 0.0, 1.0, 0.0]);
       let faded = colors.mix(clear, 0.5, Space.srgb);
       assertColors(test, faded, Color.fromList(Space.srgb, [
         1.0, 0.0, 0.0,

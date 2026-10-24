@@ -61,7 +61,7 @@ public class Tour {
         show("two OkLCh colors", pair);
 
         // Alpha (opacity, 0 to 1) goes after each row's channels.
-        Color seeThrough = Color.fromAlpha(Space.srgb, List.of(1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25));
+        Color seeThrough = Color.fromListWithAlpha(Space.srgb, List.of(1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25));
         show("red and blue, see-through", seeThrough);
         show("orange at 80%", orange.withAlpha(List.of(0.8)));
 
@@ -222,7 +222,7 @@ public class Tour {
         System.out.println("values " + nums(rows.toList()));
         System.out.println("doubled " + nums(rows.map(x -> x * 2).toList()));
         System.out.println("one row " + nums(Matrix.rowOf(List.of(0.1, 0.2, 0.3)).toList()));
-        System.out.println("with alpha " + nums(seeThrough.rowsWithAlpha().toList()));
+        System.out.println("with alpha " + nums(seeThrough.toListWithAlpha()));
 
         // Reading past the end fails.
         try {

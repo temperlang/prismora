@@ -20,7 +20,7 @@ let teal = Color.parse("oklch(65% 0.1 200 / 80%)");
 console.log(teal.toHex()[0]); // #2ba1a7cc
 
 // Many colors at once, one per row, with alpha after each row's channels.
-let vivid = Color.fromAlpha(Space.oklch, [
+let vivid = Color.fromListWithAlpha(Space.oklch, [
   0.7, 0.1, 0.1, 1.0,
   0.6, 0.4, 0.75, 0.8,
 ]);

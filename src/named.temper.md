@@ -7,7 +7,7 @@ arbitrary set, not evenly spaced in any way, so they make poor palettes.
     let parseNamed(name: String): Color throws Bubble {
       let lower = asciiLower(name);
       if (lower == "transparent") {
-        return Color.fromAlpha(Space.srgb, [0.0, 0.0, 0.0, 0.0]);
+        return Color.fromListWithAlpha(Space.srgb, [0.0, 0.0, 0.0, 0.0]);
       }
       Color.fromRows(Space.srgb, intToUnit([namedColors.get(lower)]))
     }
