@@ -33,8 +33,8 @@ is just noticeable. Panics if the colors have different lengths.
 
     let deltaEOkRows(a: Color, b: Color): List<Float64> throws Bubble {
       if (a.length != b.length) { panic() }
-      let labA = a.toSpace(Space.oklab).rows;
-      let labB = b.toSpace(Space.oklab).rows;
+      let labA = rowsOf(a.toSpace(Space.oklab));
+      let labB = rowsOf(b.toSpace(Space.oklab));
       let builder = new ListBuilder<Float64>();
       for (var i = 0; i < a.length; i += 1) {
         builder.add(distance3(
@@ -60,7 +60,7 @@ an edge counts as out, and mapping then clamps it.
       if (gamut == null) {
         for (var i = 0; i < color.length; i += 1) { builder.add(true) }
       } else {
-        let rows = color.toSpace(gamut).rows;
+        let rows = rowsOf(color.toSpace(gamut));
         for (var i = 0; i < color.length; i += 1) {
           builder.add(inUnitCube(rows[i, 0], rows[i, 1], rows[i, 2]));
         }
@@ -81,9 +81,9 @@ if/else.
     let mapToGamut(color: Color, space: Space): Matrix throws Bubble {
       let gamut = gamutOf(space);
       if (gamut == null) {
-        convertRows(color.rows, color.space, space)
+        convertRows(rowsOf(color), color.space, space)
       } else {
-        let lch = color.toSpace(Space.oklch).rows;
+        let lch = rowsOf(color.toSpace(Space.oklch));
         let builder = new ListBuilder<Float64>();
         for (var i = 0; i < color.length; i += 1) {
           let mapped = mapRow(lch[i, 0], lch[i, 1], lch[i, 2], gamut);
@@ -101,9 +101,9 @@ what CSS calls clipping.
     let clipRows(color: Color, space: Space): Matrix {
       let gamut = gamutOf(space);
       if (gamut == null) {
-        convertRows(color.rows, color.space, space)
+        convertRows(rowsOf(color), color.space, space)
       } else {
-        convertRows(clampToUnit(color.toSpace(gamut).rows), gamut, space)
+        convertRows(clampToUnit(rowsOf(color.toSpace(gamut))), gamut, space)
       }
     }
 
@@ -196,7 +196,7 @@ overflows to on every backend.
 
     let maxChromaRows(color: Color, space: Space): List<Float64> throws Bubble {
       let gamut = gamutOf(space);
-      let lch = color.toSpace(Space.oklch).rows;
+      let lch = rowsOf(color.toSpace(Space.oklch));
       let n = color.length;
       var lo = new ListBuilder<Float64>();
       var hi = new ListBuilder<Float64>();
@@ -243,7 +243,7 @@ fit are kept as they are.
 
     let fitChromaRows(color: Color, space: Space): Matrix throws Bubble {
       let fits = inGamutRows(color, space);
-      let lch = color.toSpace(Space.oklch).rows;
+      let lch = rowsOf(color.toSpace(Space.oklch));
       let limits = maxChromaRows(color, space);
       let lowered = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
@@ -252,10 +252,11 @@ fit are kept as they are.
         lowered.add(lch[i, 2]);
       }
       let converted = convertRows(new Matrix(3, lowered.toList()), Space.oklch, color.space);
+      let original = rowsOf(color);
       let ncols = color.space.width;
       let result = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
-        let source = if (fits[i]) { color.rows } else { converted };
+        let source = if (fits[i]) { original } else { converted };
         for (var j = 0; j < ncols; j += 1) {
           result.add(source[i, j]);
         }

@@ -561,7 +561,7 @@ class ChromaritePicker extends HTMLElement {
     const values = [];
     for (let i = 0; i <= n; i++) values.push(i / n, C, H);
     for (let i = 0; i <= n; i++) values.push(L, (i / n) * MAX_CHROMA, H);
-    for (let i = 0; i <= 2 * n; i++) values.push(L, C, i / (2 * n));
+    for (let i = 0; i <= 2 * n; i++) values.push(L, C, (i / (2 * n)) * 360);
     const css = this.#onScreen(Color.fromList(Space.oklch, values));
     const gradient = (stops) => `linear-gradient(to right, ${stops.join(", ")})`;
     this.#el("slider-l").style.setProperty("--track", gradient(css.slice(0, n + 1)));

@@ -395,7 +395,7 @@ class ChromaritePalette extends HTMLElement {
     const { L, C, H } = this.#base;
     const n = 180;
     const values = [];
-    for (let i = 0; i < n; i++) values.push(L, Math.max(C, 0.04), i / n);
+    for (let i = 0; i < n; i++) values.push(L, Math.max(C, 0.04), (i / n) * 360);
     const css = this.#onScreen(Color.fromList(Space.oklch, values));
     const c = size / 2;
     const outer = c - 2;

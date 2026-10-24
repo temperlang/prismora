@@ -16,7 +16,7 @@ Grays keep hue 0, as elsewhere in Chromarite.
     let adjustLch(
       color: Color, lightness: Float64, chromaFactor: Float64, degrees: Float64,
     ): Matrix throws Bubble {
-      let lch = color.toSpace(Space.oklch).rows;
+      let lch = rowsOf(color.toSpace(Space.oklch));
       let adjusted = mapRows(lch) { row, builder =>
         do {
           let chroma = row[1] * chromaFactor;
@@ -64,7 +64,7 @@ the sRGB curve as CSS defines it, which WCAG 2.2 also uses. Colors outside
 sRGB are gamut-mapped first, since WCAG is about displayed colors.
 
     let luminanceRows(color: Color): List<Float64> throws Bubble {
-      let xyz = color.toGamut(Space.srgb).toSpace(Space.xyzD65).rows;
+      let xyz = rowsOf(color.toGamut(Space.srgb).toSpace(Space.xyzD65));
       let builder = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
         builder.add(xyz[i, 1]);

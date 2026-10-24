@@ -452,7 +452,7 @@ outside Chromarite bubble.
     let cssStrings(color: Color): List<String> throws Bubble {
       let source = if (color.space == Space.hsv) { color.toSpace(Space.srgb) } else { color };
       let space = source.space;
-      let rows = source.rows;
+      let rows = rowsOf(source);
       let builder = new ListBuilder<String>();
       for (var i = 0; i < source.length; i += 1) {
         let x = rows[i, 0];

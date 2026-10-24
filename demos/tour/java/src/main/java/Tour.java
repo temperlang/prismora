@@ -9,7 +9,6 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import chromarite.Color;
 import chromarite.HueMethod;
-import chromarite.Matrix;
 import chromarite.Space;
 
 public class Tour {
@@ -67,9 +66,6 @@ public class Tour {
 
         // Packed 0xRRGGBB ints, as in hex literals or canvas pixels.
         show("from ints", Color.fromRgbInts(List.of(0x663399, 0x00ff80)));
-
-        // From a Matrix: a flat list read as rows of a given width.
-        show("from rows", Color.fromRows(Space.hsl, new Matrix(3, List.of(180.0, 1.0, 0.25, 0.0, 0.0, 0.5))));
 
         // Any CSS color. Each keeps the space it was written in.
         for (String text : List.of(
@@ -213,15 +209,13 @@ public class Tour {
         System.out.println("luminance " + nums(texts.luminance()));
         System.out.println("against white " + nums(ratios));
 
-        section("8. Matrix");
+        section("8. Channels as lists");
 
-        // A Color's rows are a Matrix: one flat list, row after row.
-        Matrix rows = pair.getRows();
-        System.out.println(rows.getNrows() + " rows of " + rows.getNcols());
-        System.out.println("row 1, column 2: " + num(rows.get(1, 2)) + "; flat 4: " + num(rows.at(4)));
-        System.out.println("values " + nums(rows.toList()));
-        System.out.println("doubled " + nums(rows.map(x -> x * 2).toList()));
-        System.out.println("one row " + nums(Matrix.rowOf(List.of(0.1, 0.2, 0.3)).toList()));
+        // A Color keeps its channels in one flat list, row after row.
+        System.out.println(pair.getLength() + " colors of " + pair.getWidth() + " channels");
+        System.out.println("row 1, channel 2: " + num(pair.get(1, 2)));
+        System.out.println("values " + nums(pair.toList()));
+        System.out.println("doubled " + nums(pair.map(x -> x * 2).toList()));
         System.out.println("with alpha " + nums(seeThrough.toListWithAlpha()));
 
         // Reading past the end fails.
@@ -229,7 +223,7 @@ public class Tour {
             pair.get(0, 5);
             System.out.println("got?");
         } catch (RuntimeException e) {
-            System.out.println("column 5 doesn't exist");
+            System.out.println("channel 5 doesn't exist");
         }
     }
 }

@@ -64,9 +64,6 @@ Show("orange at 80%", orange.WithAlpha(new[] { 0.8 }));
 // Packed 0xRRGGBB ints, as in hex literals or canvas pixels.
 Show("from ints", Color.FromRgbInts(new[] { 0x663399, 0x00ff80 }));
 
-// From a Matrix: a flat list read as rows of a given width.
-Show("from rows", Color.FromRows(Space.Hsl, new Matrix(3, new[] { 180.0, 1.0, 0.25, 0.0, 0.0, 0.5 })));
-
 // Any CSS color. Each keeps the space it was written in.
 foreach (var text in new[]
 {
@@ -216,15 +213,13 @@ var ratios = texts.Contrast(white);  // snippet: contrast
 Console.WriteLine($"luminance {Nums(texts.Luminance())}");
 Console.WriteLine($"against white {Nums(ratios)}");
 
-Section("8. Matrix");
+Section("8. Channels as lists");
 
-// A Color's rows are a Matrix: one flat list, row after row.
-var rows = pair.Rows;
-Console.WriteLine($"{rows.Nrows} rows of {rows.Ncols}");
-Console.WriteLine($"row 1, column 2: {Num(rows.Get(1, 2))}; flat 4: {Num(rows.At(4))}");
-Console.WriteLine($"values {Nums(rows.ToList())}");
-Console.WriteLine($"doubled {Nums(rows.Map(x => x * 2).ToList())}");
-Console.WriteLine($"one row {Nums(Matrix.RowOf(new[] { 0.1, 0.2, 0.3 }).ToList())}");
+// A Color keeps its channels in one flat list, row after row.
+Console.WriteLine($"{pair.Length} colors of {pair.Width} channels");
+Console.WriteLine($"row 1, channel 2: {Num(pair.Get(1, 2))}");
+Console.WriteLine($"values {Nums(pair.ToList())}");
+Console.WriteLine($"doubled {Nums(pair.Map(x => x * 2).ToList())}");
 Console.WriteLine($"with alpha {Nums(seeThrough.ToListWithAlpha())}");
 
 // Reading past the end fails.
@@ -235,5 +230,5 @@ try
 }
 catch (Exception)
 {
-    Console.WriteLine("column 5 doesn't exist");
+    Console.WriteLine("channel 5 doesn't exist");
 }
