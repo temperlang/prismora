@@ -193,11 +193,15 @@ section("7. Contrast");
 
 // Relative luminance and contrast ratios, as WCAG defines them. Text needs
 // 4.5 or more against its background for normal sizes.
-const white = Color.parse("white");  // snippet: contrast
+const white = Color.parse("white");  // snippet: contrast, shades
 const texts = Color.fromRgbInts([0x000000, 0x767676, 0x999999]);  // snippet: contrast
 const ratios = texts.contrast(white);  // snippet: contrast
 console.log(`luminance ${nums(texts.luminance())}`);
 console.log(`against white ${nums(ratios)}`);
+
+// The lightest steelblue that white text can sit on, at 4.5 or more.
+const shade = steel.fitContrast(white, 4.5, Space.srgb);  // snippet: shades
+console.log(`steelblue for white text ${shade.toHex()[0]}, ${num(shade.contrast(white)[0])}`);
 
 section("8. Channels as lists");
 

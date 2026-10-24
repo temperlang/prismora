@@ -85,10 +85,10 @@ function fitted(lightness, hues, C) {
 
 /**
  * For each hue, the lightness of each pinned shade: the lightest whose hex
- * code has at least its contrast with white, all hues at once. Contrast
- * falls as lightness rises, even as the chroma limit moves, so bisection
- * finds it, starting near where a gray would have it. Rounding to hex can
- * lose a little contrast, so then each steps darker until its hex passes.
+ * code has at least its contrast with white, all hues at once. Chromarite's
+ * fitContrast darkens from the top only as far as each ratio needs. Rounding
+ * to hex can lose a little contrast, so then each steps darker until its hex
+ * passes.
  *
  * @param {number[]} hues
  * @param {number} C
@@ -96,22 +96,12 @@ function fitted(lightness, hues, C) {
  */
 function pinnedLightness(hues, C) {
   const ratios = [...PINNED.values()];
-  const at = hues.flatMap((h) => ratios.map(() => h));
   // A hair over, so other contrast checkers, rounding differently, agree.
-  const want = at.map((_, i) => ratios[i % ratios.length] * 1.001);
-  // A gray's OkLab lightness is the cube root of its luminance, and
-  // contrast with white is 1.05 / (luminance + 0.05).
-  const gray = want.map((r) => Math.cbrt(1.05 / r - 0.05));
-  const lo = gray.map((l) => Math.max(l - 0.15, 0));
-  const hi = gray.map((l) => Math.min(l + 0.15, 1));
-  for (let round = 0; round < 11; round++) {
-    const mid = lo.map((l, i) => (l + hi[i]) / 2);
-    const contrast = fitted(mid, at, C).contrast(WHITE);
-    mid.forEach((l, i) => {
-      if (contrast[i] >= want[i]) lo[i] = l;
-      else hi[i] = l;
-    });
-  }
+  const want = hues.flatMap(() => ratios.map((r) => r * 1.001));
+  const top = Color.fromList(Space.oklch, hues.flatMap((h) => [1, C, h]));
+  const byRatio = ratios.map((r) => top.fitContrast(WHITE, r * 1.001, Space.srgb).toList());
+  const lo = hues.flatMap((_, k) => ratios.map((_, r) => byRatio[r][k * 3]));
+  const at = hues.flatMap((h) => ratios.map(() => h));
   for (let round = 0; round < 8; round++) {
     const rgb = fitted(lo, at, C)
       .toHex()

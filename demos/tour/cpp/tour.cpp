@@ -237,11 +237,15 @@ int main() {
 
   // Relative luminance and contrast ratios, as WCAG defines them. Text needs
   // 4.5 or more against its background for normal sizes.
-  auto white = Color::parse("white");  // snippet: contrast
+  auto white = Color::parse("white");  // snippet: contrast, shades
   auto texts = Color::fromRgbInts(list<int32_t>({0x000000, 0x767676, 0x999999}));  // snippet: contrast
   auto ratios = texts->contrast(white);  // snippet: contrast
   std::cout << "luminance " << nums(*texts->luminance()) << "\n";
   std::cout << "against white " << nums(*ratios) << "\n";
+
+  // The lightest steelblue that white text can sit on, at 4.5 or more.
+  auto shade = steel->fitContrast(white, 4.5, Space::srgb);  // snippet: shades
+  std::cout << "steelblue for white text " << (*shade->toHex())[0] << ", " << num((*shade->contrast(white))[0]) << "\n";
 
   section("8. Channels as lists");
 

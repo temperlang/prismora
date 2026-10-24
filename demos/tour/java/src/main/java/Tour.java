@@ -203,11 +203,15 @@ public class Tour {
 
         // Relative luminance and contrast ratios, as WCAG defines them. Text needs
         // 4.5 or more against its background for normal sizes.
-        Color white = Color.parse("white");  // snippet: contrast
+        Color white = Color.parse("white");  // snippet: contrast, shades
         Color texts = Color.fromRgbInts(List.of(0x000000, 0x767676, 0x999999));  // snippet: contrast
         List<Double> ratios = texts.contrast(white);  // snippet: contrast
         System.out.println("luminance " + nums(texts.luminance()));
         System.out.println("against white " + nums(ratios));
+
+        // The lightest steelblue that white text can sit on, at 4.5 or more.
+        Color shade = steel.fitContrast(white, 4.5, Space.srgb);  // snippet: shades
+        System.out.println("steelblue for white text " + shade.toHex().get(0) + ", " + num(shade.contrast(white).get(0)));
 
         section("8. Channels as lists");
 

@@ -258,6 +258,17 @@ one row, used for every row of the other.
         contrastRows(this, other) orelse panic()
       }
 
+Moves each row's OkLCh lightness as little as possible to reach at least
+`ratio` against `against`, keeping hue and chroma, with chroma fitted to the
+gamut of `space`. Rows that already reach it are unchanged, and the result
+stays in this color's space. `against` may have one row, used for every
+row. For example, `shade.fitContrast(white, 4.5, Space.srgb)` gives a
+shade that white text can sit on. See [adjust](adjust.temper.md).
+
+      public fitContrast(against: Color, ratio: Float64, space: Space): Color {
+        new Color(this.space, (fitContrastRows(this, against, ratio, space) orelse panic()).toList(), alpha)
+      }
+
 ### CSS
 
 Parses CSS color syntax: hex, named colors, and functions such as
