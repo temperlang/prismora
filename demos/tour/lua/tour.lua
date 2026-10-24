@@ -120,7 +120,7 @@ end
 
 -- The same orange in every space.
 for _, space in ipairs(spaces) do
-  local converted = orange:convert(space)  -- snippet: convert
+  local converted = orange:toSpace(space)  -- snippet: convert
   print("orange in " .. space.name .. ": " .. nums(converted:toList()))
 end
 
@@ -145,7 +145,7 @@ local p3Red = Color.fromList(Space.displayP3, { 1.0, 0.0, 0.0 })  -- snippet: ga
 local inSrgb = p3Red:inGamut(Space.srgb)  -- snippet: gamut
 local inP3 = p3Red:inGamut(Space.displayP3)  -- snippet: gamut
 print(string.format("P3 red in sRGB? %s; in P3? %s", yes(inSrgb[1]), yes(inP3[1])))
-show("P3 red as sRGB", p3Red:convert(Space.srgb))
+show("P3 red as sRGB", p3Red:toSpace(Space.srgb))
 
 -- To show a color like this vivid blue on an sRGB screen, either map it into
 -- the gamut as CSS does, keeping lightness and hue and reducing chroma, or
@@ -154,8 +154,8 @@ local vivid = Color.fromList(Space.oklch, { 0.6, 0.35, 270.0 })  -- snippet: sna
 local mapped = vivid:toGamut(Space.srgb)  -- snippet: snap
 local clipped = vivid:toGamutClipped(Space.srgb)
 show("vivid blue", vivid)
-show("mapped, in OkLCh", mapped:convert(Space.oklch))
-show("clipped, in OkLCh", clipped:convert(Space.oklch))
+show("mapped, in OkLCh", mapped:toSpace(Space.oklch))
+show("clipped, in OkLCh", clipped:toSpace(Space.oklch))
 
 -- deltaEOK measures how different two colors look: under about 0.02 is hard
 -- to see.

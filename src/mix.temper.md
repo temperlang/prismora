@@ -97,8 +97,8 @@ or this panics. Alpha in the result is null only if both inputs are opaque.
       } else {
         panic()
       };
-      let rowsA = a.convert(space).rows;
-      let rowsB = b.convert(space).rows;
+      let rowsA = a.toSpace(space).rows;
+      let rowsB = b.toSpace(space).rows;
       let mixed = new Blend(space, hue);
       for (var i = 0; i < length; i += 1) {
         let ia = if (a.length == 1) { 0 } else { i };
@@ -116,7 +116,7 @@ to the last. One color gives the first stop. Panics on no stops.
     let gradientColors(stops: Color, count: Int, space: Space, hue: HueMethod): Color throws Bubble {
       let nstops = stops.length;
       if (nstops == 0) { panic() }
-      let rows = stops.convert(space).rows;
+      let rows = stops.toSpace(space).rows;
       let mixed = new Blend(space, hue);
       for (var i = 0; i < count; i += 1) {
         if (nstops == 1 || count == 1) {
@@ -269,7 +269,7 @@ magenta.
     test("gray takes the other hue") { test =>
       let white = Color.fromList(Space.srgb, [1.0, 1.0, 1.0]);
       let blue = Color.fromList(Space.srgb, [0.0, 0.0, 1.0]);
-      let blueLch = blue.convert(Space.oklch);
+      let blueLch = blue.toSpace(Space.oklch);
       let mid = white.mix(blue, 0.5, Space.oklch);
       assertNear(test, "hue", mid[0, 2], blueLch[0, 2]);
       assertNear(test, "chroma", mid[0, 1], blueLch[0, 1] * 0.5);
@@ -283,8 +283,8 @@ Oklab blends each channel linearly.
     test("mix in oklab") { test =>
       let red = Color.fromList(Space.srgb, [1.0, 0.0, 0.0]);
       let blue = Color.fromList(Space.srgb, [0.0, 0.0, 1.0]);
-      let a = red.convert(Space.oklab);
-      let b = blue.convert(Space.oklab);
+      let a = red.toSpace(Space.oklab);
+      let b = blue.toSpace(Space.oklab);
       let mid = red.mix(blue, 0.25, Space.oklab);
       assert(mid.space == Space.oklab);
       for (var j = 0; j < 3; j += 1) {
@@ -328,11 +328,11 @@ Gradients hit each stop and blend evenly between them.
       let green = Color.fromList(Space.srgb, [0.0, 1.0, 0.0]);
       let blue = Color.fromList(Space.srgb, [0.0, 0.0, 1.0]);
       let expected = [
-        red.convert(Space.oklab),
+        red.toSpace(Space.oklab),
         red.mix(green, 0.5, Space.oklab),
-        green.convert(Space.oklab),
+        green.toSpace(Space.oklab),
         green.mix(blue, 0.5, Space.oklab),
-        blue.convert(Space.oklab),
+        blue.toSpace(Space.oklab),
       ];
       for (var i = 0; i < 5; i += 1) {
         for (var j = 0; j < 3; j += 1) {

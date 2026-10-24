@@ -16,7 +16,7 @@ Grays keep hue 0, as elsewhere in Chromarite.
     let adjustLch(
       color: Color, lightness: Float64, chromaFactor: Float64, degrees: Float64,
     ): Matrix throws Bubble {
-      let lch = color.convert(Space.oklch).rows;
+      let lch = color.toSpace(Space.oklch).rows;
       let adjusted = mapRows(lch) { row, builder =>
         do {
           let chroma = row[1] * chromaFactor;
@@ -35,8 +35,8 @@ Grays keep hue 0, as elsewhere in Chromarite.
       let lighter = color.lighten(0.1);
       assert(lighter.space == Space.srgb);
       assert(lighter.alphaAt(0) == 0.5);
-      let before = color.convert(Space.oklch);
-      let after = lighter.convert(Space.oklch);
+      let before = color.toSpace(Space.oklch);
+      let after = lighter.toSpace(Space.oklch);
       assertNear(test, "lightness", after[0, 0], before[0, 0] + 0.1);
       assertNear(test, "chroma", after[0, 1], before[0, 1]);
       assertNear(test, "hue", after[0, 2], before[0, 2]);
@@ -64,7 +64,7 @@ the sRGB curve as CSS defines it, which WCAG 2.2 also uses. Colors outside
 sRGB are gamut-mapped first, since WCAG is about displayed colors.
 
     let luminanceRows(color: Color): List<Float64> throws Bubble {
-      let xyz = color.toGamut(Space.srgb).convert(Space.xyzD65).rows;
+      let xyz = color.toGamut(Space.srgb).toSpace(Space.xyzD65).rows;
       let builder = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
         builder.add(xyz[i, 1]);

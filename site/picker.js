@@ -448,7 +448,7 @@ class ChromaritePicker extends HTMLElement {
         values[k++] = H;
       }
     }
-    const shown = Color.fromList(Space.oklch, values).convert(this.#screen).toList();
+    const shown = Color.fromList(Space.oklch, values).toSpace(this.#screen).toList();
     const space = { colorSpace: this.#colorSpace };
     const off = document.createElement("canvas");
     off.width = off.height = size;
@@ -648,7 +648,7 @@ class ChromaritePicker extends HTMLElement {
    * @param {string} text
    */
   #setFromText(text) {
-    const [L, C, H] = Color.parse(text.trim()).convert(Space.oklch).toList();
+    const [L, C, H] = Color.parse(text.trim()).toSpace(Space.oklch).toList();
     this.#set({ L, C, H: Number.isFinite(H) && C > 0.0001 ? H : this.#state.H });
   }
 

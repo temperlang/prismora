@@ -450,7 +450,7 @@ sRGB within range uses `rgb()`, out of range `color(srgb ...)`, since
 outside Chromarite bubble.
 
     let cssStrings(color: Color): List<String> throws Bubble {
-      let source = if (color.space == Space.hsv) { color.convert(Space.srgb) } else { color };
+      let source = if (color.space == Space.hsv) { color.toSpace(Space.srgb) } else { color };
       let space = source.space;
       let rows = source.rows;
       let builder = new ListBuilder<String>();
@@ -594,7 +594,7 @@ Formatting then parsing gives back about the same color in every space.
         Space.oklab, Space.oklch, Space.displayP3, Space.a98Rgb, Space.prophotoRgb,
         Space.rec2020, Space.xyzD65, Space.xyzD50,
       ]) {
-        let color = srgb.convert(space);
+        let color = srgb.toSpace(space);
         let back = Color.parse(color.toCss()[0]);
         assert(back.space == space);
         assertConvertColors(test, back, srgb);

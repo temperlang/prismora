@@ -103,7 +103,7 @@ While `rows` is public, it's sometimes nice to skip through it.
 
 All channels as a flat list, row after row, the reverse of `fromList`. For a
 single color, that's just its channels, as in
-`let lch = color.convert(Space.oklch).toList()`. Alpha isn't included; see
+`let lch = color.toSpace(Space.oklch).toList()`. Alpha isn't included; see
 `rowsWithAlpha`.
 
       public toList(): List<Float64> { rows.toList() }
@@ -122,9 +122,9 @@ Alpha for row `i`, which is 1 if `alpha` is null.
 
 ### Conversion
 
-A naming rule tells which space a result is in: methods starting with `to` or
-`convert` return another space or form, such as `toGamut(space)` or `toHex()`,
-while all others keep this color's space, such as `fitChroma(space)` or
+A naming rule tells which space a result is in: methods starting with `to`
+return another space or form, such as `toSpace(space)`, `toGamut(space)` or
+`toHex()`, while all others keep this color's space, such as `fitChroma(space)` or
 `lighten(amount)`. Mixing is the one exception, since its result is in the
 space it blends in.
 
@@ -135,7 +135,7 @@ Conversion never fails, since every space converts to every other.
         new Color(space, rows.map(transform), alpha)
       }
 
-      public convert(space: Space): Color {
+      public toSpace(space: Space): Color {
         if (space == this.space) {
           this
         } else {
@@ -331,7 +331,7 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
         0.2, 0.4, 0.6, 0.5,
         0.9, 0.1, 0.3, 0.25,
       ]);
-      let lch = source.convert(Space.oklch);
+      let lch = source.toSpace(Space.oklch);
       assert(lch.alphaAt(0) == 0.5);
       assert(lch.alphaAt(1) == 0.25);
       assert(source.map { x => x * 0.5 }.alphaAt(1) == 0.25);
@@ -350,12 +350,12 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
         0.5, 0.1, 0.05, 0.5,
         0.8, -0.02, 0.03, 1.0,
       ]);
-      let rgba = source.convert(Space.srgb).rowsWithAlpha();
+      let rgba = source.toSpace(Space.srgb).rowsWithAlpha();
       assert(rgba.ncols == 4);
       assert(rgba[0, 3] == 0.5);
       let back = Color.fromAlpha(Space.srgb, rgba.toList());
       assert(back.alphaAt(0) == 0.5);
-      assertColors(test, source, back.convert(Space.oklab));
+      assertColors(test, source, back.toSpace(Space.oklab));
       assert(Color.fromList(Space.srgb, [0.1, 0.2, 0.3]).rowsWithAlpha()[0, 3] == 1.0);
     }
 
@@ -382,7 +382,7 @@ A separate alpha list goes through `withAlpha`.
       let vivid = Color.fromList(Space.displayP3, [1.0, 0.0, 0.0]);
       assertColors(test, vivid.toGamutClipped(Space.srgb), Color.fromList(Space.srgb, [1.0, 0.0, 0.0]));
       assert(vivid.toRgbInts()[0] == 0xff0b0c);
-      assertColors(test, vivid.toGamutClipped(Space.lab), vivid.convert(Space.lab));
+      assertColors(test, vivid.toGamutClipped(Space.lab), vivid.toSpace(Space.lab));
     }
 
 It would be nice to support expanded value types and also connect with backend

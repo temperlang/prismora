@@ -103,7 +103,7 @@ for space in spaces:
 
 # The same orange in every space.
 for space in spaces:
-    converted = orange.convert(space)  # snippet: convert
+    converted = orange.to_space(space)  # snippet: convert
     print(f"orange in {space.name}: {nums(converted.to_list())}")
 
 section("3. Formatting")
@@ -125,7 +125,7 @@ p3_red = Color.from_list(Space.display_p3, [1.0, 0.0, 0.0])  # snippet: gamut
 in_srgb = p3_red.in_gamut(Space.srgb)  # snippet: gamut
 in_p3 = p3_red.in_gamut(Space.display_p3)  # snippet: gamut
 print(f"P3 red in sRGB? {yes(in_srgb[0])}; in P3? {yes(in_p3[0])}")
-show("P3 red as sRGB", p3_red.convert(Space.srgb))
+show("P3 red as sRGB", p3_red.to_space(Space.srgb))
 
 # To show a color like this vivid blue on an sRGB screen, either map it into
 # the gamut as CSS does, keeping lightness and hue and reducing chroma, or
@@ -134,8 +134,8 @@ vivid = Color.from_list(Space.oklch, [0.6, 0.35, 270.0])  # snippet: snap, edges
 mapped = vivid.to_gamut(Space.srgb)  # snippet: snap
 clipped = vivid.to_gamut_clipped(Space.srgb)
 show("vivid blue", vivid)
-show("mapped, in OkLCh", mapped.convert(Space.oklch))
-show("clipped, in OkLCh", clipped.convert(Space.oklch))
+show("mapped, in OkLCh", mapped.to_space(Space.oklch))
+show("clipped, in OkLCh", clipped.to_space(Space.oklch))
 
 # deltaEOK measures how different two colors look: under about 0.02 is hard
 # to see.

@@ -85,7 +85,7 @@ const SPOTS = [
   {
     id: "convert",
     title: "Converting between spaces",
-    about: "`convert` gives the same colors in any other space. Every row of this table is one call.",
+    about: "`toSpace` gives the same colors in any other space. Every row of this table is one call.",
     target: () => document.querySelector("#spaces table"),
   },
 ];

@@ -33,8 +33,8 @@ is just noticeable. Panics if the colors have different lengths.
 
     let deltaEOkRows(a: Color, b: Color): List<Float64> throws Bubble {
       if (a.length != b.length) { panic() }
-      let labA = a.convert(Space.oklab).rows;
-      let labB = b.convert(Space.oklab).rows;
+      let labA = a.toSpace(Space.oklab).rows;
+      let labB = b.toSpace(Space.oklab).rows;
       let builder = new ListBuilder<Float64>();
       for (var i = 0; i < a.length; i += 1) {
         builder.add(distance3(
@@ -60,7 +60,7 @@ an edge counts as out, and mapping then clamps it.
       if (gamut == null) {
         for (var i = 0; i < color.length; i += 1) { builder.add(true) }
       } else {
-        let rows = color.convert(gamut).rows;
+        let rows = color.toSpace(gamut).rows;
         for (var i = 0; i < color.length; i += 1) {
           builder.add(inUnitCube(rows[i, 0], rows[i, 1], rows[i, 2]));
         }
@@ -83,7 +83,7 @@ if/else.
       if (gamut == null) {
         convertRows(color.rows, color.space, space)
       } else {
-        let lch = color.convert(Space.oklch).rows;
+        let lch = color.toSpace(Space.oklch).rows;
         let builder = new ListBuilder<Float64>();
         for (var i = 0; i < color.length; i += 1) {
           let mapped = mapRow(lch[i, 0], lch[i, 1], lch[i, 2], gamut);
@@ -103,7 +103,7 @@ what CSS calls clipping.
       if (gamut == null) {
         convertRows(color.rows, color.space, space)
       } else {
-        convertRows(clampToUnit(color.convert(gamut).rows), gamut, space)
+        convertRows(clampToUnit(color.toSpace(gamut).rows), gamut, space)
       }
     }
 
@@ -196,7 +196,7 @@ overflows to on every backend.
 
     let maxChromaRows(color: Color, space: Space): List<Float64> throws Bubble {
       let gamut = gamutOf(space);
-      let lch = color.convert(Space.oklch).rows;
+      let lch = color.toSpace(Space.oklch).rows;
       let n = color.length;
       var lo = new ListBuilder<Float64>();
       var hi = new ListBuilder<Float64>();
@@ -243,7 +243,7 @@ fit are kept as they are.
 
     let fitChromaRows(color: Color, space: Space): Matrix throws Bubble {
       let fits = inGamutRows(color, space);
-      let lch = color.convert(Space.oklch).rows;
+      let lch = color.toSpace(Space.oklch).rows;
       let limits = maxChromaRows(color, space);
       let lowered = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
@@ -318,7 +318,7 @@ HSL maps through sRGB, and unbounded spaces just convert.
     test("gamut map to hsl and unbounded spaces") { test =>
       let sources = gamutSources();
       assertConvertColors(test, sources.toGamut(Space.srgb), sources.toGamut(Space.hsl));
-      assertColors(test, sources.toGamut(Space.lab), sources.convert(Space.lab));
+      assertColors(test, sources.toGamut(Space.lab), sources.toSpace(Space.lab));
       let unbounded = Space.oklab.gamut == null;
       assert(Space.hsl.gamut == Space.srgb);
       assert(unbounded);

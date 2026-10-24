@@ -121,7 +121,7 @@ foreach (var space in spaces)
 // The same orange in every space.
 foreach (var space in spaces)
 {
-    var converted = orange.Convert(space);  // snippet: convert
+    var converted = orange.ToSpace(space);  // snippet: convert
     Console.WriteLine($"orange in {space.Name}: {Nums(converted.ToList())}");
 }
 
@@ -146,7 +146,7 @@ var p3Red = Color.FromList(Space.DisplayP3, new[] { 1.0, 0.0, 0.0 });  // snippe
 var inSrgb = p3Red.InGamut(Space.Srgb);  // snippet: gamut
 var inP3 = p3Red.InGamut(Space.DisplayP3);  // snippet: gamut
 Console.WriteLine($"P3 red in sRGB? {Yes(inSrgb[0])}; in P3? {Yes(inP3[0])}");
-Show("P3 red as sRGB", p3Red.Convert(Space.Srgb));
+Show("P3 red as sRGB", p3Red.ToSpace(Space.Srgb));
 
 // To show a color like this vivid blue on an sRGB screen, either map it into
 // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
@@ -155,8 +155,8 @@ var vivid = Color.FromList(Space.Oklch, new[] { 0.6, 0.35, 270.0 });  // snippet
 var mapped = vivid.ToGamut(Space.Srgb);  // snippet: snap
 var clipped = vivid.ToGamutClipped(Space.Srgb);
 Show("vivid blue", vivid);
-Show("mapped, in OkLCh", mapped.Convert(Space.Oklch));
-Show("clipped, in OkLCh", clipped.Convert(Space.Oklch));
+Show("mapped, in OkLCh", mapped.ToSpace(Space.Oklch));
+Show("clipped, in OkLCh", clipped.ToSpace(Space.Oklch));
 
 // deltaEOK measures how different two colors look: under about 0.02 is hard
 // to see.

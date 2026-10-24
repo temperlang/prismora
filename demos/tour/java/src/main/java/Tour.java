@@ -117,7 +117,7 @@ public class Tour {
 
         // The same orange in every space.
         for (Space space : spaces) {
-            Color converted = orange.convert(space);  // snippet: convert
+            Color converted = orange.toSpace(space);  // snippet: convert
             System.out.println("orange in " + space.getName() + ": " + nums(converted.toList()));
         }
 
@@ -142,7 +142,7 @@ public class Tour {
         List<Boolean> inSrgb = p3Red.inGamut(Space.srgb);  // snippet: gamut
         List<Boolean> inP3 = p3Red.inGamut(Space.displayP3);  // snippet: gamut
         System.out.printf("P3 red in sRGB? %s; in P3? %s%n", yes(inSrgb.get(0)), yes(inP3.get(0)));
-        show("P3 red as sRGB", p3Red.convert(Space.srgb));
+        show("P3 red as sRGB", p3Red.toSpace(Space.srgb));
 
         // To show a color like this vivid blue on an sRGB screen, either map it into
         // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
@@ -151,8 +151,8 @@ public class Tour {
         Color mapped = vivid.toGamut(Space.srgb);  // snippet: snap
         Color clipped = vivid.toGamutClipped(Space.srgb);
         show("vivid blue", vivid);
-        show("mapped, in OkLCh", mapped.convert(Space.oklch));
-        show("clipped, in OkLCh", clipped.convert(Space.oklch));
+        show("mapped, in OkLCh", mapped.toSpace(Space.oklch));
+        show("clipped, in OkLCh", clipped.toSpace(Space.oklch));
 
         // deltaEOK measures how different two colors look: under about 0.02 is hard
         // to see.

@@ -291,7 +291,7 @@ class ChromaritePalette extends HTMLElement {
    * @param {string} text
    */
   set value(text) {
-    const [L, C, hue] = Color.parse(text.trim()).convert(Space.oklch).toList();
+    const [L, C, hue] = Color.parse(text.trim()).toSpace(Space.oklch).toList();
     const H = Number.isFinite(hue) && C > 0.0001 ? hue : this.#base.H;
     this.#base = { L, C, H };
     this.#schedule();

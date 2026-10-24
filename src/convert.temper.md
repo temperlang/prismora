@@ -175,9 +175,9 @@ Every pair of spaces should round trip.
       ];
       let source = Color.fromList(Space.srgb, [0.2, 0.4, 0.6, 0.9, 0.1, 0.3]);
       for (var i = 0; i < spaces.length; i += 1) {
-        let from = source.convert(spaces[i]);
+        let from = source.toSpace(spaces[i]);
         for (var j = 0; j < spaces.length; j += 1) {
-          assertColors(test, from, from.convert(spaces[j]).convert(spaces[i]));
+          assertColors(test, from, from.toSpace(spaces[j]).toSpace(spaces[i]));
         }
       }
     }

@@ -124,7 +124,7 @@ fn main() -> Result<()> {
 
     // The same orange in every space.
     for space in &spaces {
-        let converted = orange.convert(space.clone());  // snippet: convert
+        let converted = orange.to_space(space.clone());  // snippet: convert
         println!("orange in {}: {}", space.name(), nums(&converted.to_list()));
     }
 
@@ -150,7 +150,7 @@ fn main() -> Result<()> {
     let in_srgb = p3_red.in_gamut(Space::srgb());  // snippet: gamut
     let in_p3 = p3_red.in_gamut(Space::display_p3());  // snippet: gamut
     println!("P3 red in sRGB? {}; in P3? {}", yes(in_srgb[0]), yes(in_p3[0]));
-    show("P3 red as sRGB", &p3_red.convert(Space::srgb()))?;
+    show("P3 red as sRGB", &p3_red.to_space(Space::srgb()))?;
 
     // To show a color like this vivid blue on an sRGB screen, either map it into
     // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
@@ -159,8 +159,8 @@ fn main() -> Result<()> {
     let mapped = vivid.to_gamut(Space::srgb());  // snippet: snap
     let clipped = vivid.to_gamut_clipped(Space::srgb());
     show("vivid blue", &vivid)?;
-    show("mapped, in OkLCh", &mapped.convert(Space::oklch()))?;
-    show("clipped, in OkLCh", &clipped.convert(Space::oklch()))?;
+    show("mapped, in OkLCh", &mapped.to_space(Space::oklch()))?;
+    show("clipped, in OkLCh", &clipped.to_space(Space::oklch()))?;
 
     // deltaEOK measures how different two colors look: under about 0.02 is hard
     // to see.

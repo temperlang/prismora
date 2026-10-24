@@ -69,8 +69,8 @@ Panics if `lab` isn't N x 3.
         0.3, 0.4, 0.5,
         1.0, 1.0, 1.0,
       ]);
-      let oklab = rgb0.convert(Space.oklab);
-      let rgb1 = oklab.convert(Space.srgb);
+      let oklab = rgb0.toSpace(Space.oklab);
+      let rgb1 = oklab.toSpace(Space.srgb);
       assertColors(test, rgb0, rgb1);
     }
 
@@ -78,9 +78,9 @@ Conversions don't clamp, so colors outside the sRGB gamut also round trip.
 
     test("out-of-gamut round trip") { test =>
       let lab0 = Color.fromList(Space.oklab, [0.5, 0.4, 0.0]);
-      let rgb = lab0.convert(Space.srgb);
+      let rgb = lab0.toSpace(Space.srgb);
       assert(rgb[0, 0] > 1.0 || rgb[0, 1] < 0.0 || rgb[0, 2] < 0.0);
-      assertColors(test, lab0, rgb.convert(Space.oklab));
+      assertColors(test, lab0, rgb.toSpace(Space.oklab));
     }
 
 Color conversion test cases come from [web-platform-tests][CssColorTests].
@@ -171,8 +171,8 @@ turnaround Lab for it.
 
     test("lch round trip") { test =>
       let lab0 = oklabExpectedResults();
-      let lch = lab0.convert(Space.oklch);
-      let lab1 = lch.convert(Space.oklab);
+      let lch = lab0.toSpace(Space.oklch);
+      let lab1 = lch.toSpace(Space.oklab);
       assertColors(test, lab0, lab1);
     }
 
