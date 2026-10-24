@@ -17,7 +17,10 @@ precombining matrices.
 The name identifies the space, as in `Space.oklch.name == "oklch"`.
 
       public name: String;
-      public ncols: Int;
+
+The number of channels, matching `Color.width`.
+
+      public width: Int;
 
 The space this one converts to and from, or null for the root, linear sRGB.
 
@@ -30,9 +33,9 @@ Roots have depth 0.
 The constructor is private: conversions are defined for exactly the spaces
 below, so a space made elsewhere couldn't convert to anything.
 
-      private constructor(name: String, ncols: Int, parent: Space?) {
+      private constructor(name: String, width: Int, parent: Space?) {
         this.name = name;
-        this.ncols = ncols;
+        this.width = width;
         this.parent = parent;
         this.depth = if (parent == null) { 0 } else { parent.depth + 1 };
       }

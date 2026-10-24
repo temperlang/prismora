@@ -161,7 +161,7 @@ It collects channels and alpha for the result as it goes.
         rowsB: Matrix, ib: Int, alphaB: Float64,
         t: Float64,
       ): Void throws Bubble {
-        let ncols = space.ncols;
+        let ncols = space.width;
         let x = new ListBuilder<Float64>();
         let y = new ListBuilder<Float64>();
         for (var j = 0; j < ncols; j += 1) {
@@ -175,7 +175,7 @@ It collects channels and alpha for the result as it goes.
         let alpha = alphaA + (alphaB - alphaA) * t;
         for (var j = 0; j < ncols; j += 1) {
           if (j == h) {
-            channels.add(wrap(x[j] + (y[j] - x[j]) * t, 1.0));
+            channels.add(wrap(x[j] + (y[j] - x[j]) * t, 360.0));
           } else {
             let premultiplied = x[j] * alphaA + (y[j] * alphaB - x[j] * alphaA) * t;
             channels.add(if (alpha == 0.0) { premultiplied } else { premultiplied / alpha });
@@ -200,66 +200,66 @@ Steps 1 and 2 for the hue channel `h`, in place.
         } else if (grayY) {
           y.set(h, x[h]);
         }
-        let h1 = wrap(x[h], 1.0);
-        let h2 = wrap(y[h], 1.0);
+        let h1 = wrap(x[h], 360.0);
+        let h2 = wrap(y[h], 360.0);
         let diff = h2 - h1;
         if (hue == HueMethod.shorter) {
-          if (diff > 0.5) {
-            x.set(h, h1 + 1.0);
+          if (diff > 180.0) {
+            x.set(h, h1 + 360.0);
             y.set(h, h2);
-          } else if (diff < -0.5) {
+          } else if (diff < -180.0) {
             x.set(h, h1);
-            y.set(h, h2 + 1.0);
+            y.set(h, h2 + 360.0);
           } else {
             x.set(h, h1);
             y.set(h, h2);
           }
         } else if (hue == HueMethod.longer) {
-          if (diff > 0.0 && diff < 0.5) {
-            x.set(h, h1 + 1.0);
+          if (diff > 0.0 && diff < 180.0) {
+            x.set(h, h1 + 360.0);
             y.set(h, h2);
-          } else if (diff > -0.5 && diff <= 0.0) {
+          } else if (diff > -180.0 && diff <= 0.0) {
             x.set(h, h1);
-            y.set(h, h2 + 1.0);
+            y.set(h, h2 + 360.0);
           } else {
             x.set(h, h1);
             y.set(h, h2);
           }
         } else if (hue == HueMethod.increasing) {
           x.set(h, h1);
-          y.set(h, if (h2 < h1) { h2 + 1.0 } else { h2 });
+          y.set(h, if (h2 < h1) { h2 + 360.0 } else { h2 });
         } else {
-          x.set(h, if (h1 < h2) { h1 + 1.0 } else { h1 });
+          x.set(h, if (h1 < h2) { h1 + 360.0 } else { h1 });
           y.set(h, h2);
         }
       }
 
       public toColor(opaque: Boolean): Color {
-        let rows = Color.fromRows(space, new Matrix(space.ncols, channels.toList()));
+        let rows = Color.fromRows(space, new Matrix(space.width, channels.toList()));
         if (opaque) { rows } else { rows.withAlpha(alphas.toList()) }
       }
     }
 
 ## Tests
 
-Hue path examples from CSS Color 4, with hue in turns.
+Hue path examples from CSS Color 4.
 
     test("hue paths") { test =>
-      let red = Color.fromList(Space.oklch, [0.6, 0.24, 30.0 / 360.0]);
-      let yellow = Color.fromList(Space.oklch, [0.8, 0.15, 90.0 / 360.0]);
+      let red = Color.fromList(Space.oklch, [0.6, 0.24, 30.0]);
+      let yellow = Color.fromList(Space.oklch, [0.8, 0.15, 90.0]);
       assertColors(test, red.mix(yellow, 0.5, Space.oklch), Color.fromList(Space.oklch, [
-        0.7, 0.195, 60.0 / 360.0,
+        0.7, 0.195, 60.0,
       ]));
       assertColors(test, red.mixHue(yellow, 0.5, Space.oklch, HueMethod.longer), Color.fromList(Space.oklch, [
-        0.7, 0.195, 240.0 / 360.0,
+        0.7, 0.195, 240.0,
       ]));
-      let brown = Color.fromList(Space.oklch, [0.5, 0.1, 30.0 / 360.0]);
-      let turquoise = Color.fromList(Space.oklch, [0.7, 0.1, 190.0 / 360.0]);
+      let brown = Color.fromList(Space.oklch, [0.5, 0.1, 30.0]);
+      let turquoise = Color.fromList(Space.oklch, [0.7, 0.1, 190.0]);
       assertColors(test, brown.mixHue(turquoise, 0.5, Space.oklch, HueMethod.increasing), Color.fromList(Space.oklch, [
-        0.6, 0.1, 110.0 / 360.0,
+        0.6, 0.1, 110.0,
       ]));
       assertColors(test, brown.mixHue(turquoise, 0.5, Space.oklch, HueMethod.decreasing), Color.fromList(Space.oklch, [
-        0.6, 0.1, 290.0 / 360.0,
+        0.6, 0.1, 290.0,
       ]));
     }
 
@@ -273,8 +273,8 @@ magenta.
       let mid = white.mix(blue, 0.5, Space.oklch);
       assertNear(test, "hue", mid[0, 2], blueLch[0, 2]);
       assertNear(test, "chroma", mid[0, 1], blueLch[0, 1] * 0.5);
-      let grays = Color.fromList(Space.hsl, [0.3, 0.0, 0.2, 0.7, 0.0, 0.8]);
-      let grayMid = grays.mix(Color.fromList(Space.hsl, [0.9, 0.0, 0.5]), 0.5, Space.hsl);
+      let grays = Color.fromList(Space.hsl, [108.0, 0.0, 0.2, 252.0, 0.0, 0.8]);
+      let grayMid = grays.mix(Color.fromList(Space.hsl, [324.0, 0.0, 0.5]), 0.5, Space.hsl);
       assert(grayMid[0, 0] == 0.0);
     }
 

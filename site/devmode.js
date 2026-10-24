@@ -73,7 +73,7 @@ const SPOTS = [
   {
     id: "harmony",
     title: "Turning the hue",
-    about: "`rotateHue` turns colors around the OkLCh hue wheel, in turns, so 0.5 is the opposite hue. Harmonies spread hues this way.",
+    about: "`rotateHue` turns colors around the OkLCh hue wheel, in degrees, so 180 is the opposite hue. Harmonies spread hues this way.",
     target: () => part("chromarite-palette", "harmonies"),
   },
   {

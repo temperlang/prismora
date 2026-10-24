@@ -10,11 +10,11 @@ outside a display's gamut; use `toGamut` before showing it.
 
 The methods are on `Color`: `lighten`, `saturate`, `rotateHue` and
 `grayscale`. They all come down to this, which adds `lightness` to OkLCh
-lightness, multiplies chroma by `chromaFactor`, and adds `turns` to hue.
+lightness, multiplies chroma by `chromaFactor`, and adds `degrees` to hue.
 Grays keep hue 0, as elsewhere in Chromarite.
 
     let adjustLch(
-      color: Color, lightness: Float64, chromaFactor: Float64, turns: Float64,
+      color: Color, lightness: Float64, chromaFactor: Float64, degrees: Float64,
     ): Matrix throws Bubble {
       let lch = color.convert(Space.oklch).rows;
       let adjusted = mapRows(lch) { row, builder =>
@@ -22,7 +22,7 @@ Grays keep hue 0, as elsewhere in Chromarite.
           let chroma = row[1] * chromaFactor;
           builder.add(row[0] + lightness);
           builder.add(chroma);
-          builder.add(if (chroma == 0.0) { 0.0 } else { wrap(row[2] + turns, 1.0) });
+          builder.add(if (chroma == 0.0) { 0.0 } else { wrap(row[2] + degrees, 360.0) });
         } orelse panic();
       };
       convertRows(adjusted, Space.oklch, color.space)
@@ -44,9 +44,9 @@ Grays keep hue 0, as elsewhere in Chromarite.
     }
 
     test("saturate, rotate hue and grayscale") { test =>
-      let color = Color.fromList(Space.oklch, [0.6, 0.1, 0.8]);
-      assertColors(test, color.saturate(2.0), Color.fromList(Space.oklch, [0.6, 0.2, 0.8]));
-      assertColors(test, color.rotateHue(0.5), Color.fromList(Space.oklch, [0.6, 0.1, 0.3]));
+      let color = Color.fromList(Space.oklch, [0.6, 0.1, 288.0]);
+      assertColors(test, color.saturate(2.0), Color.fromList(Space.oklch, [0.6, 0.2, 288.0]));
+      assertColors(test, color.rotateHue(180.0), Color.fromList(Space.oklch, [0.6, 0.1, 108.0]));
       assertColors(test, color.grayscale(), Color.fromList(Space.oklch, [0.6, 0.0, 0.0]));
       let gray = Color.fromList(Space.srgb, [0.9, 0.2, 0.3]).grayscale();
       assertNear(test, "gray g", gray[0, 1], gray[0, 0]);

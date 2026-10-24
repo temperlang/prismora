@@ -112,7 +112,7 @@ Color conversion test cases come from [web-platform-tests][CssColorTests].
 Does this work for any Lab to LCH, whether Ok or otherwise?
 
 Meanwhile, these functions consider the first 3 columns of the input and panic
-on fewer than 3 columns. Hue is in turns, from 0 up to 1, rather than degrees.
+on fewer than 3 columns. Hue is in degrees, from 0 up to 360.
 
 Grays have no meaningful hue, and rounding noise in their chroma would
 otherwise give them an arbitrary one. So below this chroma, hue is 0, much like
@@ -139,7 +139,7 @@ CIE Lab, for example, has a larger scale than Oklab.
           let h = if (c < achromaticChroma) {
             0.0
           } else {
-            0.5 * (1.0 + (-b).atan2(-a) / Float64.pi)
+            180.0 * (1.0 + (-b).atan2(-a) / Float64.pi)
           };
           builder.add(l);
           builder.add(c);
@@ -154,7 +154,7 @@ CIE Lab, for example, has a larger scale than Oklab.
           let l = row[0];
           let c = row[1];
           let h = row[2];
-          let h_ = 2.0 * Float64.pi * h;
+          let h_ = h * Float64.pi / 180.0;
           let a = c * h_.cos();
           let b = c * h_.sin();
           builder.add(l);
@@ -187,11 +187,15 @@ Also test conversion, again from [web-platform-tests][CssColorTests].
         1.0, 1.0, 1.0,
       ]);
       let expected = Color.fromList(Space.oklch, [
-        // wpt case oklch-001.html: 0.51975, 0.17686, 0.39582 (142.495 / 360),
-        0.51829, 0.17636, 0.39582,
+        // wpt case oklch-001.html: 0.51975, 0.17686, 142.495,
+        0.51829, 0.17636, 142.495345,
         0.0, 0.0, 0.0,
-        0.5, 0.2, 0.0,
-        0.5, 0.2, 0.75,
+
+The sRGB inputs have 5 digits, so the hues below come out just off of 0 and
+270 degrees, where the tolerance is tight.
+
+        0.5, 0.2, 0.000631,
+        0.5, 0.2, 269.999672,
 
 White has `c` of about 3.7e-8 rather than exactly zero, so this checks that
 near-zero chroma gives hue 0, matching wpt case oklch-003.html.

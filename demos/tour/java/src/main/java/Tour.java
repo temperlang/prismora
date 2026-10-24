@@ -52,12 +52,12 @@ public class Tour {
 
         section("1. Making colors");
 
-        // Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+        // Most channels go from 0 to 1, and hue is in degrees (0 to 360), as in CSS.
         Color orange = Color.fromList(Space.srgb, List.of(1.0, 0.5, 0.0));
         show("orange", orange);
 
         // A Color holds any number of colors, one per row, channels back to back.
-        Color pair = Color.fromList(Space.oklch, List.of(0.7, 0.1, 0.4, 0.5, 0.2, 0.8));
+        Color pair = Color.fromList(Space.oklch, List.of(0.7, 0.1, 144.0, 0.5, 0.2, 288.0));
         show("two OkLCh colors", pair);
 
         // Alpha (opacity, 0 to 1) goes after each row's channels.
@@ -69,7 +69,7 @@ public class Tour {
         show("from ints", Color.fromRgbInts(List.of(0x663399, 0x00ff80)));
 
         // From a Matrix: a flat list read as rows of a given width.
-        show("from rows", Color.fromRows(Space.hsl, new Matrix(3, List.of(0.5, 1.0, 0.25, 0.0, 0.0, 0.5))));
+        show("from rows", Color.fromRows(Space.hsl, new Matrix(3, List.of(180.0, 1.0, 0.25, 0.0, 0.0, 0.5))));
 
         // Any CSS color. Each keeps the space it was written in.
         for (String text : List.of(
@@ -112,13 +112,13 @@ public class Tour {
             String gamut = space.getGamut() == null ? "none" : space.getGamut().getName();
             System.out.printf(
                 "%s: %d channels, parent %s, depth %d, gamut %s%n",
-                space.getName(), space.getNcols(), parent, space.getDepth(), gamut);
+                space.getName(), space.getWidth(), parent, space.getDepth(), gamut);
         }
 
         // The same orange in every space.
         for (Space space : spaces) {
             Color converted = orange.convert(space);  // snippet: convert
-            System.out.println("orange in " + space.getName() + ": " + nums(converted.getRows().toList()));
+            System.out.println("orange in " + space.getName() + ": " + nums(converted.toList()));
         }
 
         section("3. Formatting");
@@ -147,9 +147,9 @@ public class Tour {
         // To show a color like this vivid blue on an sRGB screen, either map it into
         // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
         // clip each channel, which can change lightness and hue too.
-        Color vivid = Color.fromList(Space.oklch, List.of(0.6, 0.35, 0.75));  // snippet: snap, edges
+        Color vivid = Color.fromList(Space.oklch, List.of(0.6, 0.35, 270.0));  // snippet: snap, edges
         Color mapped = vivid.toGamut(Space.srgb);  // snippet: snap
-        Color clipped = vivid.clip(Space.srgb);
+        Color clipped = vivid.toGamutClipped(Space.srgb);
         show("vivid blue", vivid);
         show("mapped, in OkLCh", mapped.convert(Space.oklch));
         show("clipped, in OkLCh", clipped.convert(Space.oklch));
@@ -197,7 +197,7 @@ public class Tour {
         System.out.println("lighter " + lighter.toHex().get(0) + ", darker " + darker.toHex().get(0));
         System.out.println(
             "more saturated " + steel.saturate(1.5).toHex().get(0) + ", less " + steel.saturate(0.5).toHex().get(0));
-        Color opposite = steel.rotateHue(0.5);  // snippet: harmony
+        Color opposite = steel.rotateHue(180.0);  // snippet: harmony
         System.out.println("opposite hue " + opposite.toHex().get(0) + ", gray " + steel.grayscale().toHex().get(0));
 
         // Or change every channel value directly.

@@ -43,7 +43,7 @@ list needs a typed `None`, and leaves room to change how colors are stored.
 Checking here panics on mismatched shapes, like the `Matrix` constructor does.
 
       private constructor(space: Space, rows: Matrix, alpha: List<Float64>?) {
-        if (rows.ncols != space.ncols) { panic() }
+        if (rows.ncols != space.width) { panic() }
         if (alpha != null && alpha.length != rows.nrows) { panic() }
         this.space = space;
         this.rows = rows;
@@ -54,7 +54,7 @@ Checking here panics on mismatched shapes, like the `Matrix` constructor does.
 Opaque colors from a flat list of channels, such as `[r, g, b, r, g, b]`.
 
       public static fromList(space: Space, values: List<Float64>): Color {
-        new Color(space, new Matrix(space.ncols, values), null)
+        new Color(space, new Matrix(space.width, values), null)
       }
 
 Opaque colors from a matrix with one color per row.
@@ -73,7 +73,7 @@ Each row's channels followed by its alpha, as in `[r, g, b, a, r, g, b, a]`
 for sRGB, in any space. Panics unless the values divide into rows.
 
       public static fromAlpha(space: Space, values: List<Float64>): Color {
-        let ncols = space.ncols;
+        let ncols = space.width;
         let width = ncols + 1;
         if (((values.length % width) orelse panic()) != 0) { panic() }
         let channels = new ListBuilder<Float64>();
@@ -101,6 +101,13 @@ While `rows` is public, it's sometimes nice to skip through it.
 
       public get width(): Int { rows.ncols }
 
+All channels as a flat list, row after row, the reverse of `fromList`. For a
+single color, that's just its channels, as in
+`let lch = color.convert(Space.oklch).toList()`. Alpha isn't included; see
+`rowsWithAlpha`.
+
+      public toList(): List<Float64> { rows.toList() }
+
 Alpha for row `i`, which is 1 if `alpha` is null.
 
       public alphaAt(i: Int): Float64 throws Bubble {
@@ -114,6 +121,12 @@ Alpha for row `i`, which is 1 if `alpha` is null.
       }
 
 ### Conversion
+
+A naming rule tells which space a result is in: methods starting with `to` or
+`convert` return another space or form, such as `toGamut(space)` or `toHex()`,
+while all others keep this color's space, such as `fitChroma(space)` or
+`lighten(amount)`. Mixing is the one exception, since its result is in the
+space it blends in.
 
 Both of these keep alpha as is, since `transform` applies only to channels.
 Conversion never fails, since every space converts to every other.
@@ -144,7 +157,7 @@ to keep them exact.
 Converts to `space` and clamps each channel to its gamut, as CSS's simple
 "clip" does: faster than `toGamut`, but it can shift hue and lightness.
 
-      public clip(space: Space): Color {
+      public toGamutClipped(space: Space): Color {
         new Color(space, clipRows(this, space), alpha)
       }
 
@@ -221,10 +234,10 @@ Multiplies OkLCh chroma by `factor`: 0 for gray, 2 for twice as vivid.
         new Color(space, adjustLch(this, 0.0, factor, 0.0) orelse panic(), alpha)
       }
 
-Turns hue by `turns`, so 0.5 gives the opposite hue.
+Turns OkLCh hue by `degrees`, so 180 gives the opposite hue.
 
-      public rotateHue(turns: Float64): Color {
-        new Color(space, adjustLch(this, 0.0, 1.0, turns) orelse panic(), alpha)
+      public rotateHue(degrees: Float64): Color {
+        new Color(space, adjustLch(this, 0.0, 1.0, degrees) orelse panic(), alpha)
       }
 
 Gray with the same OkLCh lightness, like `saturate(0.0)`.
@@ -351,6 +364,7 @@ A separate alpha list goes through `withAlpha`.
     test("separate alpha list") {
       let color = Color.fromList(Space.srgb, [0.1, 0.2, 0.3]).withAlpha([0.75]);
       assert(color.alphaAt(0) == 0.75);
+      assert(color.toList().length == 3);
       let flat = color.rowsWithAlpha().toList();
       assert(flat.length == 4);
       assert(flat[2] == 0.3);
@@ -359,16 +373,16 @@ A separate alpha list goes through `withAlpha`.
 
 ### Packed Ints and Clipping
 
-    test("packed ints and clip") { test =>
+    test("packed ints and clipping") { test =>
       let colors = Color.fromRgbInts([0x663399, 0xff8000]);
       assert(colors.toHex()[1] == "#ff8000");
       let ints = colors.toRgbInts();
       assert(ints[0] == 0x663399);
       assert(ints[1] == 0xff8000);
       let vivid = Color.fromList(Space.displayP3, [1.0, 0.0, 0.0]);
-      assertColors(test, vivid.clip(Space.srgb), Color.fromList(Space.srgb, [1.0, 0.0, 0.0]));
+      assertColors(test, vivid.toGamutClipped(Space.srgb), Color.fromList(Space.srgb, [1.0, 0.0, 0.0]));
       assert(vivid.toRgbInts()[0] == 0xff0b0c);
-      assertColors(test, vivid.clip(Space.lab), vivid.convert(Space.lab));
+      assertColors(test, vivid.toGamutClipped(Space.lab), vivid.convert(Space.lab));
     }
 
 It would be nice to support expanded value types and also connect with backend

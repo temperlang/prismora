@@ -48,12 +48,12 @@ Console.WriteLine("# Chromarite tour");
 
 Section("1. Making colors");
 
-// Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+// Most channels go from 0 to 1, and hue is in degrees (0 to 360), as in CSS.
 var orange = Color.FromList(Space.Srgb, new[] { 1.0, 0.5, 0.0 });
 Show("orange", orange);
 
 // A Color holds any number of colors, one per row, channels back to back.
-var pair = Color.FromList(Space.Oklch, new[] { 0.7, 0.1, 0.4, 0.5, 0.2, 0.8 });
+var pair = Color.FromList(Space.Oklch, new[] { 0.7, 0.1, 144.0, 0.5, 0.2, 288.0 });
 Show("two OkLCh colors", pair);
 
 // Alpha (opacity, 0 to 1) goes after each row's channels.
@@ -65,7 +65,7 @@ Show("orange at 80%", orange.WithAlpha(new[] { 0.8 }));
 Show("from ints", Color.FromRgbInts(new[] { 0x663399, 0x00ff80 }));
 
 // From a Matrix: a flat list read as rows of a given width.
-Show("from rows", Color.FromRows(Space.Hsl, new Matrix(3, new[] { 0.5, 1.0, 0.25, 0.0, 0.0, 0.5 })));
+Show("from rows", Color.FromRows(Space.Hsl, new Matrix(3, new[] { 180.0, 1.0, 0.25, 0.0, 0.0, 0.5 })));
 
 // Any CSS color. Each keeps the space it was written in.
 foreach (var text in new[]
@@ -115,14 +115,14 @@ foreach (var space in spaces)
     string parent = space.Parent?.Name ?? "none";
     string gamut = space.Gamut?.Name ?? "none";
     Console.WriteLine(
-        $"{space.Name}: {space.Ncols} channels, parent {parent}, depth {space.Depth}, gamut {gamut}");
+        $"{space.Name}: {space.Width} channels, parent {parent}, depth {space.Depth}, gamut {gamut}");
 }
 
 // The same orange in every space.
 foreach (var space in spaces)
 {
     var converted = orange.Convert(space);  // snippet: convert
-    Console.WriteLine($"orange in {space.Name}: {Nums(converted.Rows.ToList())}");
+    Console.WriteLine($"orange in {space.Name}: {Nums(converted.ToList())}");
 }
 
 Section("3. Formatting");
@@ -151,9 +151,9 @@ Show("P3 red as sRGB", p3Red.Convert(Space.Srgb));
 // To show a color like this vivid blue on an sRGB screen, either map it into
 // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
 // clip each channel, which can change lightness and hue too.
-var vivid = Color.FromList(Space.Oklch, new[] { 0.6, 0.35, 0.75 });  // snippet: snap, edges
+var vivid = Color.FromList(Space.Oklch, new[] { 0.6, 0.35, 270.0 });  // snippet: snap, edges
 var mapped = vivid.ToGamut(Space.Srgb);  // snippet: snap
-var clipped = vivid.Clip(Space.Srgb);
+var clipped = vivid.ToGamutClipped(Space.Srgb);
 Show("vivid blue", vivid);
 Show("mapped, in OkLCh", mapped.Convert(Space.Oklch));
 Show("clipped, in OkLCh", clipped.Convert(Space.Oklch));
@@ -200,7 +200,7 @@ var lighter = steel.Lighten(0.1);  // snippet: shades
 var darker = steel.Lighten(-0.1);  // snippet: shades
 Console.WriteLine($"lighter {lighter.ToHex()[0]}, darker {darker.ToHex()[0]}");
 Console.WriteLine($"more saturated {steel.Saturate(1.5).ToHex()[0]}, less {steel.Saturate(0.5).ToHex()[0]}");
-var opposite = steel.RotateHue(0.5);  // snippet: harmony
+var opposite = steel.RotateHue(180.0);  // snippet: harmony
 Console.WriteLine($"opposite hue {opposite.ToHex()[0]}, gray {steel.Grayscale().ToHex()[0]}");
 
 // Or change every channel value directly.

@@ -56,12 +56,12 @@ fn main() -> Result<()> {
 
     section("1. Making colors");
 
-    // Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+    // Most channels go from 0 to 1, and hue is in degrees (0 to 360), as in CSS.
     let orange = Color::from_list(Space::srgb(), [1.0, 0.5, 0.0]);
     show("orange", &orange)?;
 
     // A Color holds any number of colors, one per row, channels back to back.
-    let pair = Color::from_list(Space::oklch(), [0.7, 0.1, 0.4, 0.5, 0.2, 0.8]);
+    let pair = Color::from_list(Space::oklch(), [0.7, 0.1, 144.0, 0.5, 0.2, 288.0]);
     show("two OkLCh colors", &pair)?;
 
     // Alpha (opacity, 0 to 1) goes after each row's channels.
@@ -73,7 +73,7 @@ fn main() -> Result<()> {
     show("from ints", &Color::from_rgb_ints([0x663399, 0x00ff80]))?;
 
     // From a Matrix: a flat list read as rows of a given width.
-    let rows = Matrix::new(3, [0.5, 1.0, 0.25, 0.0, 0.0, 0.5]);
+    let rows = Matrix::new(3, [180.0, 1.0, 0.25, 0.0, 0.0, 0.5]);
     show("from rows", &Color::from_rows(Space::hsl(), rows))?;
 
     // Any CSS color. Each keeps the space it was written in.
@@ -117,7 +117,7 @@ fn main() -> Result<()> {
         println!(
             "{}: {} channels, parent {parent}, depth {}, gamut {gamut}",
             space.name(),
-            space.ncols(),
+            space.width(),
             space.depth(),
         );
     }
@@ -125,7 +125,7 @@ fn main() -> Result<()> {
     // The same orange in every space.
     for space in &spaces {
         let converted = orange.convert(space.clone());  // snippet: convert
-        println!("orange in {}: {}", space.name(), nums(&converted.rows().to_list()));
+        println!("orange in {}: {}", space.name(), nums(&converted.to_list()));
     }
 
     section("3. Formatting");
@@ -155,9 +155,9 @@ fn main() -> Result<()> {
     // To show a color like this vivid blue on an sRGB screen, either map it into
     // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
     // clip each channel, which can change lightness and hue too.
-    let vivid = Color::from_list(Space::oklch(), [0.6, 0.35, 0.75]);  // snippet: snap, edges
+    let vivid = Color::from_list(Space::oklch(), [0.6, 0.35, 270.0]);  // snippet: snap, edges
     let mapped = vivid.to_gamut(Space::srgb());  // snippet: snap
-    let clipped = vivid.clip(Space::srgb());
+    let clipped = vivid.to_gamut_clipped(Space::srgb());
     show("vivid blue", &vivid)?;
     show("mapped, in OkLCh", &mapped.convert(Space::oklch()))?;
     show("clipped, in OkLCh", &clipped.convert(Space::oklch()))?;
@@ -204,7 +204,7 @@ fn main() -> Result<()> {
     let darker = steel.lighten(-0.1);  // snippet: shades
     println!("lighter {}, darker {}", lighter.to_hex()[0], darker.to_hex()[0]);
     println!("more saturated {}, less {}", steel.saturate(1.5).to_hex()[0], steel.saturate(0.5).to_hex()[0]);
-    let opposite = steel.rotate_hue(0.5);  // snippet: harmony
+    let opposite = steel.rotate_hue(180.0);  // snippet: harmony
     println!("opposite hue {}, gray {}", opposite.to_hex()[0], steel.grayscale().to_hex()[0]);
 
     // Or change every channel value directly.

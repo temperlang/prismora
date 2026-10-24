@@ -170,8 +170,8 @@ Distance from a clamped row in `gamut` to the OkLCh color it came from.
       clipped: Matrix, gamut: Space, l: Float64, c: Float64, h: Float64,
     ): Float64 throws Bubble {
       let lab = convertRows(clipped, gamut, Space.oklab);
-      let turn = 2.0 * Float64.pi * h;
-      distance3(lab.at(0) - l, lab.at(1) - c * turn.cos(), lab.at(2) - c * turn.sin())
+      let radians = h * Float64.pi / 180.0;
+      distance3(lab.at(0) - l, lab.at(1) - c * radians.cos(), lab.at(2) - c * radians.sin())
     }
 
     let rowInUnitCube(row: Matrix): Boolean throws Bubble {
@@ -252,7 +252,7 @@ fit are kept as they are.
         lowered.add(lch[i, 2]);
       }
       let converted = convertRows(new Matrix(3, lowered.toList()), Space.oklch, color.space);
-      let ncols = color.space.ncols;
+      let ncols = color.space.width;
       let result = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
         let source = if (fits[i]) { color.rows } else { converted };
@@ -272,13 +272,13 @@ and `color(display-p3 1.1 0.4 0.2)` to about `color(display-p3 1 0.473 0.314)`.
 
     let gamutSources(): Color {
       Color.fromAlpha(Space.oklch, [
-        0.7, 0.1, 0.1, 1.0,
-        0.76, 0.27, 60.0 / 360.0, 0.5,
-        0.6, 0.4, 0.75, 1.0,
-        0.9, 0.3, 0.3, 1.0,
-        0.2, 0.2, 0.6, 1.0,
-        1.1, 0.1, 0.2, 0.25,
-        -0.1, 0.1, 0.2, 1.0,
+        0.7, 0.1, 36.0, 1.0,
+        0.76, 0.27, 60.0, 0.5,
+        0.6, 0.4, 270.0, 1.0,
+        0.9, 0.3, 108.0, 1.0,
+        0.2, 0.2, 216.0, 1.0,
+        1.1, 0.1, 72.0, 0.25,
+        -0.1, 0.1, 72.0, 1.0,
       ])
     }
 

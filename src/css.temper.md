@@ -15,8 +15,8 @@ bubbles, including `currentcolor`, system colors, and relative colors like
 `oklch(from red l c h)`.
 
 Units follow Chromarite rather than CSS: channels are 0 to 1 where CSS uses
-0 to 255 or percentages, and hue is in turns, so `hsl(120deg 50% 50%)` gives
-`[1/3, 0.5, 0.5]`. Lab and LCH keep CSS's 0 to 100 lightness. As in CSS,
+0 to 255 or percentages, and hue is in degrees, so `hsl(0.5turn 50% 50%)`
+gives `[180, 0.5, 0.5]`. Lab and LCH keep CSS's 0 to 100 lightness. As in CSS,
 `rgb()` channels and alpha are clamped to their ranges, as are lightness and
 negative chroma or saturation; `color()` channels aren't. A missing channel,
 `none`, becomes 0, as for an achromatic hue elsewhere in Chromarite.
@@ -306,22 +306,22 @@ A number as is, or a percentage scaled so 100% is `percentFull`, with
       }
     }
 
-Hue in turns, from a number of degrees or an angle with a unit, wrapped to
-0 up to 1.
+Hue in degrees, from a number or an angle with a unit, wrapped to 0 up to
+360.
 
     let hueValue(token: CssToken): Float64 throws Bubble {
-      let turns = if (token.kind == NUMBER) {
-        token.value / 360.0
+      let degrees = if (token.kind == NUMBER) {
+        token.value
       } else if (token.kind == DIMENSION) {
         let unit = token.text;
         if (unit == "deg") {
-          token.value / 360.0
-        } else if (unit == "grad") {
-          token.value / 400.0
-        } else if (unit == "rad") {
-          token.value / (2.0 * Float64.pi)
-        } else if (unit == "turn") {
           token.value
+        } else if (unit == "grad") {
+          token.value * 0.9
+        } else if (unit == "rad") {
+          token.value * 180.0 / Float64.pi
+        } else if (unit == "turn") {
+          token.value * 360.0
         } else {
           bubble()
         }
@@ -330,7 +330,7 @@ Hue in turns, from a number of degrees or an angle with a unit, wrapped to
       } else {
         bubble()
       };
-      wrap(turns, 1.0)
+      wrap(degrees, 360.0)
     }
 
     let alphaValue(token: CssToken): Float64 throws Bubble {
@@ -461,15 +461,15 @@ outside Chromarite bubble.
         let body = if (space == Space.srgb && inUnitCube(x, y, z)) {
           "rgb(${formatNumber(x * 255.0, 3)} ${formatNumber(y * 255.0, 3)} ${formatNumber(z * 255.0, 3)}"
         } else if (space == Space.hsl || space == Space.hwb) {
-          "${space.name}(${formatNumber(x * 360.0, 4)} ${formatNumber(y * 100.0, 4)}% ${formatNumber(z * 100.0, 4)}%"
+          "${space.name}(${formatNumber(x, 4)} ${formatNumber(y * 100.0, 4)}% ${formatNumber(z * 100.0, 4)}%"
         } else if (space == Space.lab) {
           "lab(${formatNumber(x, 4)} ${formatNumber(y, 4)} ${formatNumber(z, 4)}"
         } else if (space == Space.lch) {
-          "lch(${formatNumber(x, 4)} ${formatNumber(y, 4)} ${formatNumber(z * 360.0, 4)}"
+          "lch(${formatNumber(x, 4)} ${formatNumber(y, 4)} ${formatNumber(z, 4)}"
         } else if (space == Space.oklab) {
           "oklab(${formatNumber(x, 6)} ${formatNumber(y, 6)} ${formatNumber(z, 6)}"
         } else if (space == Space.oklch) {
-          "oklch(${formatNumber(x, 6)} ${formatNumber(y, 6)} ${formatNumber(z * 360.0, 4)}"
+          "oklch(${formatNumber(x, 6)} ${formatNumber(y, 6)} ${formatNumber(z, 4)}"
         } else {
           "color(${predefinedName(space)} ${formatNumber(x, 6)} ${formatNumber(y, 6)} ${formatNumber(z, 6)}"
         };
@@ -545,18 +545,18 @@ backend, unlike float `toString`.
     }
 
     test("parse hsl and hwb") { test =>
-      assertColors(test, Color.parse("hsl(120deg 100% 50%)"), Color.fromList(Space.hsl, [1.0 / 3.0, 1.0, 0.5]));
-      assertColors(test, Color.parse("hsl(0.5turn 50 25)"), Color.fromList(Space.hsl, [0.5, 0.5, 0.25]));
-      assertColors(test, Color.parse("hsla(-90, 10%, 20%, 1)"), Color.fromList(Space.hsl, [0.75, 0.1, 0.2]));
-      assertColors(test, Color.parse("hwb(200grad 20% 30%)"), Color.fromList(Space.hwb, [0.5, 0.2, 0.3]));
+      assertColors(test, Color.parse("hsl(120deg 100% 50%)"), Color.fromList(Space.hsl, [120.0, 1.0, 0.5]));
+      assertColors(test, Color.parse("hsl(0.5turn 50 25)"), Color.fromList(Space.hsl, [180.0, 0.5, 0.25]));
+      assertColors(test, Color.parse("hsla(-90, 10%, 20%, 1)"), Color.fromList(Space.hsl, [270.0, 0.1, 0.2]));
+      assertColors(test, Color.parse("hwb(200grad 20% 30%)"), Color.fromList(Space.hwb, [180.0, 0.2, 0.3]));
     }
 
     test("parse lab, lch, oklab and oklch") { test =>
       assertColors(test, Color.parse("lab(50% 40 -20)"), Color.fromList(Space.lab, [50.0, 40.0, -20.0]));
-      assertColors(test, Color.parse("lch(50 100% 270deg)"), Color.fromList(Space.lch, [50.0, 150.0, 0.75]));
+      assertColors(test, Color.parse("lch(50 100% 270deg)"), Color.fromList(Space.lch, [50.0, 150.0, 270.0]));
       assertColors(test, Color.parse("oklab(50% 25% -25%)"), Color.fromList(Space.oklab, [0.5, 0.1, -0.1]));
-      assertColors(test, Color.parse("oklch(0.7 0.1 180)"), Color.fromList(Space.oklch, [0.7, 0.1, 0.5]));
-      assertColors(test, Color.parse("oklch(.5 none 1.5708rad)"), Color.fromList(Space.oklch, [0.5, 0.0, 0.25]));
+      assertColors(test, Color.parse("oklch(0.7 0.1 180)"), Color.fromList(Space.oklch, [0.7, 0.1, 180.0]));
+      assertColors(test, Color.parse("oklch(.5 none 1.5708rad)"), Color.fromList(Space.oklch, [0.5, 0.0, 1.5708 * 180.0 / Float64.pi]));
       assertColors(test, Color.parse("oklch(120% -0.1 0)"), Color.fromList(Space.oklch, [1.0, 0.0, 0.0]));
     }
 
@@ -579,8 +579,8 @@ backend, unlike float `toString`.
     test("format css") {
       assert(Color.fromList(Space.srgb, [1.0, 0.5, 0.0]).toCss()[0] == "rgb(255 127.5 0)");
       assert(Color.fromList(Space.srgb, [1.1, 0.0, 0.0]).toCss()[0] == "color(srgb 1.1 0 0)");
-      assert(Color.fromList(Space.oklch, [0.7, 0.1, 0.5]).toCss()[0] == "oklch(0.7 0.1 180)");
-      assert(Color.fromList(Space.hsl, [0.25, 0.5, 0.125]).toCss()[0] == "hsl(90 50% 12.5%)");
+      assert(Color.fromList(Space.oklch, [0.7, 0.1, 180.0]).toCss()[0] == "oklch(0.7 0.1 180)");
+      assert(Color.fromList(Space.hsl, [90.0, 0.5, 0.125]).toCss()[0] == "hsl(90 50% 12.5%)");
       assert(Color.fromAlpha(Space.displayP3, [1.0, 0.0, 0.25, 0.5]).toCss()[0] == "color(display-p3 1 0 0.25 / 0.5)");
       assert(Color.fromList(Space.lab, [50.0, -20.0, 0.00001]).toCss()[0] == "lab(50 -20 0)");
     }

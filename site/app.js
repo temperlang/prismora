@@ -36,7 +36,7 @@ function fmt(x) {
 function showDetails(color) {
   const rows = SPACES.map(([space, channels, about]) => {
     const converted = color.convert(space);
-    const values = converted.rows.toList().map(fmt);
+    const values = converted.toList().map(fmt);
     // Each channel is a chip that wraps as a whole, so the table needn't
     // scroll sideways.
     const chips = channels.split(" ").map((name, i) => `${name} ${values[i]}`);
@@ -91,9 +91,9 @@ function dropLink() {
 picker.addEventListener("input", () => {
   const color = picker.color;
   showDetails(color);
-  const [L, C, turns] = color.convert(Space.oklch).rows.toList();
+  const [L, C, H] = color.convert(Space.oklch).toList();
   const dark = matchMedia("(prefers-color-scheme: dark)").matches;
-  const wash = Color.fromList(Space.oklch, [dark ? 0.2 : 0.965, Math.min(C, dark ? 0.03 : 0.025), turns]);
+  const wash = Color.fromList(Space.oklch, [dark ? 0.2 : 0.965, Math.min(C, dark ? 0.03 : 0.025), H]);
   $("pick").style.setProperty("--wash", wash.toHex()[0]);
   // The first change is the starting color itself.
   dropLink();
@@ -163,10 +163,10 @@ const THEMED = [...Object.keys(NEUTRALS), ...Object.keys(SHADED)];
  */
 function themeColors(dark) {
   const d = dark ? 1 : 0;
-  const [, C, turns] = Color.parse(palette.value).convert(Space.oklch).rows.toList();
+  const [, C, H] = Color.parse(palette.value).convert(Space.oklch).toList();
   const neutrals = Color.fromList(
     Space.oklch,
-    Object.values(NEUTRALS).flatMap((both) => [both[d][0], Math.min(C, both[d][1]), turns]),
+    Object.values(NEUTRALS).flatMap((both) => [both[d][0], Math.min(C, both[d][1]), H]),
   ).toHex();
   const ramps = palette.shades;
   const shade = (/** @type {number} */ k) => {

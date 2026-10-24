@@ -70,8 +70,8 @@ const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
 const wrap = (h) => ((h % 360) + 360) % 360;
 
 /**
- * Shades in OkLCh at these lightnesses and hues (degrees), each with chroma
- * `C` or as much as sRGB allows: one bulk maxChroma call for them all.
+ * Shades in OkLCh at these lightnesses and hues, each with chroma `C` or as
+ * much as sRGB allows: one bulk fitChroma call for them all.
  *
  * @param {number[]} lightness
  * @param {number[]} hues
@@ -79,12 +79,8 @@ const wrap = (h) => ((h % 360) + 360) % 360;
  * @returns {Color}
  */
 function fitted(lightness, hues, C) {
-  const wanted = lightness.flatMap((l, i) => [l, C, hues[i] / 360]);
-  const limits = Color.fromList(Space.oklch, wanted).maxChroma(Space.srgb);
-  return Color.fromList(
-    Space.oklch,
-    wanted.map((v, i) => (i % 3 === 1 ? Math.min(v, limits[(i - 1) / 3]) : v)),
-  );
+  const wanted = lightness.flatMap((l, i) => [l, C, hues[i]]);
+  return Color.fromList(Space.oklch, wanted).fitChroma(Space.srgb);
 }
 
 /**
@@ -295,8 +291,8 @@ class ChromaritePalette extends HTMLElement {
    * @param {string} text
    */
   set value(text) {
-    const [L, C, turns] = Color.parse(text.trim()).convert(Space.oklch).rows.toList();
-    const H = Number.isFinite(turns) && C > 0.0001 ? turns * 360 : this.#base.H;
+    const [L, C, hue] = Color.parse(text.trim()).convert(Space.oklch).toList();
+    const H = Number.isFinite(hue) && C > 0.0001 ? hue : this.#base.H;
     this.#base = { L, C, H };
     this.#schedule();
   }
@@ -376,7 +372,7 @@ class ChromaritePalette extends HTMLElement {
    */
   #onScreen(color) {
     const screen = WIDE ? Space.displayP3 : Space.srgb;
-    return color.toGamut(screen).convert(screen).toCss();
+    return color.toGamut(screen).toCss();
   }
 
   #draw() {
@@ -424,10 +420,10 @@ class ChromaritePalette extends HTMLElement {
     center.setAttribute("cy", "50");
     center.setAttribute("r", "22");
     center.setAttribute("class", "center");
-    center.setAttribute("fill", this.#onScreen(Color.fromList(Space.oklch, [L, C, H / 360]))[0]);
+    center.setAttribute("fill", this.#onScreen(Color.fromList(Space.oklch, [L, C, H]))[0]);
     svg.append(center);
     const hues = this.#offsets.map((d) => wrap(H + d));
-    const arms = this.#onScreen(Color.fromList(Space.oklch, hues.flatMap((h) => [L, C, h / 360])));
+    const arms = this.#onScreen(Color.fromList(Space.oklch, hues.flatMap((h) => [L, C, h])));
     hues.forEach((h, k) => {
       const a = (-h * Math.PI) / 180;
       const r = 42.5;

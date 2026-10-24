@@ -3,7 +3,7 @@
 The CIE spaces from [CSS Color 4][Css4Lab]. XYZ-D65 hangs off linear sRGB in
 the conversion tree, XYZ-D50 off XYZ-D65 through Bradford chromatic adaptation,
 CIE Lab off XYZ-D50, and LCH off Lab. As in CSS, Lab's lightness goes from 0
-to 100, unlike Oklab's 0 to 1, and LCH's hue is in turns like OkLCh's.
+to 100, unlike Oklab's 0 to 1, and LCH's hue is in degrees like OkLCh's.
 
 Matrices come from the sample code in CSS Color 4 (see `NOTICE`).
 
@@ -141,9 +141,9 @@ Expected values come from running CSS Color 4's sample code.
         53.3889647411, 0.0, 0.0,
       ]));
       assertConvertColors(test, rgb, Color.fromList(Space.lch, [
-        41.5208239274, 33.8049437646, 0.728403505774,
-        54.2905414047, 106.837181603, 0.113493490292,
-        85.6017291037, 81.7393025689, 0.266395372002,
+        41.5208239274, 33.8049437646, 262.22526207864,
+        54.2905414047, 106.837181603, 40.85765650512,
+        85.6017291037, 81.7393025689, 95.90233392072,
         53.3889647411, 0.0, 0.0,
       ]));
     }

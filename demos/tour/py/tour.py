@@ -39,12 +39,12 @@ print("# Chromarite tour")
 
 section("1. Making colors")
 
-# Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+# Most channels go from 0 to 1, and hue is in degrees (0 to 360), as in CSS.
 orange = Color.from_list(Space.srgb, [1.0, 0.5, 0.0])
 show("orange", orange)
 
 # A Color holds any number of colors, one per row, channels back to back.
-pair = Color.from_list(Space.oklch, [0.7, 0.1, 0.4, 0.5, 0.2, 0.8])
+pair = Color.from_list(Space.oklch, [0.7, 0.1, 144.0, 0.5, 0.2, 288.0])
 show("two OkLCh colors", pair)
 
 # Alpha (opacity, 0 to 1) goes after each row's channels.
@@ -56,7 +56,7 @@ show("orange at 80%", orange.with_alpha([0.8]))
 show("from ints", Color.from_rgb_ints([0x663399, 0x00FF80]))
 
 # From a Matrix: a flat list read as rows of a given width.
-show("from rows", Color.from_rows(Space.hsl, Matrix(3, [0.5, 1.0, 0.25, 0.0, 0.0, 0.5])))
+show("from rows", Color.from_rows(Space.hsl, Matrix(3, [180.0, 1.0, 0.25, 0.0, 0.0, 0.5])))
 
 # Any CSS color. Each keeps the space it was written in.
 for text in [
@@ -97,14 +97,14 @@ for space in spaces:
     parent = "none" if space.parent is None else space.parent.name
     gamut = "none" if space.gamut is None else space.gamut.name
     print(
-        f"{space.name}: {space.ncols} channels, parent {parent}, "
+        f"{space.name}: {space.width} channels, parent {parent}, "
         f"depth {space.depth}, gamut {gamut}"
     )
 
 # The same orange in every space.
 for space in spaces:
     converted = orange.convert(space)  # snippet: convert
-    print(f"orange in {space.name}: {nums(converted.rows.to_list())}")
+    print(f"orange in {space.name}: {nums(converted.to_list())}")
 
 section("3. Formatting")
 
@@ -130,9 +130,9 @@ show("P3 red as sRGB", p3_red.convert(Space.srgb))
 # To show a color like this vivid blue on an sRGB screen, either map it into
 # the gamut as CSS does, keeping lightness and hue and reducing chroma, or
 # clip each channel, which can change lightness and hue too.
-vivid = Color.from_list(Space.oklch, [0.6, 0.35, 0.75])  # snippet: snap, edges
+vivid = Color.from_list(Space.oklch, [0.6, 0.35, 270.0])  # snippet: snap, edges
 mapped = vivid.to_gamut(Space.srgb)  # snippet: snap
-clipped = vivid.clip(Space.srgb)
+clipped = vivid.to_gamut_clipped(Space.srgb)
 show("vivid blue", vivid)
 show("mapped, in OkLCh", mapped.convert(Space.oklch))
 show("clipped, in OkLCh", clipped.convert(Space.oklch))
@@ -177,7 +177,7 @@ lighter = steel.lighten(0.1)  # snippet: shades
 darker = steel.lighten(-0.1)  # snippet: shades
 print(f"lighter {lighter.to_hex()[0]}, darker {darker.to_hex()[0]}")
 print(f"more saturated {steel.saturate(1.5).to_hex()[0]}, less {steel.saturate(0.5).to_hex()[0]}")
-opposite = steel.rotate_hue(0.5)  # snippet: harmony
+opposite = steel.rotate_hue(180.0)  # snippet: harmony
 print(f"opposite hue {opposite.to_hex()[0]}, gray {steel.grayscale().to_hex()[0]}")
 
 # Or change every channel value directly.

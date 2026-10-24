@@ -8,9 +8,9 @@ A cross-language color transformation library, working toward the color math of
 In Temper, and the same API in each [supported language](#languages):
 
 ```temper
-// Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+// Most channels go from 0 to 1, and hue is in degrees, as in CSS.
 let red = Color.fromList(Space.srgb, [1.0, 0.0, 0.0]);
-let lch = red.convert(Space.oklch); // About 0.628, 0.258, 0.081
+let lch = red.convert(Space.oklch).toList(); // About [0.628, 0.258, 29.23]
 
 // Parse any CSS color, and format as hex or CSS.
 let purple = Color.parse("rebeccapurple");
