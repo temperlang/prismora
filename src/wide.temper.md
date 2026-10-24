@@ -154,9 +154,9 @@ round trip through the mirrored curves.
 
     test("wide-gamut outside srgb round trip") { test =>
       let p3 = Color.fromList(Space.displayP3, [0.0, 1.0, 0.0]);
-      let rgb = p3.convert(Space.srgb);
+      let rgb = p3.toSpace(Space.srgb);
       assert(rgb[0, 0] < 0.0);
-      assertColors(test, p3, rgb.convert(Space.displayP3));
+      assertColors(test, p3, rgb.toSpace(Space.displayP3));
     }
 
 [Css4Rgb]: https://www.w3.org/TR/css-color-4/#predefined

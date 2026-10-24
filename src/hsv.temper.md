@@ -1,8 +1,8 @@
 # HSL, HSV and HWB
 
 These are cylindrical forms of gamma-encoded sRGB, following
-[CSS Color 4][Css4Hsl]. Like OkLCh here, hue is in turns, from 0 up to 1,
-rather than degrees, and the other channels go from 0 to 1 rather than
+[CSS Color 4][Css4Hsl]. Hue is in degrees, from 0 up to 360, as in CSS and
+every space here with hue, and the other channels go from 0 to 1 rather than
 percentages. Grays have hue 0.
 
 In the conversion tree, HSL and HSV are children of sRGB, and HWB is a child of
@@ -10,10 +10,10 @@ HSV, since they differ only in how they express whiteness and blackness.
 
 ## Hue
 
-Hue in turns from sRGB channels, given their max and their spread, which must
+Hue in degrees from sRGB channels, given their max and their spread, which must
 be nonzero.
 
-    let hueTurns(r: Float64, g: Float64, b: Float64, max: Float64, spread: Float64): Float64 throws Bubble {
+    let hueDegrees(r: Float64, g: Float64, b: Float64, max: Float64, spread: Float64): Float64 throws Bubble {
       let sixths = if (max == r) {
         (g - b) / spread + (if (g < b) { 6.0 } else { 0.0 })
       } else if (max == g) {
@@ -21,7 +21,7 @@ be nonzero.
       } else {
         (r - g) / spread + 4.0
       };
-      sixths / 6.0
+      sixths * 60.0
     }
 
 Wraps any value into the range from 0 up to `modulus`.
@@ -46,17 +46,17 @@ Wraps any value into the range from 0 up to `modulus`.
           var s = 0.0;
           if (spread != 0.0) {
             s = if (l == 0.0 || l == 1.0) { 0.0 } else { (max - l) / l.min(1.0 - l) };
-            h = hueTurns(r, g, b, max, spread);
+            h = hueDegrees(r, g, b, max, spread);
           }
 
 Out-of-gamut input can give negative saturation, which CSS turns into the
 opposite hue instead.
 
           if (s < 0.0) {
-            h += 0.5;
+            h += 180.0;
             s = -s;
           }
-          builder.add(wrap(h, 1.0));
+          builder.add(wrap(h, 360.0));
           builder.add(s);
           builder.add(l);
         } orelse panic();
@@ -66,7 +66,7 @@ opposite hue instead.
     let hslToSrgb(hsl: Matrix): Matrix {
       mapRows(hsl) { row, builder =>
         do {
-          let twelfths = row[0] * 12.0;
+          let twelfths = row[0] / 30.0;
           let s = row[1];
           let l = row[2];
           let a = s * l.min(1.0 - l);
@@ -89,7 +89,7 @@ opposite hue instead.
           let b = row[2];
           let max = r.max(g).max(b);
           let spread = max - r.min(g).min(b);
-          let h = if (spread == 0.0) { 0.0 } else { hueTurns(r, g, b, max, spread) };
+          let h = if (spread == 0.0) { 0.0 } else { hueDegrees(r, g, b, max, spread) };
           let s = if (max == 0.0) { 0.0 } else { spread / max };
           builder.add(h);
           builder.add(s);
@@ -101,7 +101,7 @@ opposite hue instead.
     let hsvToSrgb(hsv: Matrix): Matrix {
       mapRows(hsv) { row, builder =>
         do {
-          let sixths = row[0] * 6.0;
+          let sixths = row[0] / 60.0;
           let s = row[1];
           let v = row[2];
           for (var n = 0; n < 3; n += 1) {
@@ -151,7 +151,7 @@ gives a gray.
 
 ## Tests
 
-Expected values follow the CSS Color 4 examples, with hue in turns.
+Expected values follow the CSS Color 4 examples, with hue in degrees.
 
     test("hsl conversions") { test =>
       let rgb = Color.fromList(Space.srgb, [
@@ -163,9 +163,9 @@ Expected values follow the CSS Color 4 examples, with hue in turns.
       ]);
       let hsl = Color.fromList(Space.hsl, [
         0.0, 1.0, 0.5,
-        1.0 / 3.0, 1.0, 0.5,
-        2.0 / 3.0, 1.0, 0.25,
-        1.0 / 12.0, 1.0, 0.5,
+        120.0, 1.0, 0.5,
+        240.0, 1.0, 0.25,
+        30.0, 1.0, 0.5,
         0.0, 0.0, 0.5,
       ]);
       assertConvertColors(test, rgb, hsl);
@@ -177,7 +177,7 @@ hue, and still round trips.
 
     test("hsl out of range") { test =>
       let rgb = Color.fromList(Space.srgb, [1.5, 1.2, 1.1]);
-      let hsl = Color.fromList(Space.hsl, [13.0 / 24.0, 2.0 / 3.0, 1.3]);
+      let hsl = Color.fromList(Space.hsl, [195.0, 2.0 / 3.0, 1.3]);
       assertConvertColors(test, rgb, hsl);
       assertConvertColors(test, hsl, rgb);
     }
@@ -191,8 +191,8 @@ hue, and still round trips.
       ]);
       let hsv = Color.fromList(Space.hsv, [
         0.0, 1.0, 1.0,
-        1.0 / 12.0, 1.0, 1.0,
-        0.5, 0.5, 0.5,
+        30.0, 1.0, 1.0,
+        180.0, 0.5, 0.5,
         0.0, 0.0, 0.0,
       ]);
       assertConvertColors(test, rgb, hsv);
@@ -202,7 +202,7 @@ hue, and still round trips.
     test("hwb conversions") { test =>
       let hwb = Color.fromList(Space.hwb, [
         0.0, 0.0, 0.0,
-        1.0 / 3.0, 0.2, 0.2,
+        120.0, 0.2, 0.2,
         0.0, 0.6, 0.6,
       ]);
       let rgb = Color.fromList(Space.srgb, [

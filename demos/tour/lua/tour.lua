@@ -54,16 +54,16 @@ print("# Chromarite tour")
 
 section("1. Making colors")
 
--- Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+-- Most channels go from 0 to 1, and hue is in degrees (0 to 360), as in CSS.
 local orange = Color.fromList(Space.srgb, { 1.0, 0.5, 0.0 })
 show("orange", orange)
 
 -- A Color holds any number of colors, one per row, channels back to back.
-local pair = Color.fromList(Space.oklch, { 0.7, 0.1, 0.4, 0.5, 0.2, 0.8 })
+local pair = Color.fromList(Space.oklch, { 0.7, 0.1, 144.0, 0.5, 0.2, 288.0 })
 show("two OkLCh colors", pair)
 
 -- Alpha (opacity, 0 to 1) goes after each row's channels.
-local seeThrough = Color.fromAlpha(Space.srgb, { 1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25 })
+local seeThrough = Color.fromListWithAlpha(Space.srgb, { 1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25 })
 show("red and blue, see-through", seeThrough)
 show("orange at 80%", orange:withAlpha({ 0.8 }))
 
@@ -71,7 +71,7 @@ show("orange at 80%", orange:withAlpha({ 0.8 }))
 show("from ints", Color.fromRgbInts({ 0x663399, 0x00ff80 }))
 
 -- From a Matrix: a flat list read as rows of a given width.
-show("from rows", Color.fromRows(Space.hsl, Matrix(3, { 0.5, 1.0, 0.25, 0.0, 0.0, 0.5 })))
+show("from rows", Color.fromRows(Space.hsl, Matrix(3, { 180.0, 1.0, 0.25, 0.0, 0.0, 0.5 })))
 
 -- Any CSS color. Each keeps the space it was written in.
 for _, text in ipairs({
@@ -114,14 +114,14 @@ for _, space in ipairs(spaces) do
   local gamut = is_null(space.gamut) and "none" or space.gamut.name
   print(string.format(
     "%s: %d channels, parent %s, depth %d, gamut %s",
-    space.name, space.ncols, parent, space.depth, gamut
+    space.name, space.width, parent, space.depth, gamut
   ))
 end
 
 -- The same orange in every space.
 for _, space in ipairs(spaces) do
-  local converted = orange:convert(space)  -- snippet: convert
-  print("orange in " .. space.name .. ": " .. nums(converted.rows:toList()))
+  local converted = orange:toSpace(space)  -- snippet: convert
+  print("orange in " .. space.name .. ": " .. nums(converted:toList()))
 end
 
 section("3. Formatting")
@@ -145,17 +145,17 @@ local p3Red = Color.fromList(Space.displayP3, { 1.0, 0.0, 0.0 })  -- snippet: ga
 local inSrgb = p3Red:inGamut(Space.srgb)  -- snippet: gamut
 local inP3 = p3Red:inGamut(Space.displayP3)  -- snippet: gamut
 print(string.format("P3 red in sRGB? %s; in P3? %s", yes(inSrgb[1]), yes(inP3[1])))
-show("P3 red as sRGB", p3Red:convert(Space.srgb))
+show("P3 red as sRGB", p3Red:toSpace(Space.srgb))
 
 -- To show a color like this vivid blue on an sRGB screen, either map it into
 -- the gamut as CSS does, keeping lightness and hue and reducing chroma, or
 -- clip each channel, which can change lightness and hue too.
-local vivid = Color.fromList(Space.oklch, { 0.6, 0.35, 0.75 })  -- snippet: snap, edges
+local vivid = Color.fromList(Space.oklch, { 0.6, 0.35, 270.0 })  -- snippet: snap, edges
 local mapped = vivid:toGamut(Space.srgb)  -- snippet: snap
-local clipped = vivid:clip(Space.srgb)
+local clipped = vivid:toGamutClipped(Space.srgb)
 show("vivid blue", vivid)
-show("mapped, in OkLCh", mapped:convert(Space.oklch))
-show("clipped, in OkLCh", clipped:convert(Space.oklch))
+show("mapped, in OkLCh", mapped:toSpace(Space.oklch))
+show("clipped, in OkLCh", clipped:toSpace(Space.oklch))
 
 -- deltaEOK measures how different two colors look: under about 0.02 is hard
 -- to see.
@@ -198,7 +198,7 @@ local lighter = steel:lighten(0.1)  -- snippet: shades
 local darker = steel:lighten(-0.1)  -- snippet: shades
 print("lighter " .. lighter:toHex()[1] .. ", darker " .. darker:toHex()[1])
 print("more saturated " .. steel:saturate(1.5):toHex()[1] .. ", less " .. steel:saturate(0.5):toHex()[1])
-local opposite = steel:rotateHue(0.5)  -- snippet: harmony
+local opposite = steel:rotateHue(180.0)  -- snippet: harmony
 print("opposite hue " .. opposite:toHex()[1] .. ", gray " .. steel:grayscale():toHex()[1])
 
 -- Or change every channel value directly.
@@ -223,7 +223,7 @@ print("row 1, column 2: " .. num(rows:get(1, 2)) .. "; flat 4: " .. num(rows:at(
 print("values " .. nums(rows:toList()))
 print("doubled " .. nums(rows:map(function(x) return x * 2 end):toList()))
 print("one row " .. nums(Matrix.rowOf({ 0.1, 0.2, 0.3 }):toList()))
-print("with alpha " .. nums(seeThrough:rowsWithAlpha():toList()))
+print("with alpha " .. nums(seeThrough:toListWithAlpha()))
 
 -- Reading past the end fails.
 if pcall(pair.get, pair, 0, 5) then

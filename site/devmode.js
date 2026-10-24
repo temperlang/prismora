@@ -73,7 +73,7 @@ const SPOTS = [
   {
     id: "harmony",
     title: "Turning the hue",
-    about: "`rotateHue` turns colors around the OkLCh hue wheel, in turns, so 0.5 is the opposite hue. Harmonies spread hues this way.",
+    about: "`rotateHue` turns colors around the OkLCh hue wheel, in degrees, so 180 is the opposite hue. Harmonies spread hues this way.",
     target: () => part("chromarite-palette", "harmonies"),
   },
   {
@@ -85,7 +85,7 @@ const SPOTS = [
   {
     id: "convert",
     title: "Converting between spaces",
-    about: "`convert` gives the same colors in any other space. Every row of this table is one call.",
+    about: "`toSpace` gives the same colors in any other space. Every row of this table is one call.",
     target: () => document.querySelector("#spaces table"),
   },
 ];

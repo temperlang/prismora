@@ -26,7 +26,7 @@ like other channels, it isn't clamped until formatting.
 
 Alpha is stored apart from `rows` because conversions never touch it, so they
 stay simple and fast. To give or get alpha inline with the channels, as in
-`[r, g, b, a, ...]`, use `fromAlpha` and `rowsWithAlpha` below. To give alpha
+`[r, g, b, a, ...]`, use `fromListWithAlpha` and `toListWithAlpha` below. To give alpha
 as its own list, use `withAlpha`.
 
       public alpha: List<Float64>?;
@@ -43,7 +43,7 @@ list needs a typed `None`, and leaves room to change how colors are stored.
 Checking here panics on mismatched shapes, like the `Matrix` constructor does.
 
       private constructor(space: Space, rows: Matrix, alpha: List<Float64>?) {
-        if (rows.ncols != space.ncols) { panic() }
+        if (rows.ncols != space.width) { panic() }
         if (alpha != null && alpha.length != rows.nrows) { panic() }
         this.space = space;
         this.rows = rows;
@@ -54,7 +54,7 @@ Checking here panics on mismatched shapes, like the `Matrix` constructor does.
 Opaque colors from a flat list of channels, such as `[r, g, b, r, g, b]`.
 
       public static fromList(space: Space, values: List<Float64>): Color {
-        new Color(space, new Matrix(space.ncols, values), null)
+        new Color(space, new Matrix(space.width, values), null)
       }
 
 Opaque colors from a matrix with one color per row.
@@ -72,8 +72,8 @@ Opaque sRGB colors from packed `0xRRGGBB` ints, as in `[0x663399]`.
 Each row's channels followed by its alpha, as in `[r, g, b, a, r, g, b, a]`
 for sRGB, in any space. Panics unless the values divide into rows.
 
-      public static fromAlpha(space: Space, values: List<Float64>): Color {
-        let ncols = space.ncols;
+      public static fromListWithAlpha(space: Space, values: List<Float64>): Color {
+        let ncols = space.width;
         let width = ncols + 1;
         if (((values.length % width) orelse panic()) != 0) { panic() }
         let channels = new ListBuilder<Float64>();
@@ -101,6 +101,13 @@ While `rows` is public, it's sometimes nice to skip through it.
 
       public get width(): Int { rows.ncols }
 
+All channels as a flat list, row after row, the reverse of `fromList`. For a
+single color, that's just its channels, as in
+`let lch = color.toSpace(Space.oklch).toList()`. Alpha isn't included; see
+`toListWithAlpha`.
+
+      public toList(): List<Float64> { rows.toList() }
+
 Alpha for row `i`, which is 1 if `alpha` is null.
 
       public alphaAt(i: Int): Float64 throws Bubble {
@@ -115,6 +122,12 @@ Alpha for row `i`, which is 1 if `alpha` is null.
 
 ### Conversion
 
+A naming rule tells which space a result is in: methods starting with `to`
+return another space or form, such as `toSpace(space)`, `toGamut(space)` or
+`toHex()`, while all others keep this color's space, such as
+`fitChroma(space)` or `lighten(amount)`. Mixing and gradients are the
+exception, since their results are in the space they blend in.
+
 Both of these keep alpha as is, since `transform` applies only to channels.
 Conversion never fails, since every space converts to every other.
 
@@ -122,7 +135,7 @@ Conversion never fails, since every space converts to every other.
         new Color(space, rows.map(transform), alpha)
       }
 
-      public convert(space: Space): Color {
+      public toSpace(space: Space): Color {
         if (space == this.space) {
           this
         } else {
@@ -144,7 +157,7 @@ to keep them exact.
 Converts to `space` and clamps each channel to its gamut, as CSS's simple
 "clip" does: faster than `toGamut`, but it can shift hue and lightness.
 
-      public clip(space: Space): Color {
+      public toGamutClipped(space: Space): Color {
         new Color(space, clipRows(this, space), alpha)
       }
 
@@ -221,10 +234,10 @@ Multiplies OkLCh chroma by `factor`: 0 for gray, 2 for twice as vivid.
         new Color(space, adjustLch(this, 0.0, factor, 0.0) orelse panic(), alpha)
       }
 
-Turns hue by `turns`, so 0.5 gives the opposite hue.
+Turns OkLCh hue by `degrees`, so 180 gives the opposite hue.
 
-      public rotateHue(turns: Float64): Color {
-        new Color(space, adjustLch(this, 0.0, 1.0, turns) orelse panic(), alpha)
+      public rotateHue(degrees: Float64): Color {
+        new Color(space, adjustLch(this, 0.0, 1.0, degrees) orelse panic(), alpha)
       }
 
 Gray with the same OkLCh lightness, like `saturate(0.0)`.
@@ -280,11 +293,11 @@ As packed `0xRRGGBB` ints, after mapping to the sRGB gamut, the reverse of
 
 ### Channels With Alpha
 
-Rows of this color's channels followed by alpha, in its own space and
-unclamped, the reverse of `fromAlpha`. Opaque colors get alpha 1. For canvas
-pixels or NumPy arrays, convert to sRGB first.
+Each row's channels followed by its alpha, as one flat list, in this color's
+own space and unclamped, the reverse of `fromListWithAlpha`. Opaque colors get
+alpha 1. For canvas pixels or NumPy arrays, use `toSpace(Space.srgb)` first.
 
-      public rowsWithAlpha(): Matrix {
+      public toListWithAlpha(): List<Float64> {
         let width = rows.ncols;
         let builder = new ListBuilder<Float64>();
         for (var i = 0; i < length; i += 1) {
@@ -293,7 +306,7 @@ pixels or NumPy arrays, convert to sRGB first.
           }
           builder.add(alphaAt(i) orelse panic());
         }
-        new Matrix(width + 1, builder.toList())
+        builder.toList()
       }
     }
 
@@ -314,11 +327,11 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
 ### Alpha Tests
 
     test("alpha passes through conversion and map") {
-      let source = Color.fromAlpha(Space.srgb, [
+      let source = Color.fromListWithAlpha(Space.srgb, [
         0.2, 0.4, 0.6, 0.5,
         0.9, 0.1, 0.3, 0.25,
       ]);
-      let lch = source.convert(Space.oklch);
+      let lch = source.toSpace(Space.oklch);
       assert(lch.alphaAt(0) == 0.5);
       assert(lch.alphaAt(1) == 0.25);
       assert(source.map { x => x * 0.5 }.alphaAt(1) == 0.25);
@@ -332,18 +345,18 @@ however. And we match [CSS Color Model Level 4 conversion][Css4Srgb].
       assert(do { opaque.alphaAt(1); false } orelse true);
     }
 
-    test("rows with alpha round trip") { test =>
-      let source = Color.fromAlpha(Space.oklab, [
+    test("list with alpha round trip") { test =>
+      let source = Color.fromListWithAlpha(Space.oklab, [
         0.5, 0.1, 0.05, 0.5,
         0.8, -0.02, 0.03, 1.0,
       ]);
-      let rgba = source.convert(Space.srgb).rowsWithAlpha();
-      assert(rgba.ncols == 4);
-      assert(rgba[0, 3] == 0.5);
-      let back = Color.fromAlpha(Space.srgb, rgba.toList());
+      let rgba = source.toSpace(Space.srgb).toListWithAlpha();
+      assert(rgba.length == 8);
+      assert(rgba[3] == 0.5);
+      let back = Color.fromListWithAlpha(Space.srgb, rgba);
       assert(back.alphaAt(0) == 0.5);
-      assertColors(test, source, back.convert(Space.oklab));
-      assert(Color.fromList(Space.srgb, [0.1, 0.2, 0.3]).rowsWithAlpha()[0, 3] == 1.0);
+      assertColors(test, source, back.toSpace(Space.oklab));
+      assert(Color.fromList(Space.srgb, [0.1, 0.2, 0.3]).toListWithAlpha()[3] == 1.0);
     }
 
 A separate alpha list goes through `withAlpha`.
@@ -351,7 +364,8 @@ A separate alpha list goes through `withAlpha`.
     test("separate alpha list") {
       let color = Color.fromList(Space.srgb, [0.1, 0.2, 0.3]).withAlpha([0.75]);
       assert(color.alphaAt(0) == 0.75);
-      let flat = color.rowsWithAlpha().toList();
+      assert(color.toList().length == 3);
+      let flat = color.toListWithAlpha();
       assert(flat.length == 4);
       assert(flat[2] == 0.3);
       assert(flat[3] == 0.75);
@@ -359,16 +373,16 @@ A separate alpha list goes through `withAlpha`.
 
 ### Packed Ints and Clipping
 
-    test("packed ints and clip") { test =>
+    test("packed ints and clipping") { test =>
       let colors = Color.fromRgbInts([0x663399, 0xff8000]);
       assert(colors.toHex()[1] == "#ff8000");
       let ints = colors.toRgbInts();
       assert(ints[0] == 0x663399);
       assert(ints[1] == 0xff8000);
       let vivid = Color.fromList(Space.displayP3, [1.0, 0.0, 0.0]);
-      assertColors(test, vivid.clip(Space.srgb), Color.fromList(Space.srgb, [1.0, 0.0, 0.0]));
+      assertColors(test, vivid.toGamutClipped(Space.srgb), Color.fromList(Space.srgb, [1.0, 0.0, 0.0]));
       assert(vivid.toRgbInts()[0] == 0xff0b0c);
-      assertColors(test, vivid.clip(Space.lab), vivid.convert(Space.lab));
+      assertColors(test, vivid.toGamutClipped(Space.lab), vivid.toSpace(Space.lab));
     }
 
 It would be nice to support expanded value types and also connect with backend

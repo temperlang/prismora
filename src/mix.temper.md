@@ -97,8 +97,8 @@ or this panics. Alpha in the result is null only if both inputs are opaque.
       } else {
         panic()
       };
-      let rowsA = a.convert(space).rows;
-      let rowsB = b.convert(space).rows;
+      let rowsA = a.toSpace(space).rows;
+      let rowsB = b.toSpace(space).rows;
       let mixed = new Blend(space, hue);
       for (var i = 0; i < length; i += 1) {
         let ia = if (a.length == 1) { 0 } else { i };
@@ -116,7 +116,7 @@ to the last. One color gives the first stop. Panics on no stops.
     let gradientColors(stops: Color, count: Int, space: Space, hue: HueMethod): Color throws Bubble {
       let nstops = stops.length;
       if (nstops == 0) { panic() }
-      let rows = stops.convert(space).rows;
+      let rows = stops.toSpace(space).rows;
       let mixed = new Blend(space, hue);
       for (var i = 0; i < count; i += 1) {
         if (nstops == 1 || count == 1) {
@@ -161,7 +161,7 @@ It collects channels and alpha for the result as it goes.
         rowsB: Matrix, ib: Int, alphaB: Float64,
         t: Float64,
       ): Void throws Bubble {
-        let ncols = space.ncols;
+        let ncols = space.width;
         let x = new ListBuilder<Float64>();
         let y = new ListBuilder<Float64>();
         for (var j = 0; j < ncols; j += 1) {
@@ -175,7 +175,7 @@ It collects channels and alpha for the result as it goes.
         let alpha = alphaA + (alphaB - alphaA) * t;
         for (var j = 0; j < ncols; j += 1) {
           if (j == h) {
-            channels.add(wrap(x[j] + (y[j] - x[j]) * t, 1.0));
+            channels.add(wrap(x[j] + (y[j] - x[j]) * t, 360.0));
           } else {
             let premultiplied = x[j] * alphaA + (y[j] * alphaB - x[j] * alphaA) * t;
             channels.add(if (alpha == 0.0) { premultiplied } else { premultiplied / alpha });
@@ -200,66 +200,66 @@ Steps 1 and 2 for the hue channel `h`, in place.
         } else if (grayY) {
           y.set(h, x[h]);
         }
-        let h1 = wrap(x[h], 1.0);
-        let h2 = wrap(y[h], 1.0);
+        let h1 = wrap(x[h], 360.0);
+        let h2 = wrap(y[h], 360.0);
         let diff = h2 - h1;
         if (hue == HueMethod.shorter) {
-          if (diff > 0.5) {
-            x.set(h, h1 + 1.0);
+          if (diff > 180.0) {
+            x.set(h, h1 + 360.0);
             y.set(h, h2);
-          } else if (diff < -0.5) {
+          } else if (diff < -180.0) {
             x.set(h, h1);
-            y.set(h, h2 + 1.0);
+            y.set(h, h2 + 360.0);
           } else {
             x.set(h, h1);
             y.set(h, h2);
           }
         } else if (hue == HueMethod.longer) {
-          if (diff > 0.0 && diff < 0.5) {
-            x.set(h, h1 + 1.0);
+          if (diff > 0.0 && diff < 180.0) {
+            x.set(h, h1 + 360.0);
             y.set(h, h2);
-          } else if (diff > -0.5 && diff <= 0.0) {
+          } else if (diff > -180.0 && diff <= 0.0) {
             x.set(h, h1);
-            y.set(h, h2 + 1.0);
+            y.set(h, h2 + 360.0);
           } else {
             x.set(h, h1);
             y.set(h, h2);
           }
         } else if (hue == HueMethod.increasing) {
           x.set(h, h1);
-          y.set(h, if (h2 < h1) { h2 + 1.0 } else { h2 });
+          y.set(h, if (h2 < h1) { h2 + 360.0 } else { h2 });
         } else {
-          x.set(h, if (h1 < h2) { h1 + 1.0 } else { h1 });
+          x.set(h, if (h1 < h2) { h1 + 360.0 } else { h1 });
           y.set(h, h2);
         }
       }
 
       public toColor(opaque: Boolean): Color {
-        let rows = Color.fromRows(space, new Matrix(space.ncols, channels.toList()));
+        let rows = Color.fromRows(space, new Matrix(space.width, channels.toList()));
         if (opaque) { rows } else { rows.withAlpha(alphas.toList()) }
       }
     }
 
 ## Tests
 
-Hue path examples from CSS Color 4, with hue in turns.
+Hue path examples from CSS Color 4.
 
     test("hue paths") { test =>
-      let red = Color.fromList(Space.oklch, [0.6, 0.24, 30.0 / 360.0]);
-      let yellow = Color.fromList(Space.oklch, [0.8, 0.15, 90.0 / 360.0]);
+      let red = Color.fromList(Space.oklch, [0.6, 0.24, 30.0]);
+      let yellow = Color.fromList(Space.oklch, [0.8, 0.15, 90.0]);
       assertColors(test, red.mix(yellow, 0.5, Space.oklch), Color.fromList(Space.oklch, [
-        0.7, 0.195, 60.0 / 360.0,
+        0.7, 0.195, 60.0,
       ]));
       assertColors(test, red.mixHue(yellow, 0.5, Space.oklch, HueMethod.longer), Color.fromList(Space.oklch, [
-        0.7, 0.195, 240.0 / 360.0,
+        0.7, 0.195, 240.0,
       ]));
-      let brown = Color.fromList(Space.oklch, [0.5, 0.1, 30.0 / 360.0]);
-      let turquoise = Color.fromList(Space.oklch, [0.7, 0.1, 190.0 / 360.0]);
+      let brown = Color.fromList(Space.oklch, [0.5, 0.1, 30.0]);
+      let turquoise = Color.fromList(Space.oklch, [0.7, 0.1, 190.0]);
       assertColors(test, brown.mixHue(turquoise, 0.5, Space.oklch, HueMethod.increasing), Color.fromList(Space.oklch, [
-        0.6, 0.1, 110.0 / 360.0,
+        0.6, 0.1, 110.0,
       ]));
       assertColors(test, brown.mixHue(turquoise, 0.5, Space.oklch, HueMethod.decreasing), Color.fromList(Space.oklch, [
-        0.6, 0.1, 290.0 / 360.0,
+        0.6, 0.1, 290.0,
       ]));
     }
 
@@ -269,12 +269,12 @@ magenta.
     test("gray takes the other hue") { test =>
       let white = Color.fromList(Space.srgb, [1.0, 1.0, 1.0]);
       let blue = Color.fromList(Space.srgb, [0.0, 0.0, 1.0]);
-      let blueLch = blue.convert(Space.oklch);
+      let blueLch = blue.toSpace(Space.oklch);
       let mid = white.mix(blue, 0.5, Space.oklch);
       assertNear(test, "hue", mid[0, 2], blueLch[0, 2]);
       assertNear(test, "chroma", mid[0, 1], blueLch[0, 1] * 0.5);
-      let grays = Color.fromList(Space.hsl, [0.3, 0.0, 0.2, 0.7, 0.0, 0.8]);
-      let grayMid = grays.mix(Color.fromList(Space.hsl, [0.9, 0.0, 0.5]), 0.5, Space.hsl);
+      let grays = Color.fromList(Space.hsl, [108.0, 0.0, 0.2, 252.0, 0.0, 0.8]);
+      let grayMid = grays.mix(Color.fromList(Space.hsl, [324.0, 0.0, 0.5]), 0.5, Space.hsl);
       assert(grayMid[0, 0] == 0.0);
     }
 
@@ -283,8 +283,8 @@ Oklab blends each channel linearly.
     test("mix in oklab") { test =>
       let red = Color.fromList(Space.srgb, [1.0, 0.0, 0.0]);
       let blue = Color.fromList(Space.srgb, [0.0, 0.0, 1.0]);
-      let a = red.convert(Space.oklab);
-      let b = blue.convert(Space.oklab);
+      let a = red.toSpace(Space.oklab);
+      let b = blue.toSpace(Space.oklab);
       let mid = red.mix(blue, 0.25, Space.oklab);
       assert(mid.space == Space.oklab);
       for (var j = 0; j < 3; j += 1) {
@@ -298,11 +298,11 @@ Fading to transparent keeps the color, thanks to premultiplying, and one row
 mixes with every row of the other.
 
     test("mix with alpha and one row") { test =>
-      let colors = Color.fromAlpha(Space.srgb, [
+      let colors = Color.fromListWithAlpha(Space.srgb, [
         1.0, 0.0, 0.0, 1.0,
         0.0, 1.0, 0.0, 1.0,
       ]);
-      let clear = Color.fromAlpha(Space.srgb, [0.0, 0.0, 1.0, 0.0]);
+      let clear = Color.fromListWithAlpha(Space.srgb, [0.0, 0.0, 1.0, 0.0]);
       let faded = colors.mix(clear, 0.5, Space.srgb);
       assertColors(test, faded, Color.fromList(Space.srgb, [
         1.0, 0.0, 0.0,
@@ -328,11 +328,11 @@ Gradients hit each stop and blend evenly between them.
       let green = Color.fromList(Space.srgb, [0.0, 1.0, 0.0]);
       let blue = Color.fromList(Space.srgb, [0.0, 0.0, 1.0]);
       let expected = [
-        red.convert(Space.oklab),
+        red.toSpace(Space.oklab),
         red.mix(green, 0.5, Space.oklab),
-        green.convert(Space.oklab),
+        green.toSpace(Space.oklab),
         green.mix(blue, 0.5, Space.oklab),
-        blue.convert(Space.oklab),
+        blue.toSpace(Space.oklab),
       ];
       for (var i = 0; i < 5; i += 1) {
         for (var j = 0; j < 3; j += 1) {

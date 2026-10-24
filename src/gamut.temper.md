@@ -33,8 +33,8 @@ is just noticeable. Panics if the colors have different lengths.
 
     let deltaEOkRows(a: Color, b: Color): List<Float64> throws Bubble {
       if (a.length != b.length) { panic() }
-      let labA = a.convert(Space.oklab).rows;
-      let labB = b.convert(Space.oklab).rows;
+      let labA = a.toSpace(Space.oklab).rows;
+      let labB = b.toSpace(Space.oklab).rows;
       let builder = new ListBuilder<Float64>();
       for (var i = 0; i < a.length; i += 1) {
         builder.add(distance3(
@@ -60,7 +60,7 @@ an edge counts as out, and mapping then clamps it.
       if (gamut == null) {
         for (var i = 0; i < color.length; i += 1) { builder.add(true) }
       } else {
-        let rows = color.convert(gamut).rows;
+        let rows = color.toSpace(gamut).rows;
         for (var i = 0; i < color.length; i += 1) {
           builder.add(inUnitCube(rows[i, 0], rows[i, 1], rows[i, 2]));
         }
@@ -83,7 +83,7 @@ if/else.
       if (gamut == null) {
         convertRows(color.rows, color.space, space)
       } else {
-        let lch = color.convert(Space.oklch).rows;
+        let lch = color.toSpace(Space.oklch).rows;
         let builder = new ListBuilder<Float64>();
         for (var i = 0; i < color.length; i += 1) {
           let mapped = mapRow(lch[i, 0], lch[i, 1], lch[i, 2], gamut);
@@ -103,7 +103,7 @@ what CSS calls clipping.
       if (gamut == null) {
         convertRows(color.rows, color.space, space)
       } else {
-        convertRows(clampToUnit(color.convert(gamut).rows), gamut, space)
+        convertRows(clampToUnit(color.toSpace(gamut).rows), gamut, space)
       }
     }
 
@@ -170,8 +170,8 @@ Distance from a clamped row in `gamut` to the OkLCh color it came from.
       clipped: Matrix, gamut: Space, l: Float64, c: Float64, h: Float64,
     ): Float64 throws Bubble {
       let lab = convertRows(clipped, gamut, Space.oklab);
-      let turn = 2.0 * Float64.pi * h;
-      distance3(lab.at(0) - l, lab.at(1) - c * turn.cos(), lab.at(2) - c * turn.sin())
+      let radians = h * Float64.pi / 180.0;
+      distance3(lab.at(0) - l, lab.at(1) - c * radians.cos(), lab.at(2) - c * radians.sin())
     }
 
     let rowInUnitCube(row: Matrix): Boolean throws Bubble {
@@ -196,7 +196,7 @@ overflows to on every backend.
 
     let maxChromaRows(color: Color, space: Space): List<Float64> throws Bubble {
       let gamut = gamutOf(space);
-      let lch = color.convert(Space.oklch).rows;
+      let lch = color.toSpace(Space.oklch).rows;
       let n = color.length;
       var lo = new ListBuilder<Float64>();
       var hi = new ListBuilder<Float64>();
@@ -243,7 +243,7 @@ fit are kept as they are.
 
     let fitChromaRows(color: Color, space: Space): Matrix throws Bubble {
       let fits = inGamutRows(color, space);
-      let lch = color.convert(Space.oklch).rows;
+      let lch = color.toSpace(Space.oklch).rows;
       let limits = maxChromaRows(color, space);
       let lowered = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
@@ -252,7 +252,7 @@ fit are kept as they are.
         lowered.add(lch[i, 2]);
       }
       let converted = convertRows(new Matrix(3, lowered.toList()), Space.oklch, color.space);
-      let ncols = color.space.ncols;
+      let ncols = color.space.width;
       let result = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
         let source = if (fits[i]) { color.rows } else { converted };
@@ -271,14 +271,14 @@ examples: `oklch(76% 0.27 60)` maps to about `color(display-p3 1 0.546 0)`,
 and `color(display-p3 1.1 0.4 0.2)` to about `color(display-p3 1 0.473 0.314)`.
 
     let gamutSources(): Color {
-      Color.fromAlpha(Space.oklch, [
-        0.7, 0.1, 0.1, 1.0,
-        0.76, 0.27, 60.0 / 360.0, 0.5,
-        0.6, 0.4, 0.75, 1.0,
-        0.9, 0.3, 0.3, 1.0,
-        0.2, 0.2, 0.6, 1.0,
-        1.1, 0.1, 0.2, 0.25,
-        -0.1, 0.1, 0.2, 1.0,
+      Color.fromListWithAlpha(Space.oklch, [
+        0.7, 0.1, 36.0, 1.0,
+        0.76, 0.27, 60.0, 0.5,
+        0.6, 0.4, 270.0, 1.0,
+        0.9, 0.3, 108.0, 1.0,
+        0.2, 0.2, 216.0, 1.0,
+        1.1, 0.1, 72.0, 0.25,
+        -0.1, 0.1, 72.0, 1.0,
       ])
     }
 
@@ -318,7 +318,7 @@ HSL maps through sRGB, and unbounded spaces just convert.
     test("gamut map to hsl and unbounded spaces") { test =>
       let sources = gamutSources();
       assertConvertColors(test, sources.toGamut(Space.srgb), sources.toGamut(Space.hsl));
-      assertColors(test, sources.toGamut(Space.lab), sources.convert(Space.lab));
+      assertColors(test, sources.toGamut(Space.lab), sources.toSpace(Space.lab));
       let unbounded = Space.oklab.gamut == null;
       assert(Space.hsl.gamut == Space.srgb);
       assert(unbounded);

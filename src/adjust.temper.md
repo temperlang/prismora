@@ -10,19 +10,19 @@ outside a display's gamut; use `toGamut` before showing it.
 
 The methods are on `Color`: `lighten`, `saturate`, `rotateHue` and
 `grayscale`. They all come down to this, which adds `lightness` to OkLCh
-lightness, multiplies chroma by `chromaFactor`, and adds `turns` to hue.
+lightness, multiplies chroma by `chromaFactor`, and adds `degrees` to hue.
 Grays keep hue 0, as elsewhere in Chromarite.
 
     let adjustLch(
-      color: Color, lightness: Float64, chromaFactor: Float64, turns: Float64,
+      color: Color, lightness: Float64, chromaFactor: Float64, degrees: Float64,
     ): Matrix throws Bubble {
-      let lch = color.convert(Space.oklch).rows;
+      let lch = color.toSpace(Space.oklch).rows;
       let adjusted = mapRows(lch) { row, builder =>
         do {
           let chroma = row[1] * chromaFactor;
           builder.add(row[0] + lightness);
           builder.add(chroma);
-          builder.add(if (chroma == 0.0) { 0.0 } else { wrap(row[2] + turns, 1.0) });
+          builder.add(if (chroma == 0.0) { 0.0 } else { wrap(row[2] + degrees, 360.0) });
         } orelse panic();
       };
       convertRows(adjusted, Space.oklch, color.space)
@@ -31,12 +31,12 @@ Grays keep hue 0, as elsewhere in Chromarite.
 ### Tests
 
     test("lighten") { test =>
-      let color = Color.fromAlpha(Space.srgb, [0.2, 0.4, 0.6, 0.5]);
+      let color = Color.fromListWithAlpha(Space.srgb, [0.2, 0.4, 0.6, 0.5]);
       let lighter = color.lighten(0.1);
       assert(lighter.space == Space.srgb);
       assert(lighter.alphaAt(0) == 0.5);
-      let before = color.convert(Space.oklch);
-      let after = lighter.convert(Space.oklch);
+      let before = color.toSpace(Space.oklch);
+      let after = lighter.toSpace(Space.oklch);
       assertNear(test, "lightness", after[0, 0], before[0, 0] + 0.1);
       assertNear(test, "chroma", after[0, 1], before[0, 1]);
       assertNear(test, "hue", after[0, 2], before[0, 2]);
@@ -44,9 +44,9 @@ Grays keep hue 0, as elsewhere in Chromarite.
     }
 
     test("saturate, rotate hue and grayscale") { test =>
-      let color = Color.fromList(Space.oklch, [0.6, 0.1, 0.8]);
-      assertColors(test, color.saturate(2.0), Color.fromList(Space.oklch, [0.6, 0.2, 0.8]));
-      assertColors(test, color.rotateHue(0.5), Color.fromList(Space.oklch, [0.6, 0.1, 0.3]));
+      let color = Color.fromList(Space.oklch, [0.6, 0.1, 288.0]);
+      assertColors(test, color.saturate(2.0), Color.fromList(Space.oklch, [0.6, 0.2, 288.0]));
+      assertColors(test, color.rotateHue(180.0), Color.fromList(Space.oklch, [0.6, 0.1, 108.0]));
       assertColors(test, color.grayscale(), Color.fromList(Space.oklch, [0.6, 0.0, 0.0]));
       let gray = Color.fromList(Space.srgb, [0.9, 0.2, 0.3]).grayscale();
       assertNear(test, "gray g", gray[0, 1], gray[0, 0]);
@@ -64,7 +64,7 @@ the sRGB curve as CSS defines it, which WCAG 2.2 also uses. Colors outside
 sRGB are gamut-mapped first, since WCAG is about displayed colors.
 
     let luminanceRows(color: Color): List<Float64> throws Bubble {
-      let xyz = color.toGamut(Space.srgb).convert(Space.xyzD65).rows;
+      let xyz = color.toGamut(Space.srgb).toSpace(Space.xyzD65).rows;
       let builder = new ListBuilder<Float64>();
       for (var i = 0; i < color.length; i += 1) {
         builder.add(xyz[i, 1]);

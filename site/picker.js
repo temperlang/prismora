@@ -105,9 +105,8 @@ const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
  * @returns {Edges}
  */
 function gamutEdges(hueDegrees) {
-  const turns = hueDegrees / 360;
   const column = [];
-  for (let i = 0; i <= EDGE_ROWS; i++) column.push(i / EDGE_ROWS, MAX_CHROMA, turns);
+  for (let i = 0; i <= EDGE_ROWS; i++) column.push(i / EDGE_ROWS, MAX_CHROMA, hueDegrees);
   const colors = Color.fromList(Space.oklch, column);
   /** @type {Edges} */
   const edges = {};
@@ -438,7 +437,7 @@ class ChromaritePicker extends HTMLElement {
    */
   #drawPlane(size) {
     const canvas = this.#el("plane-canvas");
-    const turns = this.#state.H / 360;
+    const H = this.#state.H;
     const values = new Array(size * size * 3);
     let k = 0;
     for (let y = 0; y < size; y++) {
@@ -446,10 +445,10 @@ class ChromaritePicker extends HTMLElement {
       for (let x = 0; x < size; x++) {
         values[k++] = L;
         values[k++] = ((x + 0.5) / size) * MAX_CHROMA;
-        values[k++] = turns;
+        values[k++] = H;
       }
     }
-    const shown = Color.fromList(Space.oklch, values).convert(this.#screen).rows.toList();
+    const shown = Color.fromList(Space.oklch, values).toSpace(this.#screen).toList();
     const space = { colorSpace: this.#colorSpace };
     const off = document.createElement("canvas");
     off.width = off.height = size;
@@ -518,7 +517,7 @@ class ChromaritePicker extends HTMLElement {
    * @returns {string[]}
    */
   #onScreen(color) {
-    return color.toGamut(this.#screen).convert(this.#screen).toCss();
+    return color.toGamut(this.#screen).toCss();
   }
 
   // The hue strip: each hue at a middle lightness, fitted to the screen.
@@ -526,8 +525,8 @@ class ChromaritePicker extends HTMLElement {
     const canvas = this.#el("hue-canvas");
     const n = 360;
     const values = [];
-    for (let h = 0; h < n; h++) values.push(0.72, 0.16, h / n);
-    const shown = Color.fromList(Space.oklch, values).toGamut(this.#screen).convert(this.#screen).rows.toList();
+    for (let h = 0; h < n; h++) values.push(0.72, 0.16, (h / n) * 360);
+    const shown = Color.fromList(Space.oklch, values).toGamut(this.#screen).toList();
     const space = { colorSpace: this.#colorSpace };
     canvas.width = n;
     canvas.height = 1;
@@ -560,8 +559,8 @@ class ChromaritePicker extends HTMLElement {
     const { L, C, H } = this.#state;
     const n = 12;
     const values = [];
-    for (let i = 0; i <= n; i++) values.push(i / n, C, H / 360);
-    for (let i = 0; i <= n; i++) values.push(L, (i / n) * MAX_CHROMA, H / 360);
+    for (let i = 0; i <= n; i++) values.push(i / n, C, H);
+    for (let i = 0; i <= n; i++) values.push(L, (i / n) * MAX_CHROMA, H);
     for (let i = 0; i <= 2 * n; i++) values.push(L, C, i / (2 * n));
     const css = this.#onScreen(Color.fromList(Space.oklch, values));
     const gradient = (stops) => `linear-gradient(to right, ${stops.join(", ")})`;
@@ -574,7 +573,7 @@ class ChromaritePicker extends HTMLElement {
   #show() {
     this.#frame = 0;
     const { L, C, H } = this.#state;
-    const color = Color.fromList(Space.oklch, [L, C, H / 360]);
+    const color = Color.fromList(Space.oklch, [L, C, H]);
     const marker = this.#el("marker");
     marker.style.left = `${(C / MAX_CHROMA) * 100}%`;
     marker.style.top = `${(1 - L) * 100}%`;
@@ -649,8 +648,8 @@ class ChromaritePicker extends HTMLElement {
    * @param {string} text
    */
   #setFromText(text) {
-    const [L, C, turns] = Color.parse(text.trim()).convert(Space.oklch).rows.toList();
-    this.#set({ L, C, H: Number.isFinite(turns) && C > 0.0001 ? turns * 360 : this.#state.H });
+    const [L, C, H] = Color.parse(text.trim()).toSpace(Space.oklch).toList();
+    this.#set({ L, C, H: Number.isFinite(H) && C > 0.0001 ? H : this.#state.H });
   }
 
   #changed() {
@@ -733,7 +732,7 @@ class ChromaritePicker extends HTMLElement {
     const snaps = [["snap-srgb", Space.srgb], ["snap-p3", Space.displayP3]];
     for (const [id, space] of snaps) {
       this.#el(id).addEventListener("click", () => {
-        const [, C] = this.#color.fitChroma(space).rows.toList();
+        const [, C] = this.#color.fitChroma(space).toList();
         this.#set({ C });
         this.#changed();
       });

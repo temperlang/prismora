@@ -81,16 +81,16 @@ int main() {
 
   section("1. Making colors");
 
-  // Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+  // Most channels go from 0 to 1, and hue is in degrees (0 to 360), as in CSS.
   auto orange = Color::fromList(Space::srgb, list({1.0, 0.5, 0.0}));
   show("orange", orange);
 
   // A Color holds any number of colors, one per row, channels back to back.
-  auto pair = Color::fromList(Space::oklch, list({0.7, 0.1, 0.4, 0.5, 0.2, 0.8}));
+  auto pair = Color::fromList(Space::oklch, list({0.7, 0.1, 144.0, 0.5, 0.2, 288.0}));
   show("two OkLCh colors", pair);
 
   // Alpha (opacity, 0 to 1) goes after each row's channels.
-  auto seeThrough = Color::fromAlpha(Space::srgb, list({1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25}));
+  auto seeThrough = Color::fromListWithAlpha(Space::srgb, list({1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25}));
   show("red and blue, see-through", seeThrough);
   show("orange at 80%", orange->withAlpha(list({0.8})));
 
@@ -98,7 +98,7 @@ int main() {
   show("from ints", Color::fromRgbInts(list<int32_t>({0x663399, 0x00ff80})));
 
   // From a Matrix: a flat list read as rows of a given width.
-  show("from rows", Color::fromRows(Space::hsl, Matrix::make(3, list({0.5, 1.0, 0.25, 0.0, 0.0, 0.5}))));
+  show("from rows", Color::fromRows(Space::hsl, Matrix::make(3, list({180.0, 1.0, 0.25, 0.0, 0.0, 0.5}))));
 
   // Any CSS color. Each keeps the space it was written in.
   for (std::string text : {
@@ -139,15 +139,15 @@ int main() {
   for (auto const &space : spaces) {
     auto parent = space->get_parent();
     auto gamut = space->get_gamut();
-    std::cout << space->get_name() << ": " << space->get_ncols() << " channels, parent "
+    std::cout << space->get_name() << ": " << space->get_width() << " channels, parent "
               << (parent ? parent->get_name() : "none") << ", depth " << space->get_depth() << ", gamut "
               << (gamut ? gamut->get_name() : "none") << "\n";
   }
 
   // The same orange in every space.
   for (auto const &space : spaces) {
-    auto converted = orange->convert(space);  // snippet: convert
-    std::cout << "orange in " << space->get_name() << ": " << nums(*converted->get_rows()->toList()) << "\n";
+    auto converted = orange->toSpace(space);  // snippet: convert
+    std::cout << "orange in " << space->get_name() << ": " << nums(*converted->toList()) << "\n";
   }
 
   section("3. Formatting");
@@ -176,17 +176,17 @@ int main() {
   auto inSrgb = p3Red->inGamut(Space::srgb);  // snippet: gamut
   auto inP3 = p3Red->inGamut(Space::displayP3);  // snippet: gamut
   std::cout << "P3 red in sRGB? " << yes((*inSrgb)[0]) << "; in P3? " << yes((*inP3)[0]) << "\n";
-  show("P3 red as sRGB", p3Red->convert(Space::srgb));
+  show("P3 red as sRGB", p3Red->toSpace(Space::srgb));
 
   // To show a color like this vivid blue on an sRGB screen, either map it into
   // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
   // clip each channel, which can change lightness and hue too.
-  auto vivid = Color::fromList(Space::oklch, list({0.6, 0.35, 0.75}));  // snippet: snap, edges
+  auto vivid = Color::fromList(Space::oklch, list({0.6, 0.35, 270.0}));  // snippet: snap, edges
   auto mapped = vivid->toGamut(Space::srgb);  // snippet: snap
-  auto clipped = vivid->clip(Space::srgb);
+  auto clipped = vivid->toGamutClipped(Space::srgb);
   show("vivid blue", vivid);
-  show("mapped, in OkLCh", mapped->convert(Space::oklch));
-  show("clipped, in OkLCh", clipped->convert(Space::oklch));
+  show("mapped, in OkLCh", mapped->toSpace(Space::oklch));
+  show("clipped, in OkLCh", clipped->toSpace(Space::oklch));
 
   // deltaEOK measures how different two colors look: under about 0.02 is hard
   // to see.
@@ -231,7 +231,7 @@ int main() {
   std::cout << "lighter " << (*lighter->toHex())[0] << ", darker " << (*darker->toHex())[0] << "\n";
   std::cout << "more saturated " << (*steel->saturate(1.5)->toHex())[0] << ", less "
             << (*steel->saturate(0.5)->toHex())[0] << "\n";
-  auto opposite = steel->rotateHue(0.5);  // snippet: harmony
+  auto opposite = steel->rotateHue(180.0);  // snippet: harmony
   std::cout << "opposite hue " << (*opposite->toHex())[0] << ", gray " << (*steel->grayscale()->toHex())[0] << "\n";
 
   // Or change every channel value directly.
@@ -256,7 +256,7 @@ int main() {
   std::cout << "values " << nums(*rows->toList()) << "\n";
   std::cout << "doubled " << nums(*rows->map([](double x) { return x * 2; })->toList()) << "\n";
   std::cout << "one row " << nums(*Matrix::rowOf(list({0.1, 0.2, 0.3}))->toList()) << "\n";
-  std::cout << "with alpha " << nums(*seeThrough->rowsWithAlpha()->toList()) << "\n";
+  std::cout << "with alpha " << nums(*seeThrough->toListWithAlpha()) << "\n";
 
   // Reading past the end fails.
   try {

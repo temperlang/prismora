@@ -42,16 +42,16 @@ console.log("# Chromarite tour");
 
 section("1. Making colors");
 
-// Channels go from 0 to 1, and hue is in turns (0 to 1), not degrees.
+// Most channels go from 0 to 1, and hue is in degrees (0 to 360), as in CSS.
 const orange = Color.fromList(Space.srgb, [1.0, 0.5, 0.0]);
 show("orange", orange);
 
 // A Color holds any number of colors, one per row, channels back to back.
-const pair = Color.fromList(Space.oklch, [0.7, 0.1, 0.4, 0.5, 0.2, 0.8]);
+const pair = Color.fromList(Space.oklch, [0.7, 0.1, 144.0, 0.5, 0.2, 288.0]);
 show("two OkLCh colors", pair);
 
 // Alpha (opacity, 0 to 1) goes after each row's channels.
-const seeThrough = Color.fromAlpha(Space.srgb, [1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25]);
+const seeThrough = Color.fromListWithAlpha(Space.srgb, [1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.25]);
 show("red and blue, see-through", seeThrough);
 show("orange at 80%", orange.withAlpha([0.8]));
 
@@ -59,7 +59,7 @@ show("orange at 80%", orange.withAlpha([0.8]));
 show("from ints", Color.fromRgbInts([0x663399, 0x00ff80]));
 
 // From a Matrix: a flat list read as rows of a given width.
-show("from rows", Color.fromRows(Space.hsl, new Matrix(3, [0.5, 1.0, 0.25, 0.0, 0.0, 0.5])));
+show("from rows", Color.fromRows(Space.hsl, new Matrix(3, [180.0, 1.0, 0.25, 0.0, 0.0, 0.5])));
 
 // Any CSS color. Each keeps the space it was written in.
 for (const text of [
@@ -102,15 +102,15 @@ for (const space of spaces) {
   const parent = space.parent === null ? "none" : space.parent.name;
   const gamut = space.gamut === null ? "none" : space.gamut.name;
   console.log(
-    `${space.name}: ${space.ncols} channels, parent ${parent}, ` +
+    `${space.name}: ${space.width} channels, parent ${parent}, ` +
       `depth ${space.depth}, gamut ${gamut}`,
   );
 }
 
 // The same orange in every space.
 for (const space of spaces) {
-  const converted = orange.convert(space);  // snippet: convert
-  console.log(`orange in ${space.name}: ${nums(converted.rows.toList())}`);
+  const converted = orange.toSpace(space);  // snippet: convert
+  console.log(`orange in ${space.name}: ${nums(converted.toList())}`);
 }
 
 section("3. Formatting");
@@ -133,17 +133,17 @@ const p3Red = Color.fromList(Space.displayP3, [1.0, 0.0, 0.0]);  // snippet: gam
 const inSrgb = p3Red.inGamut(Space.srgb);  // snippet: gamut
 const inP3 = p3Red.inGamut(Space.displayP3);  // snippet: gamut
 console.log(`P3 red in sRGB? ${yes(inSrgb[0])}; in P3? ${yes(inP3[0])}`);
-show("P3 red as sRGB", p3Red.convert(Space.srgb));
+show("P3 red as sRGB", p3Red.toSpace(Space.srgb));
 
 // To show a color like this vivid blue on an sRGB screen, either map it into
 // the gamut as CSS does, keeping lightness and hue and reducing chroma, or
 // clip each channel, which can change lightness and hue too.
-const vivid = Color.fromList(Space.oklch, [0.6, 0.35, 0.75]);  // snippet: snap, edges
+const vivid = Color.fromList(Space.oklch, [0.6, 0.35, 270.0]);  // snippet: snap, edges
 const mapped = vivid.toGamut(Space.srgb);  // snippet: snap
-const clipped = vivid.clip(Space.srgb);
+const clipped = vivid.toGamutClipped(Space.srgb);
 show("vivid blue", vivid);
-show("mapped, in OkLCh", mapped.convert(Space.oklch));
-show("clipped, in OkLCh", clipped.convert(Space.oklch));
+show("mapped, in OkLCh", mapped.toSpace(Space.oklch));
+show("clipped, in OkLCh", clipped.toSpace(Space.oklch));
 
 // deltaEOK measures how different two colors look: under about 0.02 is hard
 // to see.
@@ -186,7 +186,7 @@ const lighter = steel.lighten(0.1);  // snippet: shades
 const darker = steel.lighten(-0.1);  // snippet: shades
 console.log(`lighter ${lighter.toHex()[0]}, darker ${darker.toHex()[0]}`);
 console.log(`more saturated ${steel.saturate(1.5).toHex()[0]}, less ${steel.saturate(0.5).toHex()[0]}`);
-const opposite = steel.rotateHue(0.5);  // snippet: harmony
+const opposite = steel.rotateHue(180.0);  // snippet: harmony
 console.log(`opposite hue ${opposite.toHex()[0]}, gray ${steel.grayscale().toHex()[0]}`);
 
 // Or change every channel value directly.
@@ -211,7 +211,7 @@ console.log(`row 1, column 2: ${num(rows.get(1, 2))}; flat 4: ${num(rows.at(4))}
 console.log(`values ${nums(rows.toList())}`);
 console.log(`doubled ${nums(rows.map((x) => x * 2).toList())}`);
 console.log(`one row ${nums(Matrix.rowOf([0.1, 0.2, 0.3]).toList())}`);
-console.log(`with alpha ${nums(seeThrough.rowsWithAlpha().toList())}`);
+console.log(`with alpha ${nums(seeThrough.toListWithAlpha())}`);
 
 // Reading past the end fails.
 try {
