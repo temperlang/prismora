@@ -243,6 +243,10 @@ int main() {
   std::cout << "luminance " << nums(*texts->luminance()) << "\n";
   std::cout << "against white " << nums(*ratios) << "\n";
 
+  // The lightest steelblue that white text can sit on, at 4.5 or more.
+  auto shade = steel->fitContrast(white, 4.5, Space::srgb);
+  std::cout << "steelblue for white text " << (*shade->toHex())[0] << ", " << num((*shade->contrast(white))[0]) << "\n";
+
   section("8. Channels as lists");
 
   // A Color keeps its channels in one flat list, row after row.

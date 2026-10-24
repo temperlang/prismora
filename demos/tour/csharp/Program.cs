@@ -213,6 +213,10 @@ var ratios = texts.Contrast(white);  // snippet: contrast
 Console.WriteLine($"luminance {Nums(texts.Luminance())}");
 Console.WriteLine($"against white {Nums(ratios)}");
 
+// The lightest steelblue that white text can sit on, at 4.5 or more.
+var shade = steel.FitContrast(white, 4.5, Space.Srgb);
+Console.WriteLine($"steelblue for white text {shade.ToHex()[0]}, {Num(shade.Contrast(white)[0])}");
+
 Section("8. Channels as lists");
 
 // A Color keeps its channels in one flat list, row after row.

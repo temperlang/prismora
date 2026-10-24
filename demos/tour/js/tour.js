@@ -199,6 +199,10 @@ const ratios = texts.contrast(white);  // snippet: contrast
 console.log(`luminance ${nums(texts.luminance())}`);
 console.log(`against white ${nums(ratios)}`);
 
+// The lightest steelblue that white text can sit on, at 4.5 or more.
+const shade = steel.fitContrast(white, 4.5, Space.srgb);
+console.log(`steelblue for white text ${shade.toHex()[0]}, ${num(shade.contrast(white)[0])}`);
+
 section("8. Channels as lists");
 
 // A Color keeps its channels in one flat list, row after row.

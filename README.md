@@ -49,7 +49,7 @@ Working now:
   space, with CSS's hue paths and premultiplied alpha
 - Lightening, saturating, hue rotation and grayscale in OkLCh, so changes
   look even across colors
-- WCAG luminance and contrast ratios
+- WCAG luminance and contrast ratios, and fitting colors to reach a ratio
 
 Also: a [tour](demos/README.md) of the whole API in each language, with
 identical output, and a [site](site/) to try colors in the browser.

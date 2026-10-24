@@ -128,6 +128,7 @@ orange halved (srgb, 1 x 3):
 ## 7. Contrast
 luminance [0.0000, 0.1812, 0.3185]
 against white [21.0000, 4.5422, 2.8490]
+steelblue for white text #3f7bad, 4.5008
 
 ## 8. Channels as lists
 2 colors of 3 channels

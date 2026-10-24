@@ -209,6 +209,10 @@ public class Tour {
         System.out.println("luminance " + nums(texts.luminance()));
         System.out.println("against white " + nums(ratios));
 
+        // The lightest steelblue that white text can sit on, at 4.5 or more.
+        Color shade = steel.fitContrast(white, 4.5, Space.srgb);
+        System.out.println("steelblue for white text " + shade.toHex().get(0) + ", " + num(shade.contrast(white).get(0)));
+
         section("8. Channels as lists");
 
         // A Color keeps its channels in one flat list, row after row.

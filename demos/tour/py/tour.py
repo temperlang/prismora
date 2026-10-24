@@ -190,6 +190,10 @@ ratios = texts.contrast(white)  # snippet: contrast
 print(f"luminance {nums(texts.luminance())}")
 print(f"against white {nums(ratios)}")
 
+# The lightest steelblue that white text can sit on, at 4.5 or more.
+shade = steel.fit_contrast(white, 4.5, Space.srgb)
+print(f"steelblue for white text {shade.to_hex()[0]}, {num(shade.contrast(white)[0])}")
+
 section("8. Channels as lists")
 
 # A Color keeps its channels in one flat list, row after row.
