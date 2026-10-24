@@ -3,7 +3,7 @@
 //! The same tour exists for each language Chromarite supports, and they all
 //! print the same text. See ../README.md for how to run them.
 
-use chromarite::{Color, HueMethod, Matrix, Space};
+use chromarite::{Color, HueMethod, Space};
 use std::sync::Arc;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -71,10 +71,6 @@ fn main() -> Result<()> {
 
     // Packed 0xRRGGBB ints, as in hex literals or canvas pixels.
     show("from ints", &Color::from_rgb_ints([0x663399, 0x00ff80]))?;
-
-    // From a Matrix: a flat list read as rows of a given width.
-    let rows = Matrix::new(3, [180.0, 1.0, 0.25, 0.0, 0.0, 0.5]);
-    show("from rows", &Color::from_rows(Space::hsl(), rows))?;
 
     // Any CSS color. Each keeps the space it was written in.
     for text in [
@@ -220,21 +216,19 @@ fn main() -> Result<()> {
     println!("luminance {}", nums(&texts.luminance()));
     println!("against white {}", nums(&ratios));
 
-    section("8. Matrix");
+    section("8. Channels as lists");
 
-    // A Color's rows are a Matrix: one flat list, row after row.
-    let rows = pair.rows();
-    println!("{} rows of {}", rows.nrows(), rows.ncols());
-    println!("row 1, column 2: {}; flat 4: {}", num(rows.get(1, 2)?), num(rows.at(4)?));
-    println!("values {}", nums(&rows.to_list()));
-    println!("doubled {}", nums(&rows.map(Arc::new(|x| x * 2.0)).to_list()));
-    println!("one row {}", nums(&Matrix::row_of([0.1, 0.2, 0.3]).to_list()));
+    // A Color keeps its channels in one flat list, row after row.
+    println!("{} colors of {} channels", pair.length(), pair.width());
+    println!("row 1, channel 2: {}", num(pair.get(1, 2)?));
+    println!("values {}", nums(&pair.to_list()));
+    println!("doubled {}", nums(&pair.map(Arc::new(|x| x * 2.0)).to_list()));
     println!("with alpha {}", nums(&see_through.to_list_with_alpha()));
 
     // Reading past the end fails.
     match pair.get(0, 5) {
         Ok(_) => println!("got?"),
-        Err(_) => println!("column 5 doesn't exist"),
+        Err(_) => println!("channel 5 doesn't exist"),
     }
     Ok(())
 }

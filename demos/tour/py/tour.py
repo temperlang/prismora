@@ -4,7 +4,7 @@ The same tour exists for each language Chromarite supports, and they all print
 the same text. See ../README.md for how to run them.
 """
 
-from chromarite import Color, HueMethod, Matrix, Space
+from chromarite import Color, HueMethod, Space
 
 
 # Numbers print with 4 decimals, the same way in every language.
@@ -54,9 +54,6 @@ show("orange at 80%", orange.with_alpha([0.8]))
 
 # Packed 0xRRGGBB ints, as in hex literals or canvas pixels.
 show("from ints", Color.from_rgb_ints([0x663399, 0x00FF80]))
-
-# From a Matrix: a flat list read as rows of a given width.
-show("from rows", Color.from_rows(Space.hsl, Matrix(3, [180.0, 1.0, 0.25, 0.0, 0.0, 0.5])))
 
 # Any CSS color. Each keeps the space it was written in.
 for text in [
@@ -193,15 +190,13 @@ ratios = texts.contrast(white)  # snippet: contrast
 print(f"luminance {nums(texts.luminance())}")
 print(f"against white {nums(ratios)}")
 
-section("8. Matrix")
+section("8. Channels as lists")
 
-# A Color's rows are a Matrix: one flat list, row after row.
-rows = pair.rows
-print(f"{rows.nrows} rows of {rows.ncols}")
-print(f"row 1, column 2: {num(rows.get(1, 2))}; flat 4: {num(rows.at(4))}")
-print(f"values {nums(rows.to_list())}")
-print(f"doubled {nums(rows.map(lambda x: x * 2).to_list())}")
-print(f"one row {nums(Matrix.row_of([0.1, 0.2, 0.3]).to_list())}")
+# A Color keeps its channels in one flat list, row after row.
+print(f"{pair.length} colors of {pair.width} channels")
+print(f"row 1, channel 2: {num(pair.get(1, 2))}")
+print(f"values {nums(pair.to_list())}")
+print(f"doubled {nums(pair.map(lambda x: x * 2).to_list())}")
 print(f"with alpha {nums(see_through.to_list_with_alpha())}")
 
 # Reading past the end fails.
@@ -209,4 +204,4 @@ try:
     pair.get(0, 5)
     print("got?")
 except Exception:
-    print("column 5 doesn't exist")
+    print("channel 5 doesn't exist")

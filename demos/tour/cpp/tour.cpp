@@ -15,7 +15,6 @@
 
 using chromarite::Color;
 using chromarite::HueMethod;
-using chromarite::Matrix;
 using chromarite::Space;
 
 // Chromarite takes lists as shared vectors.
@@ -96,9 +95,6 @@ int main() {
 
   // Packed 0xRRGGBB ints, as in hex literals or canvas pixels.
   show("from ints", Color::fromRgbInts(list<int32_t>({0x663399, 0x00ff80})));
-
-  // From a Matrix: a flat list read as rows of a given width.
-  show("from rows", Color::fromRows(Space::hsl, Matrix::make(3, list({180.0, 1.0, 0.25, 0.0, 0.0, 0.5}))));
 
   // Any CSS color. Each keeps the space it was written in.
   for (std::string text : {
@@ -247,15 +243,13 @@ int main() {
   std::cout << "luminance " << nums(*texts->luminance()) << "\n";
   std::cout << "against white " << nums(*ratios) << "\n";
 
-  section("8. Matrix");
+  section("8. Channels as lists");
 
-  // A Color's rows are a Matrix: one flat list, row after row.
-  auto rows = pair->get_rows();
-  std::cout << rows->get_nrows() << " rows of " << rows->get_ncols() << "\n";
-  std::cout << "row 1, column 2: " << num(rows->get(1, 2)) << "; flat 4: " << num(rows->at(4)) << "\n";
-  std::cout << "values " << nums(*rows->toList()) << "\n";
-  std::cout << "doubled " << nums(*rows->map([](double x) { return x * 2; })->toList()) << "\n";
-  std::cout << "one row " << nums(*Matrix::rowOf(list({0.1, 0.2, 0.3}))->toList()) << "\n";
+  // A Color keeps its channels in one flat list, row after row.
+  std::cout << pair->get_length() << " colors of " << pair->get_width() << " channels\n";
+  std::cout << "row 1, channel 2: " << num(pair->get(1, 2)) << "\n";
+  std::cout << "values " << nums(*pair->toList()) << "\n";
+  std::cout << "doubled " << nums(*pair->map([](double x) { return x * 2; })->toList()) << "\n";
   std::cout << "with alpha " << nums(*seeThrough->toListWithAlpha()) << "\n";
 
   // Reading past the end fails.
@@ -263,7 +257,7 @@ int main() {
     pair->get(0, 5);
     std::cout << "got?\n";
   } catch (std::exception const &) {
-    std::cout << "column 5 doesn't exist\n";
+    std::cout << "channel 5 doesn't exist\n";
   }
   return 0;
 }

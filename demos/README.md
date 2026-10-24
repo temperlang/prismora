@@ -4,7 +4,7 @@
 
 `tour/` walks through Chromarite's whole public API in each supported
 language: making and parsing colors, converting between spaces, formatting,
-gamut mapping, mixing, adjusting, contrast, and the `Matrix` underneath. Every
+gamut mapping, mixing, adjusting, contrast, and channels as flat lists. Every
 version prints the same text, `tour/expected.txt`, so the tours double as a
 cross-language test.
 

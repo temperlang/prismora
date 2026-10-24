@@ -1,7 +1,7 @@
 // The page's behavior: the color converter, the code tabs, and library
 // sizes. Chromarite comes from Temper's JS output through the import map.
 
-import { Color, HueMethod, Matrix, Space } from "chromarite";
+import { Color, HueMethod, Space } from "chromarite";
 import { initDevMode } from "./devmode.js";
 import "./palette.js";
 import "./picker.js";
@@ -255,8 +255,8 @@ console.log("brand", brand.toHex()[0]);
 // Five shades, evenly spaced in OkLCh lightness, from dark to light.
 // A Color can hold many colors: each row is lightness, chroma and hue.
 const ends = Color.fromList(Space.oklch, [
-  0.3, 0.12, 0.69, // dark blue
-  0.9, 0.05, 0.69, // pale blue
+  0.3, 0.12, 250, // dark blue
+  0.9, 0.05, 250, // pale blue
 ]);
 console.log(ends.gradient(5, Space.oklch).toHex().join(" "));
 
@@ -310,8 +310,8 @@ const AsyncFunction = (async () => {}).constructor;
 
 async function runCode(code, log) {
   const console = { log, error: log, warn: log, info: log };
-  const run = new AsyncFunction("Color", "HueMethod", "Matrix", "Space", "console", code);
-  await run(Color, HueMethod, Matrix, Space, console);
+  const run = new AsyncFunction("Color", "HueMethod", "Space", "console", code);
+  await run(Color, HueMethod, Space, console);
 }
 
 async function runPlay() {

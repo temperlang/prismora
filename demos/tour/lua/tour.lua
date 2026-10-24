@@ -6,8 +6,8 @@
 local chromarite = require("chromarite")
 -- Chromarite's null is temper-core's `null`, not Lua's `nil`.
 local is_null = require("temper-core").is_null
-local Color, HueMethod, Matrix, Space =
-  chromarite.Color, chromarite.HueMethod, chromarite.Matrix, chromarite.Space
+local Color, HueMethod, Space =
+  chromarite.Color, chromarite.HueMethod, chromarite.Space
 
 -- Numbers print with 4 decimals, the same way in every language.
 local function num(x)
@@ -69,9 +69,6 @@ show("orange at 80%", orange:withAlpha({ 0.8 }))
 
 -- Packed 0xRRGGBB ints, as in hex literals or canvas pixels.
 show("from ints", Color.fromRgbInts({ 0x663399, 0x00ff80 }))
-
--- From a Matrix: a flat list read as rows of a given width.
-show("from rows", Color.fromRows(Space.hsl, Matrix(3, { 180.0, 1.0, 0.25, 0.0, 0.0, 0.5 })))
 
 -- Any CSS color. Each keeps the space it was written in.
 for _, text in ipairs({
@@ -214,20 +211,18 @@ local ratios = texts:contrast(white)  -- snippet: contrast
 print("luminance " .. nums(texts:luminance()))
 print("against white " .. nums(ratios))
 
-section("8. Matrix")
+section("8. Channels as lists")
 
--- A Color's rows are a Matrix: one flat list, row after row.
-local rows = pair.rows
-print(string.format("%d rows of %d", rows.nrows, rows.ncols))
-print("row 1, column 2: " .. num(rows:get(1, 2)) .. "; flat 4: " .. num(rows:at(4)))
-print("values " .. nums(rows:toList()))
-print("doubled " .. nums(rows:map(function(x) return x * 2 end):toList()))
-print("one row " .. nums(Matrix.rowOf({ 0.1, 0.2, 0.3 }):toList()))
+-- A Color keeps its channels in one flat list, row after row.
+print(string.format("%d colors of %d channels", pair.length, pair.width))
+print("row 1, channel 2: " .. num(pair:get(1, 2)))
+print("values " .. nums(pair:toList()))
+print("doubled " .. nums(pair:map(function(x) return x * 2 end):toList()))
 print("with alpha " .. nums(seeThrough:toListWithAlpha()))
 
 -- Reading past the end fails.
 if pcall(pair.get, pair, 0, 5) then
   print("got?")
 else
-  print("column 5 doesn't exist")
+  print("channel 5 doesn't exist")
 end

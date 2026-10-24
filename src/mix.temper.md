@@ -97,8 +97,8 @@ or this panics. Alpha in the result is null only if both inputs are opaque.
       } else {
         panic()
       };
-      let rowsA = a.toSpace(space).rows;
-      let rowsB = b.toSpace(space).rows;
+      let rowsA = rowsOf(a.toSpace(space));
+      let rowsB = rowsOf(b.toSpace(space));
       let mixed = new Blend(space, hue);
       for (var i = 0; i < length; i += 1) {
         let ia = if (a.length == 1) { 0 } else { i };
@@ -116,7 +116,7 @@ to the last. One color gives the first stop. Panics on no stops.
     let gradientColors(stops: Color, count: Int, space: Space, hue: HueMethod): Color throws Bubble {
       let nstops = stops.length;
       if (nstops == 0) { panic() }
-      let rows = stops.toSpace(space).rows;
+      let rows = rowsOf(stops.toSpace(space));
       let mixed = new Blend(space, hue);
       for (var i = 0; i < count; i += 1) {
         if (nstops == 1 || count == 1) {
@@ -235,7 +235,7 @@ Steps 1 and 2 for the hue channel `h`, in place.
       }
 
       public toColor(opaque: Boolean): Color {
-        let rows = Color.fromRows(space, new Matrix(space.width, channels.toList()));
+        let rows = Color.fromList(space, channels.toList());
         if (opaque) { rows } else { rows.withAlpha(alphas.toList()) }
       }
     }

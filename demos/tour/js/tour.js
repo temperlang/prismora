@@ -3,7 +3,7 @@
 // The same tour exists for each language Chromarite supports, and they all
 // print the same text. See ../README.md for how to run them.
 
-import { Color, HueMethod, Matrix, Space } from "chromarite";
+import { Color, HueMethod, Space } from "chromarite";
 
 // Numbers print with 4 decimals, the same way in every language.
 function num(x) {
@@ -57,9 +57,6 @@ show("orange at 80%", orange.withAlpha([0.8]));
 
 // Packed 0xRRGGBB ints, as in hex literals or canvas pixels.
 show("from ints", Color.fromRgbInts([0x663399, 0x00ff80]));
-
-// From a Matrix: a flat list read as rows of a given width.
-show("from rows", Color.fromRows(Space.hsl, new Matrix(3, [180.0, 1.0, 0.25, 0.0, 0.0, 0.5])));
 
 // Any CSS color. Each keeps the space it was written in.
 for (const text of [
@@ -202,15 +199,13 @@ const ratios = texts.contrast(white);  // snippet: contrast
 console.log(`luminance ${nums(texts.luminance())}`);
 console.log(`against white ${nums(ratios)}`);
 
-section("8. Matrix");
+section("8. Channels as lists");
 
-// A Color's rows are a Matrix: one flat list, row after row.
-const rows = pair.rows;
-console.log(`${rows.nrows} rows of ${rows.ncols}`);
-console.log(`row 1, column 2: ${num(rows.get(1, 2))}; flat 4: ${num(rows.at(4))}`);
-console.log(`values ${nums(rows.toList())}`);
-console.log(`doubled ${nums(rows.map((x) => x * 2).toList())}`);
-console.log(`one row ${nums(Matrix.rowOf([0.1, 0.2, 0.3]).toList())}`);
+// A Color keeps its channels in one flat list, row after row.
+console.log(`${pair.length} colors of ${pair.width} channels`);
+console.log(`row 1, channel 2: ${num(pair.get(1, 2))}`);
+console.log(`values ${nums(pair.toList())}`);
+console.log(`doubled ${nums(pair.map((x) => x * 2).toList())}`);
 console.log(`with alpha ${nums(seeThrough.toListWithAlpha())}`);
 
 // Reading past the end fails.
@@ -218,5 +213,5 @@ try {
   pair.get(0, 5);
   console.log("got?");
 } catch {
-  console.log("column 5 doesn't exist");
+  console.log("channel 5 doesn't exist");
 }
