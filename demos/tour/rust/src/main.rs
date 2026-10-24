@@ -210,14 +210,14 @@ fn main() -> Result<()> {
 
     // Relative luminance and contrast ratios, as WCAG defines them. Text needs
     // 4.5 or more against its background for normal sizes.
-    let white = Color::parse("white")?;  // snippet: contrast
+    let white = Color::parse("white")?;  // snippet: contrast, shades
     let texts = Color::from_rgb_ints([0x000000, 0x767676, 0x999999]);  // snippet: contrast
     let ratios = texts.contrast(white.clone());  // snippet: contrast
     println!("luminance {}", nums(&texts.luminance()));
     println!("against white {}", nums(&ratios));
 
     // The lightest steelblue that white text can sit on, at 4.5 or more.
-    let shade = steel.fit_contrast(white.clone(), 4.5, Space::srgb());
+    let shade = steel.fit_contrast(white.clone(), 4.5, Space::srgb());  // snippet: shades
     println!("steelblue for white text {}, {}", shade.to_hex()[0], num(shade.contrast(white)[0]));
 
     section("8. Channels as lists");

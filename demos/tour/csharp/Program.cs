@@ -207,14 +207,14 @@ Section("7. Contrast");
 
 // Relative luminance and contrast ratios, as WCAG defines them. Text needs
 // 4.5 or more against its background for normal sizes.
-var white = Color.Parse("white");  // snippet: contrast
+var white = Color.Parse("white");  // snippet: contrast, shades
 var texts = Color.FromRgbInts(new[] { 0x000000, 0x767676, 0x999999 });  // snippet: contrast
 var ratios = texts.Contrast(white);  // snippet: contrast
 Console.WriteLine($"luminance {Nums(texts.Luminance())}");
 Console.WriteLine($"against white {Nums(ratios)}");
 
 // The lightest steelblue that white text can sit on, at 4.5 or more.
-var shade = steel.FitContrast(white, 4.5, Space.Srgb);
+var shade = steel.FitContrast(white, 4.5, Space.Srgb);  // snippet: shades
 Console.WriteLine($"steelblue for white text {shade.ToHex()[0]}, {Num(shade.Contrast(white)[0])}");
 
 Section("8. Channels as lists");

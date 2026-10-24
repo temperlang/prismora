@@ -79,7 +79,7 @@ const SPOTS = [
   {
     id: "shades",
     title: "Lighter and darker",
-    about: "`lighten` moves lightness in OkLCh, where equal steps look equal; a negative amount darkens. Each ramp steps lightness the same way.",
+    about: "`lighten` moves lightness in OkLCh, where equal steps look equal; a negative amount darkens. The 400, 500 and 600 shades come from `fitContrast`: the lightest shade of each hue that reaches 3, 4.5 or 7 against white.",
     target: () => part("chromarite-palette", "ramps"),
   },
   {

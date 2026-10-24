@@ -205,14 +205,14 @@ section("7. Contrast")
 
 -- Relative luminance and contrast ratios, as WCAG defines them. Text needs
 -- 4.5 or more against its background for normal sizes.
-local white = Color.parse("white")  -- snippet: contrast
+local white = Color.parse("white")  -- snippet: contrast, shades
 local texts = Color.fromRgbInts({ 0x000000, 0x767676, 0x999999 })  -- snippet: contrast
 local ratios = texts:contrast(white)  -- snippet: contrast
 print("luminance " .. nums(texts:luminance()))
 print("against white " .. nums(ratios))
 
 -- The lightest steelblue that white text can sit on, at 4.5 or more.
-local shade = steel:fitContrast(white, 4.5, Space.srgb)
+local shade = steel:fitContrast(white, 4.5, Space.srgb)  -- snippet: shades
 print("steelblue for white text " .. shade:toHex()[1] .. ", " .. num(shade:contrast(white)[1]))
 
 section("8. Channels as lists")
